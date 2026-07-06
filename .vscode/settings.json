@@ -1,0 +1,8 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "qt-core.qtInstallationRoot": "",
+    "qt-qml.qmlls.additionalImportPaths": [
+        "C:\\Users\\gabri\\miniconda3\\envs\\gessofer-qt\\Lib\\site-packages\\PySide6\\qml"
+    ]
+}

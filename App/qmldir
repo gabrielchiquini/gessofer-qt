@@ -1,10 +1,9 @@
 module App
 
 Main 1.0 main.qml
-Sidebar 1.0 Sidebar.qml
 WelcomeScreen 1.0 WelcomeScreen.qml
 NavigationGroup 1.0 NavigationGroup.qml
 NavItem 1.0 NavItem.qml
-SidebarHeader 1.0 SidebarHeader.qml
 WelcomeIcon 1.0 WelcomeIcon.qml
+TopNavbar 1.0 TopNavbar.qml
 singleton Constants 1.0 Constants.qml

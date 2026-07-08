@@ -5,6 +5,8 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
+from backend.qml_backend import BackendManager
+
 
 
 def main():
@@ -25,6 +27,11 @@ def main():
 
     engine = QQmlApplicationEngine()
     engine.addImportPath(qml_path)
+
+    # Register BackendManager as a singleton accessible from QML
+    backend = BackendManager()
+    engine.rootContext().setContextProperty("BackendManager", backend)
+
     print(qml_path)
     engine.loadFromModule("App", "Main")
 

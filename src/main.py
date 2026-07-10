@@ -5,7 +5,7 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication
 from PySide6.QtQml import QQmlApplicationEngine
 
-from backend.qml_backend import BackendManager
+from backend.qml.qml_backend import BackendManager
 
 
 

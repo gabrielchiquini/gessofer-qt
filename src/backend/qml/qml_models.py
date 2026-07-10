@@ -5,9 +5,12 @@ from typing import Any
 from PySide6.QtCore import QAbstractListModel, QModelIndex, Qt, Signal, Slot
 from PySide6.QtQml import qmlRegisterType
 
-from backend.api.orders import orders_for_month
+from backend.injector_module import get_injector
+from backend.repositories.order_repository import OrderRepository
 from backend.utils.currency import cents_to_display
-from backend.utils.date import iso_to_br_date
+from backend.utils.date import iso_to_br_date, parse_month_for_orders
+from sqlalchemy.orm import Session
+from typing import Callable
 
 
 class OrderListModel(QAbstractListModel):
@@ -48,7 +51,11 @@ class OrderListModel(QAbstractListModel):
     @Slot(str)
     def load_for_month(self, month: str) -> None:
         """Load orders for a given month and update the model."""
-        raw_orders = orders_for_month(month)
+        injector = get_injector()
+        session_factory = injector.get(Callable[[], Session])
+        m, y = parse_month_for_orders(month)
+        with session_factory() as session:
+            raw_orders = OrderRepository(session).fetch_orders_for_month(month=m, year=y)
         self._orders = []
         for order in raw_orders:
             self._orders.append({
@@ -109,9 +116,15 @@ class ExpenseListModel(QAbstractListModel):
     @Slot(str)
     def load_for_month(self, month: str) -> None:
         """Load expenses for a given month and update the model."""
-        from backend.api.save_expenses import expenses_for_month
+        from backend.injector_module import get_injector
+        from backend.repositories.expense_repository import ExpenseRepository
+        from backend.utils.date import parse_month_for_expenses
 
-        raw_expenses = expenses_for_month(month)
+        injector = get_injector()
+        session_factory = injector.get(Callable[[], Session])
+        validated = parse_month_for_expenses(month)
+        with session_factory() as session:
+            raw_expenses = ExpenseRepository(session).fetch_expenses_for_month(month=validated)
         self._expenses = []
         for expense in raw_expenses:
             self._expenses.append({

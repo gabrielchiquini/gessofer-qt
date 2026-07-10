@@ -3,9 +3,10 @@ from __future__ import annotations
 import logging
 from typing import List
 
+from injector import inject
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_engine
 from backend.errors import DatabaseError, ValidationError
 from backend.models.dto import ExpenseInput, OrderInput
 from backend.repositories.expense_repository import ExpenseRepository
@@ -28,6 +29,16 @@ class SaveOrderService:
 
     If any step fails, rollback is automatic.
     """
+
+    @inject
+    def __init__(self, engine: Engine) -> None:
+        """
+        Initialize with an injected Engine.
+
+        Args:
+            engine: The shared SQLAlchemy Engine (injected by the DI container).
+        """
+        self._engine = engine
 
     def save_orders(
         self,
@@ -67,8 +78,8 @@ class SaveOrderService:
         if validation_errors:
             raise ValidationError(validation_errors, "Validação de pedidos falhou.")
 
-        engine = get_engine()
-        with Session(engine) as session:
+        # Use injected engine to create session
+        with Session(self._engine) as session:
             try:
                 repo = OrderRepository(session)
 
@@ -106,6 +117,16 @@ class SaveExpenseService:
     If any step fails, rollback is automatic.
     """
 
+    @inject
+    def __init__(self, engine: Engine) -> None:
+        """
+        Initialize with an injected Engine.
+
+        Args:
+            engine: The shared SQLAlchemy Engine (injected by the DI container).
+        """
+        self._engine = engine
+
     def save_expenses(
         self,
         expenses: List[ExpenseInput],
@@ -141,8 +162,8 @@ class SaveExpenseService:
         if validation_errors:
             raise ValidationError(validation_errors, "Validação de despesas falhou.")
 
-        engine = get_engine()
-        with Session(engine) as session:
+        # Use injected engine to create session
+        with Session(self._engine) as session:
             try:
                 repo = ExpenseRepository(session)
 

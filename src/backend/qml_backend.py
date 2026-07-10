@@ -1,17 +1,15 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import Any, Callable
 
 from PySide6.QtCore import QObject, Signal, Slot
+from sqlalchemy.orm import Session
 
-from backend.api.orders import orders_for_month, product_list
-from backend.api.save_expenses import expenses_for_month, save_expenses
-from backend.api.save_orders import save_orders
-from backend.errors import BackendError
+from backend.injector_module import get_injector
 from backend.models.dto import ExpenseInput, OrderInput
 from backend.services.freight_distribution import FreightDistributionService
-from backend.services.save_order_service import SaveOrderService, SaveExpenseService
+from backend.services.save_order_service import SaveExpenseService, SaveOrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 
@@ -23,7 +21,10 @@ class BackendManager(QObject):
     QObject singleton that exposes backend API functions to QML.
 
     All methods are @Slot-decorated so they can be called directly from QML.
-    Errors are caught and emitted via the errorOccurred signal.
+    Errors are caught and emitted via the error_occurred signal.
+
+    This class is the composition root for the PySide6 layer — it creates
+    the Injector, resolves services, and wires them together.
     """
 
     data_changed = Signal()
@@ -32,6 +33,33 @@ class BackendManager(QObject):
 
     def __init__(self, parent: QObject | None = None) -> None:
         super().__init__(parent)
+
+        # Create the injector (composition root)
+        self._injector = get_injector()
+
+        # Resolve services from the injector
+        self._session_factory: Callable[[], Session] = self._injector.get(Callable[[], Session])
+        self._save_order_service = self._injector.get(SaveOrderService)
+        self._save_expense_service = self._injector.get(SaveExpenseService)
+
+        # Resolve injected API functions
+        from backend.api.orders import (
+            get_orders_for_month_injected,
+            get_product_list_injected,
+        )
+        from backend.api.save_expenses import (
+            get_expenses_for_month_injected,
+            get_save_expenses_injected,
+        )
+        from backend.api.save_orders import get_save_orders_injected
+
+        self._orders_for_month_fn = get_orders_for_month_injected()
+        self._product_list_fn = get_product_list_injected()
+        self._expenses_for_month_fn = get_expenses_for_month_injected()
+        self._save_orders_fn = get_save_orders_injected()
+        self._save_expenses_fn = get_save_expenses_injected()
+
+        # Create stateless services (no DI needed)
         self._validation = ValidationService()
         self._freight = FreightDistributionService()
         self._xml_import = XmlImportService()
@@ -42,7 +70,7 @@ class BackendManager(QObject):
     def orders_for_month(self, month: str) -> list[dict[str, Any]]:
         """Fetch orders for a month and return as list of dicts for QML."""
         try:
-            raw_orders = orders_for_month(month)
+            raw_orders = self._orders_for_month_fn(month)
             result = []
             for order in raw_orders:
                 result.append({
@@ -67,8 +95,8 @@ class BackendManager(QObject):
                 })
             self.data_changed.emit()
             return result
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
             return []
 
     @Slot(int, str, str, str)
@@ -81,7 +109,7 @@ class BackendManager(QObject):
     ) -> dict[str, Any]:
         """Fetch paginated product list and return as dict for QML."""
         try:
-            result = product_list(
+            result = self._product_list_fn(
                 page=page,
                 supplier=supplier if supplier else None,
                 product=product if product else None,
@@ -105,8 +133,8 @@ class BackendManager(QObject):
                 "total": result.total,
                 "page_size": result.page_size,
             }
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
             return {
                 "items": [],
                 "page": 0,
@@ -121,7 +149,7 @@ class BackendManager(QObject):
     def expenses_for_month(self, month: str) -> list[dict[str, Any]]:
         """Fetch expenses for a month and return as list of dicts for QML."""
         try:
-            raw_expenses = expenses_for_month(month)
+            raw_expenses = self._expenses_for_month_fn(month)
             return [
                 {
                     "id": e.ID,
@@ -131,8 +159,8 @@ class BackendManager(QObject):
                 }
                 for e in raw_expenses
             ]
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
             return []
 
     # ── Save Operations ─────────────────────────────────────────────
@@ -141,57 +169,42 @@ class BackendManager(QObject):
     def save_orders(self, orders: list, deleted_orders: list) -> None:
         """Save orders in a single transaction."""
         try:
-            order_inputs = [
-                OrderInput(
+            # Build OrderInput list
+            final_orders: list[OrderInput] = []
+            for o in orders:
+                products = []
+                for p in o.get("products", []):
+                    pi = OrderInput(
+                        id=p.get("id", ""),
+                        date="",
+                        supplier="",
+                        nfe_key="",
+                        freight=0,
+                        unloading=0,
+                        products=[],
+                    )
+                    pi.name = p.get("name", "")
+                    pi.quantity = p.get("quantity", 0)
+                    pi.price = p.get("price", 0)
+                    pi.total = p.get("total", 0)
+                    pi.order_id = p.get("order_id", "")
+                    pi.item_ordinal = p.get("itemOrdinal")
+                    products.append(pi)
+                oi = OrderInput(
                     id=o.get("id", ""),
                     date=o.get("date", ""),
                     supplier=o.get("supplier", ""),
                     nfe_key=o.get("nfeKey", ""),
                     freight=o.get("freight", 0),
                     unloading=o.get("unloading", 0),
-                    products=[
-                        product for product in o.get("products", [])
-                    ],
+                    products=products,
                 )
-                for o in orders
-            ]
-            # Convert nested dicts to ProductInput
-            final_orders: list[OrderInput] = []
-            for o in orders:
-                products = []
-                for p in o.get("products", []):
-                    products.append(
-                        OrderInput(
-                            id=p.get("id", ""),
-                            date="",
-                            supplier="",
-                            nfe_key="",
-                            freight=0,
-                            unloading=0,
-                            products=[],
-                        )
-                    )
-                    products[-1].name = p.get("name", "")
-                    products[-1].quantity = p.get("quantity", 0)
-                    products[-1].price = p.get("price", 0)
-                    products[-1].total = p.get("total", 0)
-                    products[-1].order_id = p.get("order_id", "")
-                    products[-1].item_ordinal = p.get("itemOrdinal")
-                final_orders.append(
-                    OrderInput(
-                        id=o.get("id", ""),
-                        date=o.get("date", ""),
-                        supplier=o.get("supplier", ""),
-                        nfe_key=o.get("nfeKey", ""),
-                        freight=o.get("freight", 0),
-                        unloading=o.get("unloading", 0),
-                        products=products,
-                    )
-                )
-            save_orders(final_orders, deleted_orders)
+                final_orders.append(oi)
+
+            self._save_orders_fn(final_orders, deleted_orders)
             self.save_completed.emit()
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
 
     @Slot(list, str)
     def save_expenses(self, expenses: list, month: str) -> None:
@@ -204,10 +217,10 @@ class BackendManager(QObject):
                 )
                 for e in expenses
             ]
-            save_expenses(expense_inputs, month)
+            self._save_expenses_fn(expense_inputs, month)
             self.save_completed.emit()
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
 
     # ── Business Logic ──────────────────────────────────────────────
 
@@ -235,7 +248,6 @@ class BackendManager(QObject):
                     for p in order.get("products", [])
                 ],
             )
-            # Manually set product fields
             for i, p in enumerate(order.get("products", [])):
                 order_input.products[i].name = p.get("name", "")
                 order_input.products[i].quantity = p.get("quantity", 0)
@@ -300,8 +312,8 @@ class BackendManager(QObject):
                 ],
                 "warnings": result.warnings,
             }
-        except BackendError as exc:
-            self.error_occurred.emit(exc.user_message)
+        except Exception as exc:
+            self.error_occurred.emit(str(exc))
             return {"orders": [], "warnings": []}
 
     @Slot(object)

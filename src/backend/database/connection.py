@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from typing import Any
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.pool import StaticPool
 from sqlalchemy.engine import Engine
 
@@ -68,9 +68,7 @@ def get_engine(db_path: str | None = None) -> Engine:
     )
 
     # Enable WAL mode and foreign keys on each new connection
-    from sqlalchemy.event import register
-
-    @register(engine, "connect")
+    @event.listens_for(engine, "connect")
     def set_sqlite_pragma(dbapi_conn: Any, connection_record: Any) -> None:
         cursor = dbapi_conn.cursor()
         cursor.execute("PRAGMA journal_mode=WAL")

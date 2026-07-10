@@ -13,8 +13,11 @@ Gessofer-Qt is a **PySide6 + QML desktop app** (Python entry point) for purchase
 ## Run the App
 
 ```powershell
+.\.venv\Scripts\Activate.ps1
 python src/main.py
 ```
+
+Always activate the `.venv` virtual environment before running any Python commands.
 
 `main.py` is at `src/main.py`. It resolves the QML module path relative to itself (`Path(__file__).parent.parent` → project root) and adds it to `engine.addImportPath()`. **Do not change the working directory** — the QML import path is absolute from `src/`'s parent.
 
@@ -40,7 +43,8 @@ App/
 ## Linting QML
 
 ```powershell
-& "C:\Users\gabri\miniconda3\envs\gessofer-qt\Lib\site-packages\PySide6\qmllint.exe" -I . App\*.qml
+.\.venv\Scripts\Activate.ps1
+& ".venv\Lib\site-packages\PySide6\qmllint.exe" -I . App\*.qml
 ```
 
 - Always use `-I .` so qmllint finds `App/qmldir`.
@@ -48,9 +52,12 @@ App/
 
 ## Dependencies
 
-```
+```powershell
+.\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 ```
+
+All dependency management must be done within the `.venv` virtual environment.
 
 Only PySide6 6.11.1 (and its addons/essentials/shiboken6). No Node.js, no pnpm, no Rust toolchain needed for this repo.
 

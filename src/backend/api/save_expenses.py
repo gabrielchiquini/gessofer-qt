@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-from typing import List
+from typing import Callable, List
 
+from backend.injector_module import call_with_injection
 from sqlalchemy.orm import Session
 
-from backend.database.connection import get_engine
 from backend.entities.orm import Expense
 from backend.models.dto import ExpenseInput
 from backend.repositories.expense_repository import ExpenseRepository
@@ -12,12 +12,16 @@ from backend.services.save_order_service import SaveExpenseService
 from backend.utils.date import parse_month_for_expenses
 
 
-def expenses_for_month(month: str) -> List[Expense]:
+def expenses_for_month(
+    month: str,
+    session_factory: Callable[[], Session],
+) -> List[Expense]:
     """
     Fetch all expenses for a given month.
 
     Args:
         month: Month string in 'YYYY-MM' format (e.g., '2024-07').
+        session_factory: Injected factory that creates new Sessions.
 
     Returns:
         List of Expense ORM entities.
@@ -28,8 +32,7 @@ def expenses_for_month(month: str) -> List[Expense]:
     """
     validated_month = parse_month_for_expenses(month)
 
-    engine = get_engine()
-    with Session(engine) as session:
+    with session_factory() as session:
         repo = ExpenseRepository(session)
         return repo.fetch_expenses_for_month(month=validated_month)
 
@@ -37,6 +40,7 @@ def expenses_for_month(month: str) -> List[Expense]:
 def save_expenses(
     expenses: List[ExpenseInput],
     month: str,
+    service: SaveExpenseService,
 ) -> None:
     """
     Save expenses in a single database transaction.
@@ -47,12 +51,35 @@ def save_expenses(
     Args:
         expenses: List of ExpenseInput DTOs to save.
         month: Month string in 'YYYY-MM' format.
+        service: Injected SaveExpenseService instance.
 
     Raises:
         ValidationError: If input data fails validation.
-        BackendError: If a database or transaction error occurs.
+        DatabaseError: If a database or transaction error occurs.
     """
     validated_month = parse_month_for_expenses(month)
-
-    service = SaveExpenseService()
     service.save_expenses(expenses=expenses, month=validated_month)
+
+
+# Wrap functions with injection
+def _expenses_for_month_injected(month: str) -> List[Expense]:
+    """Injected wrapper for expenses_for_month."""
+    return call_with_injection(expenses_for_month, month)
+
+
+def _save_expenses_injected(
+    expenses: List[ExpenseInput],
+    month: str,
+) -> None:
+    """Injected wrapper for save_expenses."""
+    call_with_injection(save_expenses, expenses, month)
+
+
+def get_expenses_for_month_injected() -> Callable[[str], List[Expense]]:
+    """Return the injected version of expenses_for_month for BackendManager."""
+    return _expenses_for_month_injected
+
+
+def get_save_expenses_injected() -> Callable[[List[ExpenseInput], str], None]:
+    """Return the injected version of save_expenses for BackendManager."""
+    return _save_expenses_injected

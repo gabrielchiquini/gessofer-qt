@@ -6,4 +6,5 @@ NavigationGroup 1.0 NavigationGroup.qml
 NavItem 1.0 NavItem.qml
 WelcomeIcon 1.0 WelcomeIcon.qml
 TopNavbar 1.0 TopNavbar.qml
+ProductList 1.0 ProductList.qml
 singleton Constants 1.0 Constants.qml

@@ -27,6 +27,16 @@ def iso_to_br_date(iso_date: str) -> str:
     except ValueError:
         return ""
 
+def datetime_to_br_date(date: datetime) -> str:
+    """
+    Convert DATETIME to BR 'dd/MM/yyyy'.
+    Returns empty string if parsing fails.
+    """
+    try:
+        return date.strftime(BR_DATE_FORMAT)
+    except ValueError:
+        return ""
+
 
 def parse_month_for_orders(month: str) -> tuple[int, int]:
     """

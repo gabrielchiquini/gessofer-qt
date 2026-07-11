@@ -3,8 +3,8 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import List, Optional, Sequence
 
-from sqlalchemy import select, delete, insert, update
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select, delete, insert, update
+from sqlalchemy.orm import Session, selectinload
 
 from backend.entities.orm import Order, Product
 from backend.models.dto import OrderInput, ProductInput, PageResponse
@@ -64,7 +64,7 @@ class OrderRepository:
 
         Returns PageResponse with matching Product ORM entities.
         """
-        where_clauses = []
+        where_clauses = [Product.ID.is_not(None)]
 
         # Filter by supplier (normalized LIKE)
         if supplier:
@@ -77,7 +77,8 @@ class OrderRepository:
             where_clauses.append(Product.NAME_NORMALIZED.like(f"%{normalized_product}%"))
 
         # Filter by month (MM/yyyy) - joins through ORDER table
-        if month:
+        if month and len(month) == 7:
+            print(month)
             try:
                 m_str, y_str = month.split("/")
                 m = int(m_str)
@@ -87,10 +88,10 @@ class OrderRepository:
 
             date_start = f"{y:04d}-{m:02d}-01"
             if m == 12:
-                next_m = "01"
+                next_m = 1
                 next_y = y + 1
             else:
-                next_m = str(m + 1).zfill(2)
+                next_m = m + 1
                 next_y = y
             date_end = f"{next_y:04d}-{next_m:02d}-01"
 
@@ -102,8 +103,9 @@ class OrderRepository:
             where_clauses.append(Product.ORDER_ID.in_(subquery))
 
         # Total count (for pagination)
-        count_stmt = select(Product.ID).where(*where_clauses) if where_clauses else select(Product.ID)
-        total = self.session.execute(count_stmt).scalars().count()
+        count_stmt = select(func.count()).where(*where_clauses)
+        total = self.session.scalar(count_stmt)
+        total = int(total)
 
         # Page count
         page_count = (total + PAGE_SIZE - 1) // PAGE_SIZE if total > 0 else 0
@@ -112,7 +114,8 @@ class OrderRepository:
         offset = (page - 1) * PAGE_SIZE
         query_stmt = (
             select(Product)
-            .where(*where_clauses) if where_clauses else select(Product)
+            .where(*where_clauses)
+            .options(selectinload(Product.order))
             .order_by(Product.NAME.asc())
             .limit(PAGE_SIZE)
             .offset(offset)

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import logging
+import traceback
 from typing import Any, Callable
 
 from PySide6.QtCore import QObject, Signal, Slot
 from sqlalchemy.orm import Session
 
 from backend.injector_module import get_injector
-from backend.models.dto import ExpenseInput, OrderInput
+from backend.models.dto import ExpenseInput, OrderInput, PageResponse
 from backend.services.freight_distribution import FreightDistributionService
 from backend.services.save_order_service import SaveExpenseService, SaveOrderService
 from backend.services.validation_service import ValidationService
@@ -95,8 +96,15 @@ class BackendManager(QObject):
             )
             return product_page_to_dict(result)
         except Exception as exc:
+            print(traceback.format_exc())
             self.error_occurred.emit(str(exc))
-            return {"items": [], "page": 0, "page_count": 0, "total": 0, "page_size": 0}
+            return product_page_to_dict(PageResponse(
+                items=[],
+                page=1,
+                page_count=1,
+                total=0,
+                page_size=0,
+            )) 
 
     @Slot(str)
     def expenses_for_month(self, month: str) -> list[dict[str, Any]]:

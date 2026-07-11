@@ -26,7 +26,7 @@ class Order(Base):
 
     # Relationship to Product (backref on Product)
     products: Mapped[List["Product"]] = relationship(
-        "Product", back_populates="order", cascade="all, delete-orphan"
+        back_populates="order", cascade="all, delete-orphan"
     )
 
 
@@ -45,7 +45,7 @@ class Product(Base):
     UPDATED_AT: Mapped[datetime] = mapped_column("UPDATED_AT", DateTime)
 
     # Back-reference to Order
-    order: Mapped["Order"] = relationship("Order", back_populates="products")
+    order: Mapped["Order"] = relationship(back_populates="products")
 
 
 class Expense(Base):

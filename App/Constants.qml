@@ -22,6 +22,8 @@ QtObject {
     readonly property string separatorColor: "#bdc3c7"
     readonly property string metaTextColor: "#95a5a6"
     readonly property string hintTextColor: "#bdc3c7"
+    readonly property string controlBg: "#ffffff"
+    readonly property string textMuted: "#7f8c8d"
 
     // ── Navigation ──────────────────────────────────────
     readonly property var navGroups: [

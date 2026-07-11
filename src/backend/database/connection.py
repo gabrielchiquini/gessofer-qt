@@ -8,7 +8,6 @@ from sqlalchemy.engine import Engine
 
 DEFAULT_DB_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "gessofer-tauri")
 DEFAULT_DB_FILE = "main.db"
-TEST_DB_PREFIX = "tmp-gessofer-tauri"
 
 
 def discover_database_path() -> str:
@@ -21,24 +20,29 @@ def discover_database_path() -> str:
     Returns the absolute path as a string.
     Raises FileNotFoundError if no database is found and no env var is set.
     """
+    
+    # Step 3: Check CWD
+    cwd = os.curdir
+    if cwd:
+        test_path = os.path.join(cwd, "main.db")
+        if os.path.isfile(test_path):
+            print("Using CWD DB")
+            return os.path.abspath(test_path)
+
     # Step 1: Check DATABASE_URL
     db_url = os.environ.get("DATABASE_URL")
     if db_url:
         # Strip "sqlite://" prefix if present
         path = db_url.replace("sqlite:///", "").replace("sqlite://", "")
+        print("Using APPDATA DB")
         return os.path.abspath(path)
 
     # Step 2: Check production path
     prod_path = os.path.join(DEFAULT_DB_DIR, DEFAULT_DB_FILE)
     if os.path.isfile(prod_path):
+        print("Using PROD DB")
         return os.path.abspath(prod_path)
 
-    # Step 3: Check test path
-    temp_dir = os.environ.get("TEMP", os.environ.get("TMP", ""))
-    if temp_dir:
-        test_path = os.path.join(temp_dir, f"{TEST_DB_PREFIX}.db")
-        if os.path.isfile(test_path):
-            return os.path.abspath(test_path)
 
     raise FileNotFoundError(
         "Nenhum arquivo de banco encontrado. "

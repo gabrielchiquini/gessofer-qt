@@ -6,6 +6,8 @@ from backend.entities.orm import Expense, Order, Product
 from backend.models.dto import OrderInput, PageResponse
 from backend.services.freight_distribution import FreightDistributionResult
 from backend.services.xml_import_service import XmlImportResult
+from backend.utils.currency import cents_to_display
+from backend.utils.date import datetime_to_br_date, iso_to_br_date
 
 
 def orm_order_to_dict(order: Order) -> dict[str, Any]:
@@ -31,6 +33,24 @@ def orm_product_to_dict(product: Product) -> dict[str, Any]:
         "total": product.TOTAL_PRICE,
         "order_id": product.ORDER_ID,
         "itemOrdinal": product.ITEM_ORDINAL,
+    }
+
+
+def product_list_item_to_dict(product: Product) -> dict[str, Any]:
+    """Transform an ORM Product entity into a dict for the QML Product List table.
+
+    Extracts order-level data alongside product data and formats the date
+    using the Brazilian date convention (dd/MM/yyyy).
+    """
+    date_str = datetime_to_br_date(product.order.DATE) if product.order and product.order.DATE else ""
+    
+    return {
+        "date": date_str,
+        "supplier": product.order.SUPPLIER if product.order else "",
+        "name": product.NAME,
+        "price": cents_to_display(product.PRICE),
+        "totalPrice": cents_to_display(product.TOTAL_PRICE),
+        "orderId": product.ORDER_ID,
     }
 
 
@@ -78,7 +98,7 @@ def expense_to_dict(expense: Expense) -> dict[str, Any]:
 def product_page_to_dict(response: PageResponse[Product]) -> dict[str, Any]:
     """Transform a PageResponse[Product] into a QML-compatible dict."""
     return {
-        "items": [orm_product_to_dict(p) for p in response.items],
+        "items": [product_list_item_to_dict(p) for p in response.items],
         "page": response.page,
         "page_count": response.page_count,
         "total": response.total,

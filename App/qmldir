@@ -1,6 +1,7 @@
 module App
 
 Main 1.0 main.qml
+MainTest 1.0 MainTest.qml
 WelcomeScreen 1.0 WelcomeScreen.qml
 NavigationGroup 1.0 NavigationGroup.qml
 NavItem 1.0 NavItem.qml

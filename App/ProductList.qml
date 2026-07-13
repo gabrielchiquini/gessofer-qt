@@ -1,22 +1,19 @@
-pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import "."
 import App.Backend
 
 Rectangle {
     id: productList
     color: Constants.contentBg
-    // Layout.alignment: Qt.AlignHCenter
     Layout.fillWidth: true
     Layout.fillHeight: true
 
     ColumnLayout {
-        anchors.fill: parent
-        anchors.margins: 10
+        Layout.fillWidth: true
+        Layout.fillHeight: true
+        Layout.margins: 10
         spacing: 5
-        // Layout.alignment: Qt.AlignHCenter
 
         // ── Filter Form Section ─────────────────────────────
         RowLayout {
@@ -57,48 +54,49 @@ Rectangle {
                 onClicked: productList.onClear()
             }
         }
-
-        // ── Data Table Section ──────────────────────────────
-        TableView {
-            id: tableView
+        ScrollView {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            clip: true
 
-            model: ProductListModel {}
+            TableView {
+                id: tableView
+                anchors.fill: parent
+                clip: true
 
-            delegate: Rectangle {
-                implicitWidth: 100
-                implicitHeight: 50
-                border.width: 1
+                model: ProductListModel {}
 
-                Text {
-                    text: tableView.model.cellText
-                    font.pixelSize: 14
+                delegate: Rectangle {
+                    implicitWidth: 100
+                    implicitHeight: 20
+                    border.width: 1
+
+                    Text {
+                        text: "display"
+                        font.pixelSize: 14
+                    }
                 }
             }
         }
 
-        // ── Pagination Section ──────────────────────────────
-        // RowLayout {
-        //     Layout.fillWidth: true
+        RowLayout {
+            Layout.fillWidth: true
 
-        //     Button {
-        //         text: "←"
-        //         enabled: tableView.model.currentPage > 1
-        //         onClicked: tableView.model.refresh(tableView.model.currentPage - 1, filterSupplier.text, filterProduct.text, filterMonth.text)
-        //     }
+            Button {
+                text: "←"
+                enabled: tableView.model.currentPage > 1
+                onClicked: tableView.model.refresh(tableView.model.currentPage - 1, filterSupplier.text, filterProduct.text, filterMonth.text)
+            }
 
-        //     Label {
-        //         text: "Página " + tableView.model.currentPage + " de " + tableView.model.pageCount
-        //     }
+            Label {
+                text: "Página " + tableView.model.currentPage + " de " + tableView.model.pageCount
+            }
 
-        //     Button {
-        //         text: "→"
-        //         enabled: tableView.model.currentPage < tableView.model.pageCount
-        //         onClicked: tableView.model.refresh(tableView.model.currentPage + 1, filterSupplier.text, filterProduct.text, filterMonth.text)
-        //     }
-        // }
+            Button {
+                text: "→"
+                enabled: tableView.model.currentPage < tableView.model.pageCount
+                onClicked: tableView.model.refresh(tableView.model.currentPage + 1, filterSupplier.text, filterProduct.text, filterMonth.text)
+            }
+        }
     }
 
     // ── Logic ─────────────────────────────────────────────
@@ -107,7 +105,7 @@ Rectangle {
         var product = filterProduct.text;
         var month = filterMonth.text;
         tableView.model.refresh(1, supplier, product, month);
-        tableView.forceLayout()
+        tableView.forceLayout();
     }
 
     function onClear() {
@@ -115,10 +113,10 @@ Rectangle {
         filterProduct.text = "";
         filterMonth.text = "";
         tableView.model.refresh(1, "", "", "");
-        tableView.forceLayout()
+        tableView.forceLayout();
     }
 
     Component.onCompleted: {
-        tableView.model.refresh(1, "", "", "");
+        onClear();
     }
 }

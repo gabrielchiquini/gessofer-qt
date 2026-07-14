@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
+from bridge import OrderInputDict
 from backend.injector_module import get_injector
 from backend.models.dto import OrderInput
 from backend.utils.transformers import dict_to_order_input
@@ -46,7 +46,7 @@ def _get_save_handler() -> SaveHandler:
 
 
 def save_orders(
-    orders: list[dict[str, Any]],
+    orders: list[OrderInputDict],
     deleted_order_ids: list[str],
 ) -> bool:
     """

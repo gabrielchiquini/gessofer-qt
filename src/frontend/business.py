@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
+from typing import cast
 
 from backend.utils.transformers import (
     dict_to_order_input,
@@ -11,11 +11,17 @@ from backend.utils.transformers import (
 from backend.services.freight_distribution import FreightDistributionService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
+from bridge import (
+    FreightResultDict,
+    OrderInputDict,
+    ValidationDict,
+    XmlImportResultDict,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def distribute_freight(order: dict[str, Any]) -> dict[str, Any]:
+def distribute_freight(order: OrderInputDict) -> FreightResultDict:
     """
     Distribute freight/unloading costs across products in an order.
 
@@ -31,13 +37,13 @@ def distribute_freight(order: dict[str, Any]) -> dict[str, Any]:
         result = service.distribute(order_input)
         return freight_result_to_dict(result)
     except ValueError:
-        return {}
+        return cast(FreightResultDict, {})
     except Exception as exc:
         logger.error("Error in distribute_freight: %s", exc)
-        return {}
+        return cast(FreightResultDict, {})
 
 
-def import_xml(file_path: str) -> dict[str, Any]:
+def import_xml(file_path: str) -> XmlImportResultDict:
     """
     Import orders from an NFe XML file.
 
@@ -56,7 +62,7 @@ def import_xml(file_path: str) -> dict[str, Any]:
         return {"orders": [], "warnings": []}
 
 
-def validate_order(order: dict[str, Any]) -> dict[str, Any]:
+def validate_order(order: OrderInputDict) -> ValidationDict:
     """
     Validate an order dict.
 
@@ -76,7 +82,7 @@ def validate_order(order: dict[str, Any]) -> dict[str, Any]:
         return {"valid": False, "errors": [str(exc)]}
 
 
-def validate_expense(description: str, value: int) -> dict[str, Any]:
+def validate_expense(description: str, value: int) -> ValidationDict:
     """
     Validate an expense.
 

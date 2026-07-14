@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from bridge import ExpenseDict, ExpenseInputDict
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import ExpenseInput
@@ -23,7 +24,7 @@ class _ExpenseFetchHandler:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
 
-    def fetch_expenses_for_month(self, month: str) -> list[dict[str, Any]]:
+    def fetch_expenses_for_month(self, month: str) -> list[ExpenseDict]:
         """Fetch expenses for a month in YYYY-MM format."""
         session: Session = self._session_factory()
         try:
@@ -82,7 +83,7 @@ def _get_save_handler() -> _ExpenseSaveHandler:
     return _save_handler
 
 
-def fetch_expenses_for_month(month: str) -> list[dict[str, Any]]:
+def fetch_expenses_for_month(month: str) -> list[ExpenseDict]:
     """
     Fetch expenses for a given month.
 
@@ -105,7 +106,7 @@ def fetch_expenses_for_month(month: str) -> list[dict[str, Any]]:
 
 
 def save_expenses(
-    expenses: list[dict[str, Any]],
+    expenses: list[ExpenseInputDict],
     month: str,
 ) -> bool:
     """

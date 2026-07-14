@@ -14,6 +14,7 @@ from PySide6.QtCore import Qt
 
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date
+from bridge import ProductPageResponseDict
 from frontend.constants import PRODUCT_PAGE_SIZE
 from widgets.product import fetch_products
 
@@ -174,7 +175,7 @@ class ProductListView(QWidget):
             self._page_count = 0
             self.update_pagination()
 
-    def _process_result(self, result: dict[str, Any]) -> None:
+    def _process_result(self, result: ProductPageResponseDict) -> None:
         """Process a fetch result and populate the table."""
         self._total = result["total"]
         self._page_count = result["page_count"]

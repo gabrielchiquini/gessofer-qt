@@ -1,17 +1,25 @@
 from __future__ import annotations
 
-from typing import Any
-
 from backend.entities.orm import Expense, Order, Product
 from backend.models.dto import OrderInput, PageResponse
 from backend.services.freight_distribution import FreightDistributionResult
 from backend.services.xml_import_service import XmlImportResult
 from backend.utils.currency import cents_to_display
 from backend.utils.date import datetime_to_br_date, iso_to_br_date
+from bridge import (
+    ExpenseDict,
+    FreightResultDict,
+    OrderDict,
+    OrderInputDict,
+    ProductDict,
+    ProductListItemDict,
+    ProductPageResponseDict,
+    XmlImportResultDict,
+)
 
 
-def orm_order_to_dict(order: Order) -> dict[str, Any]:
-    """Transform an ORM Order entity into a QML-compatible dict."""
+def orm_order_to_dict(order: Order) -> OrderDict:
+    """Transform an ORM Order entity into a bridge-compatible dict."""
     return {
         "id": order.ID,
         "date": order.DATE.isoformat() if order.DATE else "",
@@ -23,8 +31,8 @@ def orm_order_to_dict(order: Order) -> dict[str, Any]:
     }
 
 
-def orm_product_to_dict(product: Product) -> dict[str, Any]:
-    """Transform an ORM Product entity into a QML-compatible dict."""
+def orm_product_to_dict(product: Product) -> ProductDict:
+    """Transform an ORM Product entity into a bridge-compatible dict."""
     return {
         "id": product.ID,
         "name": product.NAME,
@@ -36,8 +44,8 @@ def orm_product_to_dict(product: Product) -> dict[str, Any]:
     }
 
 
-def product_list_item_to_dict(product: Product) -> dict[str, Any]:
-    """Transform an ORM Product entity into a dict for the QML Product List table.
+def product_list_item_to_dict(product: Product) -> ProductListItemDict:
+    """Transform an ORM Product entity into a dict for the widget bridge Product List table.
 
     Extracts order-level data alongside product data and formats the date
     using the Brazilian date convention (dd/MM/yyyy).
@@ -54,8 +62,8 @@ def product_list_item_to_dict(product: Product) -> dict[str, Any]:
     }
 
 
-def dict_to_order_input(d: dict[str, Any]) -> OrderInput:
-    """Transform a QML dict (from save/distribute/validate) into an OrderInput DTO."""
+def dict_to_order_input(d: OrderInputDict) -> OrderInput:
+    """Transform a widget-bridge dict (from save/distribute/validate) into an OrderInput DTO."""
     products: list[OrderInput] = []
     for p in d.get("products", []):
         pi = OrderInput(
@@ -85,8 +93,8 @@ def dict_to_order_input(d: dict[str, Any]) -> OrderInput:
     )
 
 
-def expense_to_dict(expense: Expense) -> dict[str, Any]:
-    """Transform an ORM Expense entity into a QML-compatible dict."""
+def expense_to_dict(expense: Expense) -> ExpenseDict:
+    """Transform an ORM Expense entity into a bridge-compatible dict."""
     return {
         "id": expense.ID,
         "month": expense.MONTH,
@@ -95,8 +103,8 @@ def expense_to_dict(expense: Expense) -> dict[str, Any]:
     }
 
 
-def product_page_to_dict(response: PageResponse[Product]) -> dict[str, Any]:
-    """Transform a PageResponse[Product] into a QML-compatible dict."""
+def product_page_to_dict(response: PageResponse[Product]) -> ProductPageResponseDict:
+    """Transform a PageResponse[Product] into a bridge-compatible dict."""
     return {
         "items": [product_list_item_to_dict(p) for p in response.items],
         "page": response.page,
@@ -106,8 +114,8 @@ def product_page_to_dict(response: PageResponse[Product]) -> dict[str, Any]:
     }
 
 
-def freight_result_to_dict(result: FreightDistributionResult) -> dict[str, Any]:
-    """Transform a FreightDistributionResult into a QML-compatible dict."""
+def freight_result_to_dict(result: FreightDistributionResult) -> FreightResultDict:
+    """Transform a FreightDistributionResult into a bridge-compatible dict."""
     return {
         "order_id": result.order_id,
         "old_freight": result.old_freight,
@@ -130,8 +138,8 @@ def freight_result_to_dict(result: FreightDistributionResult) -> dict[str, Any]:
     }
 
 
-def xml_import_result_to_dict(result: XmlImportResult) -> dict[str, Any]:
-    """Transform an XmlImportResult into a QML-compatible dict."""
+def xml_import_result_to_dict(result: XmlImportResult) -> XmlImportResultDict:
+    """Transform an XmlImportResult into a bridge-compatible dict."""
     return {
         "orders": [
             {

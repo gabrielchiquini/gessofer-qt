@@ -1,10 +1,11 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Callable
+from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from bridge import ProductPageResponseDict, OrderDict
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import PageResponse
@@ -27,8 +28,8 @@ class FetchHandler:
         supplier: str | None = None,
         product: str | None = None,
         month: str | None = None,
-    ) -> dict[str, Any]:
-        """Fetch paginated products with optional filters. Returns dict compatible with QML product_page_to_dict output."""
+    ) -> ProductPageResponseDict:
+        """Fetch paginated products with optional filters. Returns bridge-compatible product page response."""
         session: Session = self._session_factory()
         try:
             repo = OrderRepository(session)
@@ -40,7 +41,7 @@ class FetchHandler:
         finally:
             session.close()
 
-    def fetch_orders_for_month(self, month: str) -> list[dict[str, Any]]:
+    def fetch_orders_for_month(self, month: str) -> list[OrderDict]:
         """Fetch orders for a month in MM/yyyy format. Returns list of order dicts."""
         session: Session = self._session_factory()
         try:
@@ -83,7 +84,7 @@ def fetch_products(
     supplier: str = "",
     product: str = "",
     month: str = "",
-) -> dict[str, Any]:
+) -> ProductPageResponseDict:
     """
     Fetch paginated product list with optional filters.
 
@@ -117,7 +118,7 @@ def fetch_products(
         }
 
 
-def fetch_orders_for_month(month: str) -> list[dict[str, Any]]:
+def fetch_orders_for_month(month: str) -> list[OrderDict]:
     """
     Fetch all orders for a given month.
 

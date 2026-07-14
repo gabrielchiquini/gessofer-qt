@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import ExpenseInput
-from backend.qml.qml_transformers import expense_to_dict
+from backend.utils.transformers import expense_to_dict
 from backend.repositories.expense_repository import ExpenseRepository
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_order_service import SaveExpenseService, SaveOrderService

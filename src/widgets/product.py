@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import PageResponse
-from backend.qml.qml_transformers import product_page_to_dict, orm_order_to_dict
+from backend.utils.transformers import product_page_to_dict, orm_order_to_dict
 from backend.repositories.order_repository import OrderRepository
 from backend.utils.date import parse_month_for_orders
 

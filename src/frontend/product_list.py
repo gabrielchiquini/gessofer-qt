@@ -15,6 +15,7 @@ from PySide6.QtCore import Qt
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date
 from frontend.constants import PRODUCT_PAGE_SIZE
+from widgets.product import fetch_products
 
 
 logger = logging.getLogger(__name__)
@@ -153,7 +154,6 @@ class ProductListView(QWidget):
 
     def _refresh_page(self) -> None:
         """Fetch and display the current page."""
-        from widgets.product import fetch_products
 
         supplier = self.filter_supplier.text().strip()
         product = self.filter_product.text().strip()

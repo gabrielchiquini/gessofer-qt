@@ -2,8 +2,8 @@ from __future__ import annotations
 
 import pytest
 
-from backend.qml.qml_fetch import FetchHandler
-from backend.qml.qml_transformers import product_page_to_dict
+from widgets.product import FetchHandler
+from backend.utils.transformers import product_page_to_dict
 from backend.models.dto import PageResponse
 
 

@@ -3,10 +3,7 @@ from __future__ import annotations
 import logging
 from typing import Any
 
-from backend.qml.qml_business import QmlBusiness
-from backend.qml.qml_fetch import QmlFetch
-from backend.qml.qml_save import QmlSave
-from backend.qml.qml_transformers import (
+from backend.utils.transformers import (
     dict_to_order_input,
     freight_result_to_dict,
     xml_import_result_to_dict,
@@ -16,26 +13,6 @@ from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 
 logger = logging.getLogger(__name__)
-
-
-_business_handler: QmlBusiness | None = None
-
-
-def _get_business_handler() -> QmlBusiness:
-    """Lazy-initialize the BusinessHandler singleton."""
-    global _business_handler
-    if _business_handler is None:
-        validation = ValidationService()
-        freight = FreightDistributionService()
-        xml_import = XmlImportService()
-        fetch_service = QmlFetch()
-        save_service = QmlSave()
-        transformers = type("Transformers", (), {
-            "transform_order_input": lambda s, d: dict_to_order_input(d),
-            "transform_expense_input": lambda s, d: None,
-        })()
-        _business_handler = QmlBusiness(fetch_service, save_service, transformers)
-    return _business_handler
 
 
 def distribute_freight(order: dict[str, Any]) -> dict[str, Any]:
@@ -49,9 +26,6 @@ def distribute_freight(order: dict[str, Any]) -> dict[str, Any]:
         Dict with distribution result. On ValueError, returns {}.
     """
     try:
-        from backend.qml.qml_transformers import dict_to_order_input
-        from backend.services.freight_distribution import FreightDistributionService
-
         order_input = dict_to_order_input(order)
         service = FreightDistributionService()
         result = service.distribute(order_input)
@@ -74,9 +48,6 @@ def import_xml(file_path: str) -> dict[str, Any]:
         Dict with 'orders' and 'warnings' keys. On error, returns empty result.
     """
     try:
-        from backend.services.xml_import_service import XmlImportService
-        from backend.qml.qml_transformers import xml_import_result_to_dict
-
         service = XmlImportService()
         result = service.parse_file(file_path)
         return xml_import_result_to_dict(result)
@@ -96,9 +67,6 @@ def validate_order(order: dict[str, Any]) -> dict[str, Any]:
         Dict with 'valid' (bool) and 'errors' (list[str]) keys.
     """
     try:
-        from backend.qml.qml_transformers import dict_to_order_input
-        from backend.services.validation_service import ValidationService
-
         order_input = dict_to_order_input(order)
         service = ValidationService()
         result = service.validate_order(order_input)
@@ -120,8 +88,6 @@ def validate_expense(description: str, value: int) -> dict[str, Any]:
         Dict with 'valid' (bool) and 'errors' (list[str]) keys.
     """
     try:
-        from backend.services.validation_service import ValidationService
-
         service = ValidationService()
         result = service.validate_expense(description, value)
         return {"valid": result.valid, "errors": result.errors}

@@ -15,7 +15,7 @@ from bridge import (
     ValidationDict,
     XmlImportResultDict,
 )
-from widgets.order import dict_to_order_input
+from bridge.order import dict_to_order_input
 
 logger = logging.getLogger(__name__)
 

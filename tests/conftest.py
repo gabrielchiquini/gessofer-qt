@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from backend.entities.orm import Base, Order, Product
-from widgets.product import FetchHandler
+from bridge.product import FetchHandler
 from backend.models.dto import PageResponse
 from backend.utils.text import normalize_text
 

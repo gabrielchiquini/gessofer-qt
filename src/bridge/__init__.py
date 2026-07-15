@@ -3,6 +3,10 @@ from typing import Generic, TypeVar
 
 from typing_extensions import TypedDict
 
+from bridge.expense import save_expenses, fetch_expenses_for_month
+from bridge.order import save_orders
+from bridge.product import fetch_orders_for_month, fetch_products
+
 T = TypeVar("T")
 
 class PageResponseDict(TypedDict, Generic[T]):
@@ -128,5 +132,10 @@ __all__ = [
     "FreightResultDict",
     "XmlImportResultDict",
     "ValidationDict",
-    "PageResponseDict"
+    "PageResponseDict",
+    "fetch_products",
+    "fetch_orders_for_month",
+    "save_orders",
+    "save_expenses",
+    "fetch_expenses_for_month",
 ]

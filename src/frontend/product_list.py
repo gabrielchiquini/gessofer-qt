@@ -10,9 +10,8 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QTableView,
     QScrollArea, )
 
-from backend.utils.date import iso_to_br_date
 from bridge import PageResponseDict, ProductListItemDict
-from widgets.product import fetch_products
+from bridge.product import fetch_products
 
 logger = logging.getLogger(__name__)
 

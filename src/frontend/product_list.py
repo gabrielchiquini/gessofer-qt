@@ -186,8 +186,8 @@ class ProductListView(QWidget):
                 QStandardItem(iso_to_br_date(item.get("date", ""))),
                 QStandardItem(item.get("supplier", "")),
                 QStandardItem(item.get("name", "")),
-                QStandardItem(cents_to_display(item.get("price", 0))),
-                QStandardItem(cents_to_display(item.get("totalPrice", 0))),
+                QStandardItem(item.get("price", 0)),
+                QStandardItem(item.get("totalPrice", 0)),
                 QStandardItem(item.get("orderId", "")),
             ]
             self._model.appendRow(row)

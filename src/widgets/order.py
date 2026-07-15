@@ -5,7 +5,6 @@ import logging
 from bridge import OrderInputDict
 from backend.injector_module import get_injector
 from backend.models.dto import OrderInput
-from backend.utils.transformers import dict_to_order_input
 from backend.services.save_order_service import SaveOrderService, SaveExpenseService
 
 logger = logging.getLogger(__name__)
@@ -29,6 +28,37 @@ class SaveHandler:
     ) -> None:
         """Save orders in a single transaction."""
         self._save_order_service.save_orders(orders, deleted_order_ids)
+
+
+def dict_to_order_input(d: OrderInputDict) -> OrderInput:
+    """Transform a widget-bridge dict (from save/distribute/validate) into an OrderInput DTO."""
+    products: list[OrderInput] = []
+    for p in d.get("products", []):
+        pi = OrderInput(
+            id=p.get("id", ""),
+            date="",
+            supplier="",
+            nfe_key="",
+            freight=0,
+            unloading=0,
+            products=[],
+        )
+        pi.name = p.get("name", "")
+        pi.quantity = p.get("quantity", 0)
+        pi.price = p.get("price", 0)
+        pi.total = p.get("total", 0)
+        pi.order_id = p.get("order_id", "")
+        pi.item_ordinal = p.get("itemOrdinal")
+        products.append(pi)
+    return OrderInput(
+        id=d.get("id", ""),
+        date=d.get("date", ""),
+        supplier=d.get("supplier", ""),
+        nfe_key=d.get("nfeKey", ""),
+        freight=d.get("freight", 0),
+        unloading=d.get("unloading", 0),
+        products=products,
+    )
 
 
 _save_handler: SaveHandler | None = None

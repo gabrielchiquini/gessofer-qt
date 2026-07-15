@@ -3,22 +3,75 @@ from __future__ import annotations
 import logging
 from typing import cast
 
-from backend.utils.transformers import (
-    dict_to_order_input,
-    freight_result_to_dict,
-    xml_import_result_to_dict,
+from backend.services.freight_distribution import (
+    FreightDistributionResult,
+    FreightDistributionService,
 )
-from backend.services.freight_distribution import FreightDistributionService
 from backend.services.validation_service import ValidationService
-from backend.services.xml_import_service import XmlImportService
+from backend.services.xml_import_service import XmlImportResult, XmlImportService
 from bridge import (
     FreightResultDict,
     OrderInputDict,
     ValidationDict,
     XmlImportResultDict,
 )
+from widgets.order import dict_to_order_input
 
 logger = logging.getLogger(__name__)
+
+
+def freight_result_to_dict(result: FreightDistributionResult) -> FreightResultDict:
+    """Transform a FreightDistributionResult into a bridge-compatible dict."""
+    return {
+        "order_id": result.order_id,
+        "old_freight": result.old_freight,
+        "old_unloading": result.old_unloading,
+        "ratio": result.ratio,
+        "products_total_before": result.products_total_before,
+        "products_total_after": result.products_total_after,
+        "new_products": [
+            {
+                "id": p.id,
+                "name": p.name,
+                "quantity": p.quantity,
+                "price": p.price,
+                "total": p.total,
+                "order_id": p.order_id,
+                "itemOrdinal": p.item_ordinal,
+            }
+            for p in result.new_products
+        ],
+    }
+
+
+def xml_import_result_to_dict(result: XmlImportResult) -> XmlImportResultDict:
+    """Transform an XmlImportResult into a bridge-compatible dict."""
+    return {
+        "orders": [
+            {
+                "id": o.id,
+                "date": o.date,
+                "supplier": o.supplier,
+                "nfeKey": o.nfe_key,
+                "freight": o.freight,
+                "unloading": o.unloading,
+                "products": [
+                    {
+                        "id": p.id,
+                        "name": p.name,
+                        "quantity": p.quantity,
+                        "price": p.price,
+                        "total": p.total,
+                        "order_id": p.order_id,
+                        "itemOrdinal": p.item_ordinal,
+                    }
+                    for p in o.products
+                ],
+            }
+            for o in result.orders
+        ],
+        "warnings": result.warnings,
+    }
 
 
 def distribute_freight(order: OrderInputDict) -> FreightResultDict:

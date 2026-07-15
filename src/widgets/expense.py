@@ -6,10 +6,10 @@ from typing import Callable
 from sqlalchemy.orm import Session
 
 from bridge import ExpenseDict, ExpenseInputDict
+from backend.entities.orm import Expense
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import ExpenseInput
-from backend.utils.transformers import expense_to_dict
 from backend.repositories.expense_repository import ExpenseRepository
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_order_service import SaveExpenseService, SaveOrderService
@@ -51,6 +51,16 @@ class _ExpenseSaveHandler:
     ) -> None:
         """Save expenses in a single transaction."""
         self._save_expense_service.save_expenses(expenses, month)
+
+
+def expense_to_dict(expense: Expense) -> ExpenseDict:
+    """Transform an ORM Expense entity into a bridge-compatible dict."""
+    return {
+        "id": expense.ID,
+        "month": expense.MONTH,
+        "description": expense.DESCRIPTION,
+        "value": expense.VALUE,
+    }
 
 
 _fetch_handler: _ExpenseFetchHandler | None = None

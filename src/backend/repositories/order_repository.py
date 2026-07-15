@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from math import ceil
 from typing import List, Optional, Sequence
 
 from sqlalchemy import func, select, delete, insert, update
@@ -69,7 +70,7 @@ class OrderRepository:
         # Filter by supplier (normalized LIKE)
         if supplier:
             normalized_supplier = normalize_text(supplier)
-            where_clauses.append(Product.NAME_NORMALIZED.like(f"%{normalized_supplier}%"))
+            where_clauses.append(Order.SUPPLIER_NORMALIZED.like(f"%{normalized_supplier}%"))
 
         # Filter by product name (normalized LIKE)
         if product:
@@ -103,20 +104,21 @@ class OrderRepository:
             where_clauses.append(Product.ORDER_ID.in_(subquery))
 
         # Total count (for pagination)
-        count_stmt = select(func.count()).where(*where_clauses)
+        count_stmt = select(func.count()).join(Product.order).where(*where_clauses)
         total = self.session.scalar(count_stmt)
-        total = int(total)
+        total = int(total or 0)
 
         # Page count
-        page_count = (total + PAGE_SIZE - 1) // PAGE_SIZE if total > 0 else 0
+        page_count = ceil(total / PAGE_SIZE)
 
         # Fetch page
         offset = (page - 1) * PAGE_SIZE
         query_stmt = (
             select(Product)
-            .where(*where_clauses)
+            .join(Product.order)
             .options(selectinload(Product.order))
-            .order_by(Product.NAME.asc())
+            .where(*where_clauses)
+            .order_by(Order.DATE.desc())
             .limit(PAGE_SIZE)
             .offset(offset)
         )

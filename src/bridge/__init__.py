@@ -1,6 +1,18 @@
 from __future__ import annotations
+from typing import Generic, TypeVar
 
 from typing_extensions import TypedDict
+
+T = TypeVar("T")
+
+class PageResponseDict(TypedDict, Generic[T]):
+    """Paginated product page response."""
+
+    items: list[T]
+    page: int
+    page_count: int
+    total: int
+    page_size: int
 
 
 class ProductListItemDict(TypedDict):
@@ -12,17 +24,6 @@ class ProductListItemDict(TypedDict):
     price: str  # formatted string like "R$ 1.234,56"
     totalPrice: str  # formatted string
     orderId: str
-
-
-class ProductPageResponseDict(TypedDict):
-    """Paginated product page response."""
-
-    items: list[ProductListItemDict]
-    page: int
-    page_count: int
-    total: int
-    page_size: int
-
 
 class ProductDict(TypedDict):
     """A product entity dict (from orm_product_to_dict)."""
@@ -91,18 +92,6 @@ class ExpenseInputDict(TypedDict, total=False):
     value: int
 
 
-class FreightResultProductDict(TypedDict):
-    """Product dict inside a freight distribution result."""
-
-    id: str
-    name: str
-    quantity: int
-    price: int
-    total: int
-    order_id: str
-    itemOrdinal: int | None
-
-
 class FreightResultDict(TypedDict):
     """Result of a freight distribution calculation as a dict."""
 
@@ -112,37 +101,12 @@ class FreightResultDict(TypedDict):
     ratio: float
     products_total_before: int
     products_total_after: int
-    new_products: list[FreightResultProductDict]
-
-
-class XmlImportProductDict(TypedDict):
-    """Product dict inside an XML import result."""
-
-    id: str
-    name: str
-    quantity: int
-    price: int
-    total: int
-    order_id: str
-    itemOrdinal: int | None
-
-
-class XmlImportOrderDict(TypedDict):
-    """Order dict inside an XML import result."""
-
-    id: str
-    date: str
-    supplier: str
-    nfeKey: str
-    freight: int
-    unloading: int
-    products: list[XmlImportProductDict]
-
+    new_products: list[ProductDict]
 
 class XmlImportResultDict(TypedDict):
     """Result of an XML import operation as a dict."""
 
-    orders: list[XmlImportOrderDict]
+    orders: list[OrderDict]
     warnings: list[str]
 
 
@@ -155,17 +119,14 @@ class ValidationDict(TypedDict):
 
 __all__ = [
     "ProductListItemDict",
-    "ProductPageResponseDict",
     "ProductDict",
     "OrderDict",
     "ExpenseDict",
     "OrderInputDict",
     "ProductInputDict",
     "ExpenseInputDict",
-    "FreightResultProductDict",
     "FreightResultDict",
-    "XmlImportProductDict",
-    "XmlImportOrderDict",
     "XmlImportResultDict",
     "ValidationDict",
+    "PageResponseDict"
 ]

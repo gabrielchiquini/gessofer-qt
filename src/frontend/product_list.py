@@ -1,39 +1,43 @@
 from __future__ import annotations
 
 import logging
-import traceback
-from typing import Any
+from operator import floordiv
 
-from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QFrame,
-    QLabel, QLineEdit, QPushButton, QTableView,
-    QScrollArea, QHeaderView,
-)
-from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtCore import Qt
+from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtWidgets import (
+    QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QFrame,
+    QLabel, QLineEdit, QPushButton, QTableView,
+    QScrollArea, )
 
-from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date
-from bridge import ProductPageResponseDict
-from frontend.constants import PRODUCT_PAGE_SIZE
+from bridge import PageResponseDict, ProductListItemDict
 from widgets.product import fetch_products
-
 
 logger = logging.getLogger(__name__)
 
 
 class ProductListView(QWidget):
     """Filter form + QTableView with pagination for product data."""
+    table_view: QTableView
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
         self._current_page: int = 1
         self._page_count: int = 1
         self._total: int = 0
-        self._model: QStandardItemModel = QStandardItemModel(0, 6)
+        self._model: QStandardItemModel = QStandardItemModel(0, 5)
         self._setup_ui()
         self._connect_signals()
         self.clear_filters()
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._setup_table_size()
+
+    def showEvent(self, event):
+        super().showEvent(event)
+        self._setup_table_size()
 
     def _setup_ui(self) -> None:
         """Build the widget tree."""
@@ -42,49 +46,12 @@ class ProductListView(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         # Filter form
-        filter_frame = QFrame(self)
-        filter_frame.setFrameShape(QFrame.Shape.StyledPanel)
-        filter_layout = QHBoxLayout(filter_frame)
-        filter_layout.setSpacing(8)
-
-        self.filter_supplier = QLineEdit(self)
-        self.filter_supplier.setPlaceholderText("Fornecedor")
-
-        self.filter_product = QLineEdit(self)
-        self.filter_product.setPlaceholderText("Produto")
-
-        self.filter_month = QLineEdit(self)
-        self.filter_month.setInputMask("99/9999")
-        self.filter_month.setFixedWidth(100)
-        self.filter_month.setPlaceholderText("MM/AAAA")
-
-        self.btn_search = QPushButton("Consultar", self)
-        self.btn_clear = QPushButton("Limpar", self)
-
-        filter_layout.addWidget(QLabel("Fornecedor", self))
-        filter_layout.addWidget(self.filter_supplier)
-        filter_layout.addWidget(QLabel("Produto", self))
-        filter_layout.addWidget(self.filter_product)
-        filter_layout.addWidget(QLabel("Mês", self))
-        filter_layout.addWidget(self.filter_month)
-        filter_layout.addWidget(self.btn_search)
-        filter_layout.addWidget(self.btn_clear)
+        filter_frame = self._setup_filter()
 
         layout.addWidget(filter_frame)
 
         # Table with scroll area
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarAsNeeded)
-
-        self.table_view = QTableView(self)
-        self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
-        self.table_view.setSelectionBehavior(QTableView.SelectionBehavior.SelectRows)
-        self.table_view.setAlternatingRowColors(True)
-        self._setup_model()
-
-        scroll.setWidget(self.table_view)
+        scroll = self._setup_table()
         layout.addWidget(scroll, 1)
 
         # Pagination
@@ -101,19 +68,70 @@ class ProductListView(QWidget):
 
         layout.addLayout(pagination_layout)
 
-    def _setup_model(self) -> None:
+    def _setup_filter(self) -> QFrame:
+        filter_frame = QFrame(self)
+        filter_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        filter_layout = QHBoxLayout(filter_frame)
+        filter_layout.setSpacing(8)
+
+        self.filter_supplier = QLineEdit(self)
+        self.filter_supplier.setPlaceholderText("Fornecedor")
+        self.filter_supplier.returnPressed.connect(self.search)
+
+        self.filter_product = QLineEdit(self)
+        self.filter_product.setPlaceholderText("Produto")
+        self.filter_product.returnPressed.connect(self.search)
+
+        self.filter_month = QLineEdit(self)
+        self.filter_month.setInputMask("99/9999")
+        self.filter_month.setPlaceholderText("MM/AAAA")
+        self.filter_month.returnPressed.connect(self.search)
+
+        self.btn_search = QPushButton("Consultar", self)
+        self.btn_clear = QPushButton("Limpar", self)
+
+        filter_layout.addWidget(QLabel("Fornecedor", self))
+        filter_layout.addWidget(self.filter_supplier)
+        filter_layout.addWidget(QLabel("Produto", self))
+        filter_layout.addWidget(self.filter_product)
+        filter_layout.addWidget(QLabel("Mês", self))
+        filter_layout.addWidget(self.filter_month)
+        filter_layout.addWidget(self.btn_search)
+        filter_layout.addWidget(self.btn_clear)
+        return filter_frame
+
+    def _setup_table(self) -> QScrollArea:
+        scroll = QScrollArea(self)
+        scroll.setWidgetResizable(True)
+        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        self.table_view = QTableView(self)
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
+        self.table_view.verticalHeader().setVisible(False)
+
         """Configure the QStandardItemModel."""
         self._model.setHorizontalHeaderLabels([
-            "Data", "Fornecedor", "Produto", "Preço", "Total", "Pedido"
+            "Data", "Fornecedor", "Produto", "Preço", "Total"
         ])
-        header = self.table_view.horizontalHeader()
-        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Stretch)
-        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents)
-        header.setSectionResizeMode(5, QHeaderView.ResizeMode.ResizeToContents)
+
+        self._setup_table_size()
+
+        scroll.setWidget(self.table_view)
+
         self.table_view.setModel(self._model)
+        return scroll
+
+    def _setup_table_size(self):
+        total_width = self.table_view.viewport().width()
+        self.table_view.setColumnWidth(0, 100)
+        self.table_view.setColumnWidth(3, 150)
+        self.table_view.setColumnWidth(4, 150)
+        total_width -= 100 + 150 + 150
+        self.table_view.setColumnWidth(1, floordiv(total_width, 2))
+        self.table_view.setColumnWidth(2, floordiv(total_width, 2))
 
     def _connect_signals(self) -> None:
         """Connect widget signals."""
@@ -169,13 +187,13 @@ class ProductListView(QWidget):
             )
             self._process_result(result)
         except Exception as exc:
-            logger.error(traceback.format_exc())
+            logging.exception(exc, exc_info=True)
             self._model.setRowCount(0)
             self._total = 0
             self._page_count = 0
             self.update_pagination()
 
-    def _process_result(self, result: ProductPageResponseDict) -> None:
+    def _process_result(self, result: PageResponseDict[ProductListItemDict]) -> None:
         """Process a fetch result and populate the table."""
         self._total = result["total"]
         self._page_count = result["page_count"]
@@ -183,12 +201,11 @@ class ProductListView(QWidget):
 
         for item in result.get("items", []):
             row: list[QStandardItem] = [
-                QStandardItem(iso_to_br_date(item.get("date", ""))),
+                QStandardItem(item.get("date", "")),
                 QStandardItem(item.get("supplier", "")),
                 QStandardItem(item.get("name", "")),
                 QStandardItem(item.get("price", 0)),
                 QStandardItem(item.get("totalPrice", 0)),
-                QStandardItem(item.get("orderId", "")),
             ]
             self._model.appendRow(row)
 

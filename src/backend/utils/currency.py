@@ -18,7 +18,7 @@ def cents_to_display(cents: int) -> str:
     decimal_part = abs_cents % 100
 
     # Format integer part with dots as thousand separators
-    int_str = f"{integer_part:03d}"  # ensure at least 3 digits
+    int_str = str(integer_part)
     formatted = ""
     while len(int_str) > 3:
         formatted = "." + int_str[-3:] + formatted

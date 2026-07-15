@@ -6,7 +6,7 @@ from typing import Callable
 from injector import inject
 from sqlalchemy.orm import Session
 
-from bridge import OrderDict, ProductDict, ProductListItemDict, ProductPageResponseDict
+from bridge import OrderDict, ProductDict, ProductListItemDict, PageResponseDict
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import PageResponse
@@ -32,16 +32,13 @@ class FetchHandler:
         supplier: str | None = None,
         product: str | None = None,
         month: str | None = None,
-    ) -> ProductPageResponseDict:
+    ) -> PageResponseDict[ProductListItemDict]:
         """Fetch paginated products with optional filters. Returns bridge-compatible product page response."""
         session: Session = self._session_factory()
         try:
             repo = OrderRepository(session)
             response = repo.search_products(page, supplier, product, month)
             return product_page_to_dict(response)
-        except Exception as exc:
-            logger.error("Error fetching products: %s", exc)
-            raise
         finally:
             session.close()
 
@@ -53,9 +50,6 @@ class FetchHandler:
             repo = OrderRepository(session)
             orders = repo.fetch_orders_for_month(str(m).zfill(2), y)
             return [orm_order_to_dict(o) for o in orders]
-        except Exception as exc:
-            logger.error("Error fetching orders: %s", exc)
-            raise
         finally:
             session.close()
 
@@ -88,7 +82,7 @@ def orm_order_to_dict(order: Order) -> OrderDict:
 
 def product_list_item_to_dict(product: Product) -> ProductListItemDict:
     """Transform an ORM Product entity into a dict for the widget bridge Product List table."""
-    date_str = datetime_to_br_date(product.order.DATE) if product.order and product.order.DATE else ""
+    date_str = datetime_to_br_date(product.order.DATE)
     return {
         "date": date_str,
         "supplier": product.order.SUPPLIER if product.order else "",
@@ -99,7 +93,7 @@ def product_list_item_to_dict(product: Product) -> ProductListItemDict:
     }
 
 
-def product_page_to_dict(response: PageResponse[Product]) -> ProductPageResponseDict:
+def product_page_to_dict(response: PageResponse[Product]) -> PageResponseDict[ProductListItemDict]:
     """Transform a PageResponse[Product] into a bridge-compatible dict."""
     return {
         "items": [product_list_item_to_dict(p) for p in response.items],
@@ -127,7 +121,7 @@ def fetch_products(
     supplier: str = "",
     product: str = "",
     month: str = "",
-) -> ProductPageResponseDict:
+) -> PageResponseDict[ProductListItemDict]:
     """
     Fetch paginated product list with optional filters.
 

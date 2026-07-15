@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import date, datetime
 
 BR_DATE_FORMAT = "%d/%m/%Y"
 ISO_DATE_FORMAT = "%Y-%m-%d"
@@ -12,7 +12,7 @@ def br_date_to_iso(br_date: str) -> str:
     Returns empty string if parsing fails.
     """
     try:
-        return datetime.strptime(br_date, BR_DATE_FORMAT).strftime(ISO_DATE_FORMAT)
+        return date.strptime(br_date, BR_DATE_FORMAT).strftime(ISO_DATE_FORMAT)
     except ValueError:
         return ""
 
@@ -23,17 +23,17 @@ def iso_to_br_date(iso_date: str) -> str:
     Returns empty string if parsing fails.
     """
     try:
-        return datetime.strptime(iso_date, ISO_DATE_FORMAT).strftime(BR_DATE_FORMAT)
+        return date.strptime(iso_date, ISO_DATE_FORMAT).strftime(BR_DATE_FORMAT)
     except ValueError:
         return ""
 
-def datetime_to_br_date(date: datetime) -> str:
+def datetime_to_br_date(date_obj: date) -> str:
     """
     Convert DATETIME to BR 'dd/MM/yyyy'.
     Returns empty string if parsing fails.
     """
     try:
-        return date.strftime(BR_DATE_FORMAT)
+        return date_obj.strftime(BR_DATE_FORMAT)
     except ValueError:
         return ""
 
@@ -70,7 +70,7 @@ def parse_month_for_expenses(month: str) -> str:
     Raises ValueError for invalid format.
     """
     try:
-        datetime.strptime(month, "%Y-%m")
+        date.strptime(month, "%Y-%m")
         return month
     except ValueError:
         raise ValueError(f"Formato de mes invalido: '{month}'. Esperado 'YYYY-MM'.")

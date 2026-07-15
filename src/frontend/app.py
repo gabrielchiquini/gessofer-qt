@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from PySide6.QtWidgets import QMainWindow, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QHBoxLayout, QMainWindow, QSizePolicy, QWidget, QMainWindow, QWidget, QVBoxLayout, QPushButton
 
 from frontend.constants import MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
 from frontend.navbar import NavigationBar
@@ -15,18 +16,30 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Gessofer")
         self.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
         self._build_ui()
+        
 
     def _build_ui(self) -> None:
         """Build the main window UI."""
         self.nav_bar = NavigationBar(self)
         self.setMenuBar(self.nav_bar)
+        
+        
+        
+        product_list = ProductListView(self)
+        self.setCentralWidget(product_list)
 
-        self.product_list = ProductListView(self)
-        self.setCentralWidget(self.product_list)
-
+        
         self.nav_bar.item_clicked.connect(self._on_item_clicked)
 
     def _on_item_clicked(self, label: str, group_title: str) -> None:
         """Handle navigation item clicks."""
         if label == "Pedidos" and group_title == "Notas":
-            self.product_list.search()
+            product_list = ProductListView(self)
+            self.setCentralWidget(product_list)
+
+    def build_layout(self, widget: QWidget):
+        layout = QHBoxLayout(self)
+        layout.addStretch()
+        layout.addChildWidget(widget)
+        layout.addStretch()
+        self.setLayout(layout)

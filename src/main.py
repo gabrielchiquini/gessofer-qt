@@ -2,9 +2,16 @@ import sys
 from pathlib import Path
 from PySide6.QtWidgets import QApplication
 from frontend.app import MainWindow
+import logging
 
 
 def main() -> None:
+    logging.basicConfig(
+        level=logging.DEBUG,
+        style='{',
+        format='{asctime} | {levelname:<8} | {name:<12} | {message}'
+    )
+    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app = QApplication(sys.argv)
     app.setApplicationName("Gessofer")
     app.setOrganizationName("Gessofer")

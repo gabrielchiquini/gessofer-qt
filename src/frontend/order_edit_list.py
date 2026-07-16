@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame,
@@ -20,8 +20,6 @@ logger = logging.getLogger(__name__)
 
 class OrderEditListView(QWidget):
     """Month-selection bar + order table for order editing."""
-
-    order_edited: Signal = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
@@ -119,6 +117,7 @@ class OrderEditListView(QWidget):
     def _connect_signals(self) -> None:
         """Connect widget signals."""
         self.btn_search.clicked.connect(self.fetch_orders)
+        self.btn_add.clicked.connect(self._on_add_clicked)
 
     def fetch_orders(self) -> None:
         """Read current month from input, fetch and display orders."""
@@ -165,7 +164,32 @@ class OrderEditListView(QWidget):
             )
 
     def _on_edit_clicked(self, order_id: str) -> None:
-        """Handle Edit button click — emit order_edited signal."""
-        self.order_edited.emit(order_id)
+        """Handle Edit button click — open the order edit dialog."""
+        from frontend.order_edit_dialog import OrderEditDialog
+
+        dialog = OrderEditDialog(
+            self,
+            order_id=order_id,
+            initial_month=self.filter_month.text().strip(),
+        )
+        dialog.order_saved.connect(self._on_order_saved)
+        dialog.exec()
+
+    def _on_add_clicked(self) -> None:
+        """Handle Add button click — open a blank order edit dialog."""
+        from frontend.order_edit_dialog import OrderEditDialog
+
+        month: str = self.filter_month.text().strip()
+        dialog = OrderEditDialog(
+            self,
+            order_id=None,
+            initial_month=month,
+        )
+        dialog.order_saved.connect(self._on_order_saved)
+        dialog.exec()
+
+    def _on_order_saved(self, order_data: object) -> None:
+        """Handle successful order save — refresh the order table."""
+        self.fetch_orders()
 
 

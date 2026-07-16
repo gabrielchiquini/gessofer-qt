@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     from bridge.expense import fetch_expenses_for_month, save_expenses
-    from bridge.order import save_orders
+    from bridge.order import fetch_order_by_id, save_orders
     from bridge.order_summary import OrderSummaryDict, fetch_order_summaries
     from bridge.product import fetch_orders_for_month, fetch_products
 
@@ -41,6 +41,7 @@ __all__ = [
     "fetch_products",
     "fetch_orders_for_month",
     "fetch_order_summaries",
+    "fetch_order_by_id",
     "save_orders",
     "save_expenses",
     "fetch_expenses_for_month",

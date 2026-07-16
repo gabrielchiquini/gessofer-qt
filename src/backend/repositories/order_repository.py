@@ -50,6 +50,18 @@ class OrderRepository:
         # Accessing order.products triggers the lazy load.
         return orders
 
+    # ── Query: fetch_order_by_id ────────────────────────────────────
+
+    def fetch_order_by_id(self, order_id: str) -> Order | None:
+        """Fetch a single order by ID with products eagerly loaded."""
+        stmt = (
+            select(Order)
+            .where(Order.ID == order_id)
+            .options(selectinload(Order.products))
+        )
+        result = self.session.execute(stmt).scalars().first()
+        return cast(Order, result)
+
     # ── Query: search_products (paginated search) ───────────────────
 
     def search_products(

@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import logging
 
-from bridge.models.order import OrderInputDict
+from typing import cast
+
+from sqlalchemy.orm import Session
+
+from bridge.models.order import OrderDict, OrderInputDict
+from bridge.product import orm_order_to_dict, _get_fetch_handler
+from backend.entities.orm import Order
 from backend.injector_module import get_injector
 from backend.models.dto import OrderInput
+from backend.repositories.order_repository import OrderRepository
 from backend.services.save_order_service import SaveOrderService, SaveExpenseService
 
 logger = logging.getLogger(__name__)
@@ -98,3 +105,24 @@ def save_orders(
         logger.error("Error in save_orders: %s", exc)
         logger.debug("Traceback", exc_info=True)
         return False
+
+
+def fetch_order_by_id(order_id: str) -> OrderDict | None:
+    """
+    Fetch a single order by UUID, including all products.
+
+    Args:
+        order_id: The order UUID.
+
+    Returns:
+        OrderDict with products, or None if not found.
+    """
+    session: Session = _get_fetch_handler()._session_factory()
+    try:
+        repo = OrderRepository(session)
+        order = repo.fetch_order_by_id(order_id)
+        if order is None:
+            return None
+        return orm_order_to_dict(order)
+    finally:
+        session.close()

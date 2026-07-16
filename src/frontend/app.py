@@ -39,9 +39,4 @@ class MainWindow(QMainWindow):
 
         elif label == "Cadastrar" and group_title == "Notas":
             order_view = OrderEditListView(self)
-            order_view.order_edited.connect(self._on_order_edited)
             self.setCentralWidget(order_view)
-
-    def _on_order_edited(self, order_id: str) -> None:
-        """Placeholder for order edit action. Future: open editor dialog."""
-        pass

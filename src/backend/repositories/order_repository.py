@@ -23,7 +23,7 @@ class OrderRepository:
 
     # ── Query: fetch_orders_for_month ───────────────────────────────
 
-    def fetch_orders_for_month(self, month: str, year: int) -> List[Order]:
+    def fetch_orders_for_month(self, month: int, year: int) -> List[Order]:
         """
         Fetch all orders and their products for a given year-month.
         month = "07" (zero-padded), year = 2024.
@@ -34,7 +34,7 @@ class OrderRepository:
             next_month = "01"
             next_year = year + 1
         else:
-            next_month = str(int(month) + 1).zfill(2)
+            next_month = month + 1
             next_year = year
         date_end = f"{next_year:04d}-{next_month:02d}-01"
 
@@ -79,7 +79,6 @@ class OrderRepository:
 
         # Filter by month (MM/yyyy) - joins through ORDER table
         if month and len(month) == 7:
-            print(month)
             try:
                 m_str, y_str = month.split("/")
                 m = int(m_str)

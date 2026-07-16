@@ -9,12 +9,8 @@ from backend.services.freight_distribution import (
 )
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportResult, XmlImportService
-from bridge import (
-    FreightResultDict,
-    OrderInputDict,
-    ValidationDict,
-    XmlImportResultDict,
-)
+from bridge.models.order import FreightResultDict, OrderInputDict, XmlImportResultDict
+from bridge.models.validation import ValidationDict
 from bridge.order import dict_to_order_input
 
 logger = logging.getLogger(__name__)

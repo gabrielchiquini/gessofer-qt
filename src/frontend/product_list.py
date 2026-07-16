@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QTableView,
     QScrollArea, )
 
-from bridge import PageResponseDict, ProductListItemDict
+from bridge.models.product import PageResponseDict, ProductListItemDict
 from bridge.product import fetch_products
 
 logger = logging.getLogger(__name__)

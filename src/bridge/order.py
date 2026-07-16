@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from bridge import OrderInputDict
+from bridge.models.order import OrderInputDict
 from backend.injector_module import get_injector
 from backend.models.dto import OrderInput
 from backend.services.save_order_service import SaveOrderService, SaveExpenseService

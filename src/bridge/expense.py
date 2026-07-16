@@ -5,7 +5,7 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from bridge import ExpenseDict, ExpenseInputDict
+from bridge.models.expense import ExpenseDict, ExpenseInputDict
 from backend.entities.orm import Expense
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector

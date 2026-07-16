@@ -1,125 +1,29 @@
 from __future__ import annotations
-from typing import Generic, TypeVar
 
-from typing_extensions import TypedDict
+from bridge.models.expense import ExpenseDict, ExpenseInputDict
+from bridge.models.order import (
+    FreightResultDict,
+    OrderDict,
+    OrderInputDict,
+    OrderSummaryDict,
+    XmlImportResultDict,
+)
+from bridge.models.product import (
+    PageResponseDict,
+    ProductDict,
+    ProductInputDict,
+    ProductListItemDict,
+)
+from bridge.models.validation import ValidationDict
 
-from bridge.expense import save_expenses, fetch_expenses_for_month
-from bridge.order import save_orders
-from bridge.product import fetch_orders_for_month, fetch_products
+# Lazy imports for functions to avoid circular dependencies
+from typing import TYPE_CHECKING
 
-T = TypeVar("T")
-
-class PageResponseDict(TypedDict, Generic[T]):
-    """Paginated product page response."""
-
-    items: list[T]
-    page: int
-    page_count: int
-    total: int
-    page_size: int
-
-
-class ProductListItemDict(TypedDict):
-    """A single product list item as returned by product_page_to_dict / ORM transform."""
-
-    date: str  # dd/MM/yyyy format
-    supplier: str
-    name: str
-    price: str  # formatted string like "R$ 1.234,56"
-    totalPrice: str  # formatted string
-    orderId: str
-
-class ProductDict(TypedDict):
-    """A product entity dict (from orm_product_to_dict)."""
-
-    id: str
-    name: str
-    quantity: int
-    price: int
-    total: int
-    order_id: str
-    itemOrdinal: int | None
-
-
-class OrderDict(TypedDict):
-    """An order entity dict (from orm_order_to_dict)."""
-
-    id: str
-    date: str  # YYYY-MM-DD
-    supplier: str
-    nfeKey: str
-    freight: int
-    unloading: int
-    products: list[ProductDict]
-
-
-class ExpenseDict(TypedDict):
-    """An expense entity dict (from expense_to_dict)."""
-
-    id: int
-    month: str
-    description: str
-    value: int
-
-
-class OrderInputDict(TypedDict):
-    """Order dict accepted by save_orders bridge function."""
-
-    id: str
-    date: str
-    supplier: str
-    nfeKey: str
-    freight: int
-    unloading: int
-    products: list[ProductInputDict]
-
-
-class ProductInputDict(TypedDict):
-    """Product dict inside an OrderInputDict."""
-
-    id: str
-    name: str
-    quantity: int
-    price: int
-    total: int
-    order_id: str
-    itemOrdinal: int | None
-
-
-class ExpenseInputDict(TypedDict, total=False):
-    """Expense dict accepted by save_expenses bridge function.
-
-    Only 'description' and 'value' are required.
-    """
-
-    description: str
-    value: int
-
-
-class FreightResultDict(TypedDict):
-    """Result of a freight distribution calculation as a dict."""
-
-    order_id: str
-    old_freight: int
-    old_unloading: int
-    ratio: float
-    products_total_before: int
-    products_total_after: int
-    new_products: list[ProductDict]
-
-class XmlImportResultDict(TypedDict):
-    """Result of an XML import operation as a dict."""
-
-    orders: list[OrderDict]
-    warnings: list[str]
-
-
-class ValidationDict(TypedDict):
-    """Result of a validation operation as a dict."""
-
-    valid: bool
-    errors: list[str]
-
+if TYPE_CHECKING:
+    from bridge.expense import fetch_expenses_for_month, save_expenses
+    from bridge.order import save_orders
+    from bridge.order_summary import OrderSummaryDict, fetch_order_summaries
+    from bridge.product import fetch_orders_for_month, fetch_products
 
 __all__ = [
     "ProductListItemDict",
@@ -130,11 +34,13 @@ __all__ = [
     "ProductInputDict",
     "ExpenseInputDict",
     "FreightResultDict",
+    "OrderSummaryDict",
     "XmlImportResultDict",
     "ValidationDict",
     "PageResponseDict",
     "fetch_products",
     "fetch_orders_for_month",
+    "fetch_order_summaries",
     "save_orders",
     "save_expenses",
     "fetch_expenses_for_month",

@@ -6,7 +6,8 @@ from typing import Callable
 from injector import inject
 from sqlalchemy.orm import Session
 
-from bridge import OrderDict, ProductDict, ProductListItemDict, PageResponseDict
+from bridge.models.order import OrderDict
+from bridge.models.product import ProductDict, ProductListItemDict, PageResponseDict
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import PageResponse
@@ -48,7 +49,7 @@ class FetchHandler:
         try:
             m, y = parse_month_for_orders(month)
             repo = OrderRepository(session)
-            orders = repo.fetch_orders_for_month(str(m).zfill(2), y)
+            orders = repo.fetch_orders_for_month(m, y)
             return [orm_order_to_dict(o) for o in orders]
         finally:
             session.close()

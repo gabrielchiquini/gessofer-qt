@@ -19,15 +19,12 @@ logger = logging.getLogger(__name__)
 
 
 class OrderEditListView(QWidget):
-    """Month-selection bar + order table with pagination for order editing."""
+    """Month-selection bar + order table for order editing."""
 
     order_edited: Signal = Signal(str)
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
-        self._current_page: int = 1
-        self._page_count: int = 1
-        self._total: int = 0
         self._model: QStandardItemModel = QStandardItemModel(0, 6)
         self._current_month: str = ""
         self._setup_ui()
@@ -58,20 +55,6 @@ class OrderEditListView(QWidget):
         # Table with scroll area
         scroll = self._setup_table()
         layout.addWidget(scroll, 1)
-
-        # Pagination
-        pagination_layout = QHBoxLayout()
-        pagination_layout.setSpacing(8)
-
-        self.btn_prev = QPushButton("◀", self)
-        self.page_label = QLabel("Página 1 de 1", self)
-        self.btn_next = QPushButton("▶", self)
-
-        pagination_layout.addWidget(self.btn_prev)
-        pagination_layout.addWidget(self.page_label)
-        pagination_layout.addWidget(self.btn_next)
-
-        layout.addLayout(pagination_layout)
 
     def _setup_filter_bar(self) -> QFrame:
         """Create the month filter bar with Consultar and Add buttons."""
@@ -112,7 +95,7 @@ class OrderEditListView(QWidget):
         self.table_view.verticalHeader().setVisible(False)
 
         self._model.setHorizontalHeaderLabels([
-            "Data", "Fornecedor", "Prod.", "Total Prod.", "Total", "Ação"
+            "Data", "Fornecedor", "Produtos", "Total Produtos", "Total", "Ação"
         ])
 
         self._setup_table_size()
@@ -136,8 +119,6 @@ class OrderEditListView(QWidget):
     def _connect_signals(self) -> None:
         """Connect widget signals."""
         self.btn_search.clicked.connect(self.fetch_orders)
-        self.btn_prev.clicked.connect(self.go_previous)
-        self.btn_next.clicked.connect(self.go_next)
 
     def fetch_orders(self) -> None:
         """Read current month from input, fetch and display orders."""
@@ -152,15 +133,9 @@ class OrderEditListView(QWidget):
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
             self._model.setRowCount(0)
-            self._total = 0
-            self._page_count = 0
-            self.update_pagination()
 
     def _process_orders(self, summaries: list[OrderSummaryDict]) -> None:
         """Process order summaries and populate the table."""
-        self._total = len(summaries)
-        self._page_count = max(1, self._total)
-        self._current_page = 1
         self._model.setRowCount(0)
 
         for summary in summaries:
@@ -189,35 +164,8 @@ class OrderEditListView(QWidget):
                 self._model.index(row_index, 5), edit_btn
             )
 
-        self.update_pagination()
-
     def _on_edit_clicked(self, order_id: str) -> None:
         """Handle Edit button click — emit order_edited signal."""
         self.order_edited.emit(order_id)
 
-    def go_previous(self) -> None:
-        """Go to the previous page."""
-        if self._current_page > 1:
-            self._current_page -= 1
-            self._refresh_page()
 
-    def go_next(self) -> None:
-        """Go to the next page."""
-        if self._current_page < self._page_count:
-            self._current_page += 1
-            self._refresh_page()
-
-    def update_pagination(self) -> None:
-        """Update the pagination label and button states."""
-        self.page_label.setText(
-            f"Página {self._current_page} de {self._page_count}"
-        )
-        self.btn_prev.setEnabled(self._current_page > 1)
-        self.btn_next.setEnabled(self._current_page < self._page_count)
-
-    def _refresh_page(self) -> None:
-        """Fetch and display the current page."""
-        summaries: list[OrderSummaryDict] = fetch_order_summaries(
-            self._current_month
-        )
-        self._process_orders(summaries)

@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from datetime import date, datetime
 from math import ceil
-from typing import List, Optional, Sequence
+from typing import List, Optional, Sequence, Any, cast
 
 from sqlalchemy import func, select, delete, insert, update
 from sqlalchemy.orm import Session, selectinload
@@ -41,9 +41,10 @@ class OrderRepository:
         stmt = (
             select(Order)
             .where(Order.DATE >= date_start, Order.DATE < date_end)
-            .order_by(Order.DATE.desc(), Order.ID.asc())
+            .order_by(Order.DATE.asc(), Order.ID.asc())
         )
         orders = self.session.execute(stmt).scalars().all()
+        orders = [cast(Order, val) for val in orders]
 
         # Products are loaded via the relationship (lazy by default)
         # Accessing order.products triggers the lazy load.

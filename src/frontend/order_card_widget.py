@@ -28,9 +28,9 @@ class OrderCardWidget(QWidget):
     order_changed: Signal = Signal()
 
     def __init__(
-        self,
-        parent: QWidget | None = None,
-        order_data: OrderDict | None = None,
+            self,
+            parent: QWidget | None = None,
+            order_data: OrderDict | None = None,
     ) -> None:
         super().__init__(parent)
 
@@ -47,9 +47,6 @@ class OrderCardWidget(QWidget):
         self.date_input.setInputMask("99/99/9999")
         self.date_input.setPlaceholderText("DD/MM/AAAA")
 
-        self.nfe_key_input: QLineEdit = QLineEdit(self)
-        self.nfe_key_input.setPlaceholderText("Chave NFe")
-
         self.freight_input: QLineEdit = QLineEdit(self)
         self.freight_input.setPlaceholderText("R$ 0,00")
         freight_validator: QRegularExpressionValidator = QRegularExpressionValidator(
@@ -64,21 +61,42 @@ class OrderCardWidget(QWidget):
         )
         self.unloading_input.setValidator(unloading_validator)
 
-        # Header layout
+        # Header layout — vertical label/input pairs
         header_layout: QHBoxLayout = QHBoxLayout()
-        header_layout.addWidget(QLabel("Fornecedor:", self))
-        header_layout.addWidget(self.supplier_input)
-        header_layout.addWidget(QLabel("Data:", self))
-        header_layout.addWidget(self.date_input)
-        header_layout.addWidget(QLabel("Chave NFe:", self))
-        header_layout.addWidget(self.nfe_key_input)
-        header_layout.addWidget(QLabel("Frete:", self))
-        header_layout.addWidget(self.freight_input)
-        header_layout.addWidget(QLabel("Descarga:", self))
-        header_layout.addWidget(self.unloading_input)
+        header_layout.setSpacing(10)
+
+        # Fornecedor
+        _col_fornecedor: QVBoxLayout = QVBoxLayout()
+        _col_fornecedor.setSpacing(0)
+        _col_fornecedor.addWidget(QLabel("Fornecedor:", self))
+        _col_fornecedor.addWidget(self.supplier_input)
+        header_layout.addLayout(_col_fornecedor)
+
+        # Data
+        _col_data: QVBoxLayout = QVBoxLayout()
+        _col_data.setSpacing(0)
+        _col_data.addWidget(QLabel("Data:", self))
+        _col_data.addWidget(self.date_input)
+        header_layout.addLayout(_col_data)
+
+        # Frete
+        _col_frete: QVBoxLayout = QVBoxLayout()
+        _col_frete.setSpacing(0)
+        _col_frete.addWidget(QLabel("Frete:", self))
+        _col_frete.addWidget(self.freight_input)
+        header_layout.addLayout(_col_frete)
+
+        # Descarga
+        _col_descarga: QVBoxLayout = QVBoxLayout()
+        _col_descarga.setSpacing(0)
+        _col_descarga.addWidget(QLabel("Descarga:", self))
+        _col_descarga.addWidget(self.unloading_input)
+        header_layout.addLayout(_col_descarga)
 
         # ── Product Rows Container ────────────────────────────────────
         self.products_layout: QVBoxLayout = QVBoxLayout()
+        self.products_layout.setSpacing(0)
+        self.products_layout.setContentsMargins(0, 0, 0, 0)
         self._product_rows: list[ProductRowWidget] = []
 
         # ── Footer ────────────────────────────────────────────────────
@@ -97,6 +115,7 @@ class OrderCardWidget(QWidget):
 
         # ── Main Layout ───────────────────────────────────────────────
         main_layout: QVBoxLayout = QVBoxLayout(self)
+        main_layout.setContentsMargins(5, 5, 5, 5)
         main_layout.addLayout(header_layout)
         main_layout.addLayout(self.products_layout)
         main_layout.addLayout(footer_layout)
@@ -104,7 +123,6 @@ class OrderCardWidget(QWidget):
         # ── Signal Connections ────────────────────────────────────────
         self.supplier_input.textChanged.connect(self._on_header_changed)
         self.date_input.textChanged.connect(self._on_header_changed)
-        self.nfe_key_input.textChanged.connect(self._on_header_changed)
         self.freight_input.textChanged.connect(self._on_header_changed)
         self.unloading_input.textChanged.connect(self._on_header_changed)
         self.distribute_button.clicked.connect(self._on_distribute_freight)

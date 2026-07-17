@@ -2,9 +2,16 @@ from __future__ import annotations
 
 import uuid
 
-from PySide6.QtCore import Qt, Signal
+from PySide6.QtCore import Signal
 from PySide6.QtGui import QRegularExpressionValidator
-from PySide6.QtWidgets import QHBoxLayout, QLineEdit, QPushButton, QWidget
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
 
 from bridge.models.product import ProductDict
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
@@ -55,6 +62,7 @@ class ProductRowWidget(QWidget):
 
         # Layout
         layout: QHBoxLayout = QHBoxLayout(self)
+        layout.setContentsMargins(0, 0, 0, 0)
         layout.addWidget(self.name_input)
         layout.addWidget(self.quantity_input)
         layout.addWidget(self.price_input)
@@ -133,7 +141,7 @@ class ProductRowWidget(QWidget):
 
         filled_count: int = sum([name_filled, qty_filled, price_filled])
 
-        if filled_count > 0 and filled_count < 3:
+        if 0 < filled_count < 3:
             errors: list[str] = []
             if not name_filled:
                 errors.append(

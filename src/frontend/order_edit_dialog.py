@@ -1,13 +1,10 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt, QTimer, Signal
-from PySide6.QtGui import QMovie
+from PySide6.QtCore import QTimer, Signal
 from PySide6.QtWidgets import (
     QDialog,
-    QFileDialog,
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QPushButton,
     QVBoxLayout,
     QWidget,
@@ -15,7 +12,6 @@ from PySide6.QtWidgets import (
 
 from bridge.models.order import OrderDict, OrderInputDict
 from bridge.order import fetch_order_by_id, save_orders
-from frontend.business import import_xml
 from frontend.order_card_widget import OrderCardWidget
 from backend.utils.currency import cents_to_display
 
@@ -37,17 +33,6 @@ class OrderEditDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(600, 500)
 
-        # ── Header Bar ────────────────────────────────────────────────
-        # self.month_filter: QLineEdit = QLineEdit(self)
-        # self.month_filter.setInputMask("99/9999")
-        # self.month_filter.setPlaceholderText("MM/AAAA")
-        # if initial_month:
-        #     self.month_filter.setText(initial_month)
-        #
-        # self.btn_import_xml: QPushButton = QPushButton("Importar XML", self)
-        # self.message_label: QLabel = QLabel(self)
-        # self.message_label.setWordWrap(True)
-
         # ── Single Order Card ─────────────────────────────────────────
         if order_id:
             order_data: OrderDict | None = fetch_order_by_id(order_id)
@@ -64,22 +49,16 @@ class OrderEditDialog(QDialog):
 
         # ── Main Layout ───────────────────────────────────────────────
         layout: QVBoxLayout = QVBoxLayout(self)
-        # layout.setContentsMargins(12, 12, 12, 12)
-
-        # # Header frame
-        # header_frame = QHBoxLayout()
-        # header_frame.addWidget(QLabel("Mês", self))
-        # header_frame.addWidget(self.month_filter)
-        # header_frame.addStretch()
-        # header_frame.addWidget(self.btn_import_xml)
-        # header_frame.addWidget(self.message_label)
-        #
-        # header_container = QWidget(self)
-        # header_container.setLayout(header_frame)
-        # layout.addWidget(header_container)
+        layout.setContentsMargins(10, 0, 10, 0)
+        # layout.setSpacing(5)
 
         # Order card
         layout.addWidget(self.order_card)
+
+        # Message label
+        self.message_label: QLabel = QLabel(self)
+        self.message_label.setWordWrap(True)
+        layout.addWidget(self.message_label)
 
         # Footer frame
         footer_frame = QHBoxLayout()
@@ -93,30 +72,8 @@ class OrderEditDialog(QDialog):
 
         # ── Signal Connections ────────────────────────────────────────
         self.order_card.order_changed.connect(self._on_card_changed)
-        # self.btn_import_xml.clicked.connect(self._on_import_xml)
         self.btn_save.clicked.connect(self._on_save)
         self.btn_close.clicked.connect(self.reject)
-
-    def _on_import_xml(self) -> None:
-        """Handle XML import button click."""
-        file_path: str = QFileDialog.getOpenFileName(
-            self, "Importar XML", "", "Arquivos XML (*.xml)"
-        )[0]
-        if not file_path:
-            return
-
-        result = import_xml(file_path)
-        if result.get("orders"):
-            self.order_card.set_order_data(result["orders"][0])
-            if result.get("warnings"):
-                self._show_message(
-                    "Importação concluída com avisos: " + " ".join(result["warnings"]),
-                    "warning",
-                )
-            else:
-                self._show_message("XML importado com sucesso.", "success")
-        else:
-            self._show_message("Nenhum pedido encontrado no arquivo XML.", "error")
 
     def _on_save(self) -> None:
         """Handle save button click."""
@@ -164,4 +121,4 @@ class OrderEditDialog(QDialog):
         }
         self.message_label.setText(text)
         self.message_label.setStyleSheet(colors.get(level, ""))
-        QTimer.singleShot(5000, self.message_label.clear)  # type: ignore[union-attr]
+        QTimer.singleShot(5000, self.message_label.clear)

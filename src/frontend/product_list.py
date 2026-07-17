@@ -89,14 +89,31 @@ class ProductListView(QWidget):
         self.btn_search = QPushButton("Consultar", self)
         self.btn_clear = QPushButton("Limpar", self)
 
-        filter_layout.addWidget(QLabel("Fornecedor", self))
-        filter_layout.addWidget(self.filter_supplier)
-        filter_layout.addWidget(QLabel("Produto", self))
-        filter_layout.addWidget(self.filter_product)
-        filter_layout.addWidget(QLabel("Mês", self))
-        filter_layout.addWidget(self.filter_month)
-        filter_layout.addWidget(self.btn_search)
-        filter_layout.addWidget(self.btn_clear)
+        # Vertical layout: label + input for supplier
+        supplier_layout = QVBoxLayout()
+        supplier_layout.setContentsMargins(0, 0, 0, 0)
+        supplier_layout.addWidget(QLabel("Fornecedor", self))
+        supplier_layout.addWidget(self.filter_supplier)
+        filter_layout.addLayout(supplier_layout)
+
+        # Vertical layout: label + input for product
+        product_layout = QVBoxLayout()
+        product_layout.setContentsMargins(0, 0, 0, 0)
+        product_layout.addWidget(QLabel("Produto", self))
+        product_layout.addWidget(self.filter_product)
+        filter_layout.addLayout(product_layout)
+
+        # Vertical layout: label + input for month
+        month_layout = QVBoxLayout()
+        month_layout.setContentsMargins(0, 0, 0, 0)
+        month_layout.addWidget(QLabel("Mês", self))
+        month_layout.addWidget(self.filter_month)
+        filter_layout.addLayout(month_layout)
+
+        # Buttons aligned to the bottom of the input rows
+        filter_layout.addWidget(self.btn_search, alignment=Qt.AlignmentFlag.AlignBottom)
+        filter_layout.addWidget(self.btn_clear, alignment=Qt.AlignmentFlag.AlignBottom)
+
         return filter_frame
 
     def _setup_table(self) -> QScrollArea:

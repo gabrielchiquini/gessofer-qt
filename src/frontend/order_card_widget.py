@@ -10,6 +10,7 @@ from PySide6.QtWidgets import (
     QLabel,
     QLineEdit,
     QPushButton,
+    QFrame,
     QVBoxLayout,
     QWidget,
 )
@@ -63,7 +64,6 @@ class OrderCardWidget(QWidget):
 
         # Header layout — vertical label/input pairs
         header_layout: QHBoxLayout = QHBoxLayout()
-        header_layout.setSpacing(10)
 
         # Fornecedor
         _col_fornecedor: QVBoxLayout = QVBoxLayout()
@@ -113,12 +113,49 @@ class OrderCardWidget(QWidget):
         footer_layout.addStretch()
         footer_layout.addWidget(self.distribute_button)
 
+        # ── Card Container Frame ──────────────────────────────────────
+        card_frame: QFrame = QFrame(self)
+        card_frame.setObjectName("card-frame")
+        card_frame.setStyleSheet(
+            "#card-frame {"
+            "    background-color: white;"
+            "    border-radius: 6px;"
+            "    border: 1px solid #d0d0d0;"
+            "}"
+        )
+        card_layout: QVBoxLayout = QVBoxLayout(card_frame)
+        card_layout.setContentsMargins(10, 10, 10, 10)
+        card_layout.setSpacing(8)
+
+        # ── Header ────────────────────────────────────────────────────
+        card_layout.addLayout(header_layout)
+
+        # ── Horizontal Line (header → products) ───────────────────────
+        line_1: QFrame = QFrame(card_frame)
+        line_1.setFixedHeight(1)
+        line_1.setStyleSheet("background-color: #e0e0e0;")
+        line_1.setFrameShape(QFrame.HLine)
+        line_1.setFrameShadow(QFrame.Sunken)
+        card_layout.addWidget(line_1)
+
+        # ── Products Container ────────────────────────────────────────
+        card_layout.addLayout(self.products_layout)
+
+        # ── Horizontal Line (products → footer) ───────────────────────
+        line_2: QFrame = QFrame(card_frame)
+        line_2.setFixedHeight(1)
+        line_2.setStyleSheet("background-color: #e0e0e0;")
+        line_2.setFrameShape(QFrame.HLine)
+        line_2.setFrameShadow(QFrame.Sunken)
+        card_layout.addWidget(line_2)
+
+        # ── Footer ────────────────────────────────────────────────────
+        card_layout.addLayout(footer_layout)
+
         # ── Main Layout ───────────────────────────────────────────────
         main_layout: QVBoxLayout = QVBoxLayout(self)
-        main_layout.setContentsMargins(5, 5, 5, 5)
-        main_layout.addLayout(header_layout)
-        main_layout.addLayout(self.products_layout)
-        main_layout.addLayout(footer_layout)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.addWidget(card_frame)
 
         # ── Signal Connections ────────────────────────────────────────
         self.supplier_input.textChanged.connect(self._on_header_changed)

@@ -10,6 +10,8 @@ from PySide6.QtWidgets import (
     QLabel, QLineEdit, QPushButton, QTableView,
     QScrollArea, )
 
+from frontend.components import Card
+
 from bridge.models.product import PageResponseDict, ProductListItemDict
 from bridge.product import fetch_products
 
@@ -45,9 +47,11 @@ class ProductListView(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         # Filter form
-        filter_frame = self._setup_filter()
+        card = Card(self)
+        card.set_title("Filtro")
+        card.set_content(self._setup_filter())
 
-        layout.addWidget(filter_frame)
+        layout.addWidget(card)
 
         # Table with scroll area
         scroll = self._setup_table()

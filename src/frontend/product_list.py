@@ -5,11 +5,11 @@ from operator import floordiv
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
+
 from PySide6.QtWidgets import (
     QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QFrame,
     QLabel, QLineEdit, QPushButton, QTableView,
     QScrollArea, )
-
 from frontend.components import Card
 
 from bridge.models.product import PageResponseDict, ProductListItemDict
@@ -47,15 +47,16 @@ class ProductListView(QWidget):
         layout.setContentsMargins(10, 10, 10, 10)
 
         # Filter form
-        card = Card(self)
-        card.set_title("Filtro")
-        card.set_content(self._setup_filter())
+        filter_card = Card(self)
+        filter_card.set_title("Filtro")
+        filter_card.set_content(self._setup_filter())
 
-        layout.addWidget(card)
+        layout.addWidget(filter_card)
 
-        # Table with scroll area
-        scroll = self._setup_table()
-        layout.addWidget(scroll, 1)
+        # Table with scroll area and pagination footer
+        table_card = Card(self)
+        self._setup_table()
+        table_card.set_content(self.scroll)
 
         # Pagination
         pagination_layout = QHBoxLayout()
@@ -69,12 +70,15 @@ class ProductListView(QWidget):
         pagination_layout.addWidget(self.page_label)
         pagination_layout.addWidget(self.btn_next)
 
-        layout.addLayout(pagination_layout)
+        table_card.set_footer(pagination_layout)
+
+        layout.addWidget(table_card, 1)
 
     def _setup_filter(self) -> QFrame:
         filter_frame = QFrame(self)
-        filter_frame.setFrameShape(QFrame.Shape.StyledPanel)
+        filter_frame.setFrameShape(QFrame.Shape.NoFrame)
         filter_layout = QHBoxLayout(filter_frame)
+        filter_layout.setContentsMargins(6, 6, 6, 6)
         filter_layout.setSpacing(8)
 
         self.filter_supplier = QLineEdit(self)
@@ -120,13 +124,18 @@ class ProductListView(QWidget):
 
         return filter_frame
 
-    def _setup_table(self) -> QScrollArea:
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+    def _setup_table(self) -> None:
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll.setStyleSheet("QScrollArea { border: 0px; border-radius: 0px; }")
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.table_view = QTableView(self)
+        self.table_view.setFrameShape(QFrame.Shape.NoFrame)
+        self.table_view.setFrameShadow(QFrame.Shadow.Plain)
+        self.table_view.setStyleSheet("QTableView {     background-color: white; }")
         self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
         self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
@@ -139,10 +148,9 @@ class ProductListView(QWidget):
 
         self._setup_table_size()
 
-        scroll.setWidget(self.table_view)
+        self.scroll.setWidget(self.table_view)
 
         self.table_view.setModel(self._model)
-        return scroll
 
     def _setup_table_size(self):
         total_width = self.table_view.viewport().width()
@@ -193,7 +201,6 @@ class ProductListView(QWidget):
 
     def _refresh_page(self) -> None:
         """Fetch and display the current page."""
-
         supplier = self.filter_supplier.text().strip()
         product = self.filter_product.text().strip()
         month = self.filter_month.text().strip()
@@ -228,5 +235,5 @@ class ProductListView(QWidget):
                 QStandardItem(item.get("totalPrice", 0)),
             ]
             self._model.appendRow(row)
-
+        self.table_view.verticalScrollBar().setValue(0)
         self.update_pagination()

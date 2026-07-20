@@ -14,39 +14,23 @@ class Card(QFrame):
 
     _footer_container: QWidget | None = None
     _footer_layout: QLayout | None = None
+    _header_built: bool = False
 
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
         self.setObjectName("card")
 
-        # ── Header ──────────────────────────────────────────────────────
-        self._header_label: QLabel = QLabel("")
-        self._header_label.setStyleSheet("font-weight: bold;")
-
-        header_container: QWidget = QWidget(self)
-        header_layout: QVBoxLayout = QVBoxLayout(header_container)
-        header_layout.setContentsMargins(12, 12, 12, 12)
-        header_layout.addWidget(self._header_label)
-
-        # ── Separator 1 ─────────────────────────────────────────────────
-        self._separator_1: QFrame = QFrame(self)
-        self._separator_1.setObjectName("separator")
-        self._separator_1.setFrameShape(QFrame.Shape.HLine)
-        self._separator_1.setStyleSheet("max-height: 0px; color: #e0e0e0;")
-
         # ── Content Container ───────────────────────────────────────────
         self._content_container: QWidget = QWidget(self)
         self._content_layout: QVBoxLayout = QVBoxLayout(self._content_container)
-        self._content_layout.setContentsMargins(12, 12, 12, 12)
+        self._content_layout.setContentsMargins(6, 6, 6 ,6)
         self._content_layout.setSpacing(0)
 
         # ── Main Layout ─────────────────────────────────────────────────
         self._main_layout: QVBoxLayout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
         self._main_layout.setSpacing(0)
-        self._main_layout.addWidget(header_container)
-        self._main_layout.addWidget(self._separator_1)
         self._main_layout.addWidget(self._content_container)
 
         # ── QSS Styles ──────────────────────────────────────────────────
@@ -66,15 +50,37 @@ class Card(QFrame):
         _separator_2.setStyleSheet("max-height: 0px; color: #e0e0e0;")
 
         self._footer_container: QWidget = QWidget(self)
-        self._footer_layout: QVBoxLayout = QVBoxLayout(self._footer_container)
-        self._footer_layout.setContentsMargins(12, 12, 12, 12)
-        self._footer_layout.setSpacing(0)
         self._main_layout.addWidget(_separator_2)
         self._main_layout.addWidget(self._footer_container)
 
+    def _build_header(self) -> None:
+        # ── Header ──────────────────────────────────────────────────────
+        self._header_label: QLabel = QLabel("")
+        self._header_label.setStyleSheet("font-weight: bold;")
+
+        self._header_container: QWidget = QWidget(self)
+        header_layout: QVBoxLayout = QVBoxLayout(self._header_container)
+        header_layout.setContentsMargins(12, 12, 12, 12)
+        header_layout.addWidget(self._header_label)
+
+        # ── Separator 1 ─────────────────────────────────────────────────
+        self._separator_1: QFrame = QFrame(self)
+        self._separator_1.setObjectName("separator")
+        self._separator_1.setFrameShape(QFrame.Shape.HLine)
+        self._separator_1.setStyleSheet("max-height: 0px; color: #e0e0e0;")
+        """Add header and separator to the main layout (lazy)."""
+        self._main_layout.insertWidget(0, self._header_container)
+        self._main_layout.insertWidget(1, self._separator_1)
+
     def set_title(self, text: str) -> None:
-        """Update the header QLabel text."""
-        self._header_label.setText(text)
+        """Update the header QLabel text.
+
+        Shows the header section only when a non-empty title is provided.
+        """
+        if text and not self._header_built:
+            self._build_header()
+            self._header_label.setText(text)
+            self._header_built = True
 
     def set_content(self, widget: QWidget | QLayout) -> None:
         """Set the content section with a widget or layout.
@@ -98,16 +104,25 @@ class Card(QFrame):
         If a QWidget is passed, it becomes a child of the container
         to prevent memory leaks.
         """
-        self._clear_layout(self._footer_layout)
 
         if self._footer_container is None:
             self.build_footer()
+        if isinstance(self._footer_container, QWidget):
+            if isinstance(widget, QLayout):
+                self._footer_container.setLayout(widget)
+            else:
+                self._footer_layout: QVBoxLayout = QVBoxLayout(self._footer_container)
+                self._footer_layout.setContentsMargins(12, 12, 12, 12)
+                self._footer_layout.setSpacing(0)
+                widget.setParent(self._footer_container)
+                self._footer_layout.addWidget(widget)
 
-        if isinstance(widget, QLayout):
-            self._footer_container.setLayout(widget)
-        else:
-            widget.setParent(self._footer_container)
-            self._footer_layout.addWidget(widget)
+
+
+    @staticmethod
+    def _remove_layout(widget: QWidget) -> None:
+        widget.setLayout(QVBoxLayout())
+
 
     @staticmethod
     def _clear_layout(layout: QVBoxLayout) -> None:

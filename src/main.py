@@ -4,7 +4,6 @@ from PySide6.QtWidgets import QApplication
 from frontend.app import MainWindow
 import logging
 
-
 def main() -> None:
     logging.basicConfig(
         level=logging.DEBUG,
@@ -13,6 +12,7 @@ def main() -> None:
     )
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
     app = QApplication(sys.argv)
+    app.setStyle("FluentUI3")
     app.setApplicationName("Gessofer")
     app.setOrganizationName("Gessofer")
     src_dir = Path(__file__).resolve().parent

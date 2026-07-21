@@ -19,19 +19,14 @@ class Card(QFrame):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
+        self._content_layout: QLayout | None = None
+        self._content_container: QWidget | None = None
         self.setObjectName("card")
-
-        # ── Content Container ───────────────────────────────────────────
-        self._content_container: QWidget = QWidget(self)
-        self._content_layout: QVBoxLayout = QVBoxLayout(self._content_container)
-        self._content_layout.setContentsMargins(6, 6, 6 ,6)
-        self._content_layout.setSpacing(0)
 
         # ── Main Layout ─────────────────────────────────────────────────
         self._main_layout: QVBoxLayout = QVBoxLayout(self)
         self._main_layout.setContentsMargins(0, 0, 0, 0)
         self._main_layout.setSpacing(0)
-        self._main_layout.addWidget(self._content_container)
 
         # ── QSS Styles ──────────────────────────────────────────────────
         self.setStyleSheet(
@@ -89,13 +84,22 @@ class Card(QFrame):
         If a QWidget is passed, it becomes a child of the container
         to prevent memory leaks.
         """
-        self._clear_layout(self._content_layout)
+        # ── Content Container ───────────────────────────────────────────
+        self._content_container: QWidget = QWidget(self)
+        assert self._content_container is not None
 
         if isinstance(widget, QLayout):
             self._content_container.setLayout(widget)
         else:
+            _content_layout: QVBoxLayout = QVBoxLayout(self._content_container)
+            _content_layout.setContentsMargins(6, 6, 6, 6)
+            _content_layout.setSpacing(0)
             widget.setParent(self._content_container)
-            self._content_layout.addWidget(widget)
+            _content_layout.addWidget(widget)
+            self._content_container.setLayout(_content_layout)
+
+        self._main_layout.addWidget(self._content_container, stretch=1)
+
 
     def set_footer(self, widget: QWidget | QLayout) -> None:
         """Set the footer section with a widget or layout.
@@ -116,20 +120,3 @@ class Card(QFrame):
                 self._footer_layout.setSpacing(0)
                 widget.setParent(self._footer_container)
                 self._footer_layout.addWidget(widget)
-
-
-
-    @staticmethod
-    def _remove_layout(widget: QWidget) -> None:
-        widget.setLayout(QVBoxLayout())
-
-
-    @staticmethod
-    def _clear_layout(layout: QVBoxLayout) -> None:
-        """Remove all widgets from a layout without deleting them."""
-        while layout.count():
-            item = layout.takeAt(0)
-            if item is not None:
-                child_widget = item.widget()
-                if child_widget is not None:
-                    child_widget.setParent(None)

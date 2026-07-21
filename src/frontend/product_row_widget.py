@@ -2,19 +2,17 @@ from __future__ import annotations
 
 import uuid
 
-from PySide6.QtCore import Signal
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QHBoxLayout,
-    QLabel,
     QLineEdit,
     QPushButton,
-    QVBoxLayout,
     QWidget,
 )
 
-from bridge.models.product import ProductDict
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
+from bridge.models.product import ProductDict
 
 
 class ProductRowWidget(QWidget):
@@ -23,9 +21,9 @@ class ProductRowWidget(QWidget):
     row_changed: Signal = Signal()
 
     def __init__(
-        self,
-        parent: QWidget | None = None,
-        product_data: ProductDict | None = None,
+            self,
+            parent: QWidget | None = None,
+            product_data: ProductDict | None = None,
     ) -> None:
         super().__init__(parent)
         self._id: str = product_data["id"] if product_data else str(uuid.uuid4())
@@ -37,6 +35,7 @@ class ProductRowWidget(QWidget):
         # Quantity input — digits only
         self.quantity_input: QLineEdit = QLineEdit(self)
         self.quantity_input.setPlaceholderText("Qtde")
+        self.quantity_input.setMaximumWidth(60)
         qty_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*$"
         )
@@ -49,21 +48,25 @@ class ProductRowWidget(QWidget):
             r"^\d*([.,]\d{1,2})?$"
         )
         self.price_input.setValidator(price_validator)
+        self.price_input.setMaximumWidth(120)
 
         # Total input — read-only, gray
         self.total_input: QLineEdit = QLineEdit(self)
         self.total_input.setPlaceholderText("R$ 0,00")
         self.total_input.setReadOnly(True)
+        self.total_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.total_input.setStyleSheet("color: gray;")
+        self.total_input.setMaximumWidth(120)
 
         # Delete button
         self.delete_button: QPushButton = QPushButton("✕", self)
         self.delete_button.setFixedSize(28, 28)
+        self.delete_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # Layout
         layout: QHBoxLayout = QHBoxLayout(self)
         layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.name_input)
+        layout.addWidget(self.name_input, stretch=1)
         layout.addWidget(self.quantity_input)
         layout.addWidget(self.price_input)
         layout.addWidget(self.total_input)
@@ -104,13 +107,13 @@ class ProductRowWidget(QWidget):
     def is_empty(self) -> bool:
         """Return True if name is empty AND quantity is 0 AND price is 0."""
         return (
-            not self.name_input.text().strip()
-            and not self.quantity_input.text().strip()
-            and not self.price_input.text().strip()
+                not self.name_input.text().strip()
+                and not self.quantity_input.text().strip()
+                and not self.price_input.text().strip()
         )
 
     def get_product_data(
-        self, order_id: str, item_ordinal: int | None = None
+            self, order_id: str, item_ordinal: int | None = None
     ) -> ProductDict:
         """Return a ProductDict from the current widget state."""
         return {

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
-from PySide6.QtCore import QTimer, Signal
+import uuid
+from PySide6.QtCore import QTimer, Signal, Qt
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -12,8 +13,10 @@ from PySide6.QtWidgets import (
 
 from bridge.models.order import OrderDict, OrderInputDict
 from bridge.order import fetch_order_by_id, save_orders
-from frontend.order_card_widget import OrderCardWidget
+from frontend.order_header_card import OrderHeaderCard
+from frontend.order_items_card import OrderItemsCard
 from backend.utils.currency import cents_to_display
+from frontend.product_row_widget import ProductRowWidget
 
 
 class OrderEditDialog(QDialog):
@@ -33,27 +36,42 @@ class OrderEditDialog(QDialog):
         self.setModal(True)
         self.setMinimumSize(600, 500)
 
-        # ── Single Order Card ─────────────────────────────────────────
+        # ── State ─────────────────────────────────────────────────────
         if order_id:
             order_data: OrderDict | None = fetch_order_by_id(order_id)
-            if order_data is None:
-                self.order_card: OrderCardWidget = OrderCardWidget(self)
-            else:
-                self.order_card = OrderCardWidget(self, order_data=order_data)
         else:
-            self.order_card = OrderCardWidget(self)
+            order_data = None
+
+        self._order_id: str = order_data["id"] if order_data else str(uuid.uuid4())
+        self._is_new: bool = order_data is None
+
+        # ── Header Card ───────────────────────────────────────────────
+        self.header_card: OrderHeaderCard = OrderHeaderCard(self)
+
+        # ── Items Card ────────────────────────────────────────────────
+        self.items_card: OrderItemsCard = OrderItemsCard(self)
+
+        # ── Load existing order data if available ─────────────────────
+        if order_data is not None:
+            self.header_card.set_order_data(order_data)
+            self.items_card.set_order_data(order_data)
 
         # ── Footer Buttons ────────────────────────────────────────────
         self.btn_save: QPushButton = QPushButton("Salvar", self)
+        self.btn_save.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
         self.btn_close: QPushButton = QPushButton("Fechar", self)
+        self.btn_close.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # ── Main Layout ───────────────────────────────────────────────
         layout: QVBoxLayout = QVBoxLayout(self)
         layout.setContentsMargins(10, 0, 10, 0)
-        # layout.setSpacing(5)
+        layout.setSpacing(8)
 
-        # Order card
-        layout.addWidget(self.order_card)
+        # Header card (no stretch)
+        layout.addWidget(self.header_card)
+
+        # Items card (stretch = 1, takes remaining space)
+        layout.addWidget(self.items_card, 1)
 
         # Message label
         self.message_label: QLabel = QLabel(self)
@@ -71,25 +89,38 @@ class OrderEditDialog(QDialog):
         layout.addWidget(footer_container)
 
         # ── Signal Connections ────────────────────────────────────────
-        self.order_card.order_changed.connect(self._on_card_changed)
+        self.header_card.order_changed.connect(self._on_card_changed)
+        self.items_card.order_changed.connect(self._on_card_changed)
         self.btn_save.clicked.connect(self._on_save)
         self.btn_close.clicked.connect(self.reject)
 
     def _on_save(self) -> None:
         """Handle save button click."""
-        # Validate
-        valid, errors = self.order_card.validate()
-        if not valid:
-            self._show_message("Há campos inválidos: " + "; ".join(errors), "error")
+        # Validate header
+        header_valid, header_errors = self.header_card.validate()
+        # Validate items
+        items_valid, items_errors = self.items_card.validate()
+
+        all_errors = header_errors + items_errors
+        if not (header_valid and items_valid):
+            self._show_message("Há campos inválidos: " + "; ".join(all_errors), "error")
             return
 
-        # Collect order data
-        order_data: OrderInputDict = self.order_card.get_order_data()  # type: ignore[union-attr]
+        # Assemble full order data from both cards
+        order_data: OrderInputDict = {
+            "id": self._order_id,
+            "date": self.header_card.get_date(),
+            "supplier": self.header_card.get_supplier(),
+            "nfeKey": "",  # TODO: add nfe_key_input field to header card
+            "freight": self.header_card.get_freight_cents(),
+            "unloading": self.header_card.get_unloading_cents(),
+            "products": self.items_card.get_products_list(),
+        }
 
         # Determine deleted order IDs
         deleted_ids: list[str] = []
-        if not self.order_card._is_new:
-            deleted_ids = [self.order_card._order_id]
+        if not self._is_new:
+            deleted_ids = [self._order_id]
 
         # Save
         success: bool = save_orders([order_data], deleted_ids)
@@ -102,15 +133,16 @@ class OrderEditDialog(QDialog):
 
     def _on_card_changed(self) -> None:
         """Update footer total and distribute button state on card changes."""
-        total_cents: int = self.order_card.get_products_total()
-        self.order_card.products_total_label.setText(
+        total_cents: int = self.items_card.get_products_total()
+        self.items_card.products_total_label.setText(
             f"Total dos produtos: {cents_to_display(total_cents)}"
         )
 
         # Enable/disable distribute button
-        valid, _ = self.order_card.validate()
-        can_distribute: bool = valid and total_cents > 0
-        self.order_card.distribute_button.setEnabled(can_distribute)
+        header_valid, _ = self.header_card.validate()
+        items_valid, _ = self.items_card.validate()
+        can_distribute: bool = header_valid and items_valid and total_cents > 0
+        self.items_card.distribute_button.setEnabled(can_distribute)
 
     def _show_message(self, text: str, level: str) -> None:
         """Show a styled message in the message label, auto-clear after 5 seconds."""

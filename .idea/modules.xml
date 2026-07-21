@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/gessofer-qt.iml" filepath="$PROJECT_DIR$/.idea/gessofer-qt.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/PySide QtQuick Project.iml" filepath="$PROJECT_DIR$/.idea/PySide QtQuick Project.iml" />
     </modules>
   </component>
 </project>

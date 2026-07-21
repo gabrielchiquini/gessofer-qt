@@ -1,0 +1,214 @@
+from __future__ import annotations
+
+import uuid
+from typing import Any
+
+from PySide6.QtCore import Qt, Signal
+from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtWidgets import (
+    QHBoxLayout,
+    QLabel,
+    QLineEdit,
+    QPushButton,
+    QVBoxLayout,
+    QWidget,
+)
+
+from bridge.models.order import OrderDict
+from bridge.models.product import ProductDict
+from frontend.business import distribute_freight
+from frontend.components.card import Card
+from frontend.product_row_widget import ProductRowWidget
+from backend.utils.currency import cents_to_display, parse_currency_to_cents
+
+
+class OrderItemsCard(QWidget):
+    """Items card for order editing: product rows, total, and freight distribution."""
+
+    order_changed: Signal = Signal()
+    row_added: Signal = Signal(ProductRowWidget)
+
+    def __init__(self, parent: QWidget | None = None) -> None:
+        super().__init__(parent)
+
+        # ── Card Container ────────────────────────────────────────────
+        self._card: Card = Card(self)
+        self._card.set_title("Itens")
+
+        # ── Product Rows Container ────────────────────────────────────
+        self.products_layout: QVBoxLayout = QVBoxLayout()
+        self.products_layout.setSpacing(0)
+        self.products_layout.setContentsMargins(0, 0, 0, 0)
+        self.products_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        self._product_rows: list[ProductRowWidget] = []
+
+        self._card.set_content(self.products_layout)
+
+        # ── Footer ────────────────────────────────────────────────────
+        self.products_total_label: QLabel = QLabel(
+            "Total dos produtos: R$ 0,00", self
+        )
+        self.distribute_button: QPushButton = QPushButton(
+            "Distribuir frete", self
+        )
+        self.distribute_button.setDisabled(True)
+        self.distribute_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+
+        footer_layout: QHBoxLayout = QHBoxLayout()
+        footer_layout.addWidget(self.products_total_label)
+        footer_layout.addStretch()
+        footer_layout.addWidget(self.distribute_button)
+
+        self._card.build_footer()
+        self._card.set_footer(footer_layout)
+
+        # ── Signal Connections ────────────────────────────────────────
+        self.distribute_button.clicked.connect(self._on_distribute_freight)
+
+        # ── Initialize: add one empty row ─────────────────────────────
+        self._add_empty_row()
+
+        # ── Main Layout ───────────────────────────────────────────────
+        main_layout: QVBoxLayout = QVBoxLayout(self)
+        main_layout.setContentsMargins(0, 0, 0, 0)
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        main_layout.addWidget(self._card)
+
+    # ── Product Row Management ──────────────────────────────────────
+
+    def _add_empty_row(self) -> ProductRowWidget:
+        """Add a new empty product row to the layout."""
+        last_row = None
+        if len(self._product_rows) > 0:
+            last_row = self._product_rows[-1]
+        row = ProductRowWidget(self)
+        self._product_rows.append(row)
+        self.products_layout.addWidget(row)
+        row.row_changed.connect(self._on_row_changed)
+        self._update_delete_buttons()
+        # if last_row is not None:
+        #     self.setTabOrder(last_row.price_input, row.name_input)
+        self.row_added.emit(row)
+        return row
+
+    def _on_row_changed(self) -> None:
+        """Handle changes in a product row: auto-add or auto-remove."""
+        changed_row: ProductRowWidget = self.sender()  # type: ignore[union-attr]
+        row_index: int = self._product_rows.index(changed_row)
+
+        # Auto-remove: if non-last row becomes empty
+        if row_index < len(self._product_rows) - 1 and changed_row.is_empty():
+            self.products_layout.removeWidget(changed_row)
+            changed_row.deleteLater()
+            self._product_rows.pop(row_index)
+            self._update_delete_buttons()
+            self.order_changed.emit()
+            return
+
+        # Auto-add: if the last row is filled (not empty), add a new empty row
+        last_row = self._product_rows[-1]
+        if not last_row.is_empty() and changed_row is last_row:
+            new_row = self._add_empty_row()
+            self.order_changed.emit()
+
+    def _update_delete_buttons(self) -> None:
+        """Enable delete button only for non-last rows."""
+        for i, row in enumerate(self._product_rows):
+            row.delete_button.setEnabled(i < len(self._product_rows) - 1)
+
+    # ── Freight Distribution ────────────────────────────────────────
+
+    def _on_distribute_freight(self) -> None:
+        """Distribute freight/unloading costs across product prices."""
+        products_list: list[ProductDict] = self.get_products_list()
+        # Build a minimal order dict for distribute_freight
+        order_data: dict[str, Any] = {
+            "products": products_list,
+        }
+        result = distribute_freight(order_data)  # type: ignore[arg-type]
+        if result and result.get("new_products"):
+            new_products: list[ProductDict] = result["new_products"]
+            for i, new_product in enumerate(new_products):
+                if i < len(self._product_rows):
+                    self._product_rows[i].price_input.setText(
+                        cents_to_display(new_product["price"])
+                    )
+            self.order_changed.emit()
+
+    # ── Data Access ─────────────────────────────────────────────────
+
+    def get_products_total(self) -> int:
+        """Sum of all product totals in cents."""
+        return sum(
+            parse_currency_to_cents(row.total_input.text())
+            for row in self._product_rows
+        )
+
+    def get_products_list(self) -> list[ProductDict]:
+        """Return a list of ProductDict from all product rows."""
+        return [
+            row.get_product_data("", i)
+            for i, row in enumerate(self._product_rows)
+        ]
+
+    def validate(self) -> tuple[bool, list[str]]:
+        """
+        Validate each product row.
+        Returns combined results: (True, []) if all valid, (False, [errors]) if any invalid.
+        """
+        errors: list[str] = []
+        for i, row in enumerate(self._product_rows):
+            valid, row_errors = row.validate()
+            if not valid:
+                for err in row_errors:
+                    errors.append(f"Produto {i + 1}: {err}")
+        return (len(errors) == 0, errors)
+
+    # ── Data Loading ────────────────────────────────────────────────
+
+    def set_order_data(self, order_data: OrderDict) -> None:
+        """Replace product rows with those from order_data."""
+        # Remove all existing rows
+        for row in self._product_rows:
+            self.products_layout.removeWidget(row)
+            row.deleteLater()
+        self._product_rows.clear()
+
+        # Add rows from order data
+        for product in order_data["products"]:
+            row = ProductRowWidget(self, product_data=product)
+            self._product_rows.append(row)
+            self.products_layout.addWidget(row)
+            row.row_changed.connect(self._on_row_changed)
+
+        self._update_delete_buttons()
+        self.order_changed.emit()
+
+    def clear(self) -> None:
+        """Remove all rows, add one empty row."""
+        for row in self._product_rows:
+            self.products_layout.removeWidget(row)
+            row.deleteLater()
+        self._product_rows.clear()
+
+        new_row = self._add_empty_row()
+        self.order_changed.emit()
+
+    def add_row(self) -> ProductRowWidget:
+        """Public method to add a row (for XML import or other callers)."""
+        return self._add_empty_row()
+
+    def remove_row_at(self, index: int) -> None:
+        """Public method to remove a row at a given index."""
+        if 0 <= index < len(self._product_rows):
+            row = self._product_rows[index]
+            self.products_layout.removeWidget(row)
+            row.deleteLater()
+            self._product_rows.pop(index)
+            self._update_delete_buttons()
+            self.order_changed.emit()
+
+    def get_product_rows(self) -> list[ProductRowWidget]:
+        """Return the _product_rows list (for external access if needed)."""
+        return self._product_rows

@@ -3,5 +3,5 @@ PySide6_Addons==6.11.1
 PySide6_Essentials==6.11.1
 shiboken6==6.11.1
 SQLAlchemy==2.0.51
-injector==0.22.0
+injector==0.24.0
 pytest==9.1.1

@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from bridge.models.product import ProductDict
 
@@ -113,20 +114,20 @@ class ProductRowWidget(QWidget):
         )
 
     def get_product_data(
-            self, order_id: str, item_ordinal: int | None = None
-    ) -> ProductDict:
+            self, order_id: str, ordinal: int,
+    ) -> ProductInput:
         """Return a ProductDict from the current widget state."""
-        return {
-            "id": self._id,
-            "name": self.name_input.text().strip(),
-            "quantity": int(self.quantity_input.text())
+        return ProductInput(
+            id=self._id,
+            name=self.name_input.text().strip(),
+            quantity=int(self.quantity_input.text())
             if self.quantity_input.text().strip()
             else 0,
-            "price": parse_currency_to_cents(self.price_input.text()),
-            "total": parse_currency_to_cents(self.total_input.text()),
-            "order_id": order_id,
-            "itemOrdinal": item_ordinal,
-        }
+            price=parse_currency_to_cents(self.price_input.text()),
+            total=parse_currency_to_cents(self.total_input.text()),
+            order_id=order_id,
+            item_ordinal=ordinal,
+        )
 
     def validate(self) -> tuple[bool, list[str]]:
         """

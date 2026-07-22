@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import uuid
+from datetime import date
+
 from PySide6.QtCore import QTimer, Signal, Qt
 from PySide6.QtWidgets import (
     QDialog,
@@ -11,12 +13,12 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from bridge.models.order import OrderDict, OrderInputDict
-from bridge.order import fetch_order_by_id, save_orders
+from backend import OrderInput
+from backend.utils.currency import cents_to_display
+from bridge.models.order import OrderDict
+from bridge.order import fetch_order_by_id, save_single_order
 from frontend.order_header_card import OrderHeaderCard
 from frontend.order_items_card import OrderItemsCard
-from backend.utils.currency import cents_to_display
-from frontend.product_row_widget import ProductRowWidget
 
 
 class OrderEditDialog(QDialog):
@@ -26,10 +28,9 @@ class OrderEditDialog(QDialog):
     closed: Signal = Signal()
 
     def __init__(
-        self,
-        parent: QWidget | None = None,
-        order_id: str | None = None,
-        initial_month: str | None = None,
+            self,
+            parent: QWidget | None = None,
+            order_id: str | None = None,
     ) -> None:
         super().__init__(parent)
         self.setWindowTitle("Novo Pedido" if order_id is None else "Editar Pedido")
@@ -107,23 +108,18 @@ class OrderEditDialog(QDialog):
             return
 
         # Assemble full order data from both cards
-        order_data: OrderInputDict = {
-            "id": self._order_id,
-            "date": self.header_card.get_date(),
-            "supplier": self.header_card.get_supplier(),
-            "nfeKey": "",  # TODO: add nfe_key_input field to header card
-            "freight": self.header_card.get_freight_cents(),
-            "unloading": self.header_card.get_unloading_cents(),
-            "products": self.items_card.get_products_list(),
-        }
-
-        # Determine deleted order IDs
-        deleted_ids: list[str] = []
-        if not self._is_new:
-            deleted_ids = [self._order_id]
+        order_data = OrderInput(
+            id=self._order_id,
+            date=date.strptime(self.header_card.get_date(), "%d/%m/%Y"),
+            supplier=self.header_card.get_supplier(),
+            nfe_key="",  # TODO: add nfe_key_input field to header card
+            freight=self.header_card.get_freight_cents(),
+            unloading=self.header_card.get_unloading_cents(),
+            products=self.items_card.get_products_list(self._order_id),
+        )
 
         # Save
-        success: bool = save_orders([order_data], deleted_ids)
+        success: bool = save_single_order(order_data)
         if success:
             self._show_message("Salvo com sucesso!", "success")
             self.order_saved.emit(order_data)

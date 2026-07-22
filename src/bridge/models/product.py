@@ -37,15 +37,3 @@ class ProductDict(TypedDict):
     total: int
     order_id: str
     itemOrdinal: int | None
-
-
-class ProductInputDict(TypedDict):
-    """Product dict inside an OrderInputDict."""
-
-    id: str
-    name: str
-    quantity: int
-    price: int
-    total: int
-    order_id: str
-    itemOrdinal: int | None

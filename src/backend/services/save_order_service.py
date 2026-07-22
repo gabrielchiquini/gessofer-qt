@@ -102,6 +102,41 @@ class SaveOrderService:
                 logger.error("Erro ao salvar pedidos: %s", exc)
                 raise DatabaseError(f"Falha na transação de salvamento de pedidos: {exc}") from exc
 
+    def save_single_order(self, order: OrderInput) -> None:
+        """
+        Save a single order (with its products) as an upsert.
+
+        If an order with the same ID already exists, its products and order row
+        are deleted first, then the new data is inserted — all in one transaction.
+
+        Args:
+            order: Single OrderInput DTO to save.
+
+        Raises:
+            DatabaseError: If a database error occurs.
+        """
+        # Step 2: Upsert in a single transaction
+        with Session(self._engine) as session:
+            try:
+                repo = OrderRepository(session)
+
+                # Delete existing order + products (scoped to this single order)
+                if order.id is not None:
+                    repo.delete_order_products([order.id])
+                    repo.delete_orders([order.id])
+
+                # Insert the order
+                repo.insert_order(order)
+
+                # Insert the products
+                for product in order.products:
+                    repo.insert_product(product)
+
+                session.commit()
+            except Exception as exc:
+                logger.error("Erro ao salvar pedido: %s", exc)
+                raise DatabaseError(f"Falha na transação de salvamento de pedido: {exc}") from exc
+
 
 class SaveExpenseService:
     """

@@ -1,25 +1,23 @@
 from __future__ import annotations
 
-import uuid
 from typing import Any
 
 from PySide6.QtCore import Qt, Signal
-from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
-    QLineEdit,
     QPushButton,
     QVBoxLayout,
     QWidget,
 )
 
+from backend import ProductInput
+from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from bridge.models.order import OrderDict
 from bridge.models.product import ProductDict
 from frontend.business import distribute_freight
 from frontend.components.card import Card
 from frontend.product_row_widget import ProductRowWidget
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
 
 
 class OrderItemsCard(QWidget):
@@ -121,7 +119,7 @@ class OrderItemsCard(QWidget):
 
     def _on_distribute_freight(self) -> None:
         """Distribute freight/unloading costs across product prices."""
-        products_list: list[ProductDict] = self.get_products_list()
+        products_list: list[ProductInput] = self.get_products_list()
         # Build a minimal order dict for distribute_freight
         order_data: dict[str, Any] = {
             "products": products_list,
@@ -145,11 +143,10 @@ class OrderItemsCard(QWidget):
             for row in self._product_rows
         )
 
-    def get_products_list(self) -> list[ProductDict]:
+    def get_products_list(self, order_id: str = "") -> list[ProductInput]:
         """Return a list of ProductDict from all product rows."""
         return [
-            row.get_product_data("", i)
-            for i, row in enumerate(self._product_rows)
+            row.get_product_data(order_id, i) for i, row in enumerate(self._product_rows[:-1]) # ignores last empty row
         ]
 
     def validate(self) -> tuple[bool, list[str]]:
@@ -163,7 +160,7 @@ class OrderItemsCard(QWidget):
             if not valid:
                 for err in row_errors:
                     errors.append(f"Produto {i + 1}: {err}")
-        return (len(errors) == 0, errors)
+        return len(errors) == 0, errors
 
     # ── Data Loading ────────────────────────────────────────────────
 

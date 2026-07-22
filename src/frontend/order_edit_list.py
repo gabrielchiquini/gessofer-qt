@@ -170,7 +170,6 @@ class OrderEditListView(QWidget):
         dialog = OrderEditDialog(
             self,
             order_id=order_id,
-            initial_month=self.filter_month.text().strip(),
         )
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
@@ -183,7 +182,6 @@ class OrderEditListView(QWidget):
         dialog = OrderEditDialog(
             self,
             order_id=None,
-            initial_month=month,
         )
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()

@@ -3,15 +3,15 @@ from __future__ import annotations
 import logging
 from typing import cast
 
+from backend import OrderInput
 from backend.services.freight_distribution import (
     FreightDistributionResult,
     FreightDistributionService,
 )
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportResult, XmlImportService
-from bridge.models.order import FreightResultDict, OrderInputDict, XmlImportResultDict
+from bridge.models.order import FreightResultDict, XmlImportResultDict
 from bridge.models.validation import ValidationDict
-from bridge.order import dict_to_order_input
 
 logger = logging.getLogger(__name__)
 
@@ -70,7 +70,7 @@ def xml_import_result_to_dict(result: XmlImportResult) -> XmlImportResultDict:
     }
 
 
-def distribute_freight(order: OrderInputDict) -> FreightResultDict:
+def distribute_freight(order: OrderInput) -> FreightResultDict:
     """
     Distribute freight/unloading costs across products in an order.
 
@@ -81,9 +81,8 @@ def distribute_freight(order: OrderInputDict) -> FreightResultDict:
         Dict with distribution result. On ValueError, returns {}.
     """
     try:
-        order_input = dict_to_order_input(order)
         service = FreightDistributionService()
-        result = service.distribute(order_input)
+        result = service.distribute(order)
         return freight_result_to_dict(result)
     except ValueError:
         return cast(FreightResultDict, {})
@@ -111,7 +110,7 @@ def import_xml(file_path: str) -> XmlImportResultDict:
         return {"orders": [], "warnings": []}
 
 
-def validate_order(order: OrderInputDict) -> ValidationDict:
+def validate_order(order: OrderInput) -> ValidationDict:
     """
     Validate an order dict.
 
@@ -122,9 +121,8 @@ def validate_order(order: OrderInputDict) -> ValidationDict:
         Dict with 'valid' (bool) and 'errors' (list[str]) keys.
     """
     try:
-        order_input = dict_to_order_input(order)
         service = ValidationService()
-        result = service.validate_order(order_input)
+        result = service.validate_order(order)
         return {"valid": result.valid, "errors": result.errors}
     except Exception as exc:
         logger.error("Error in validate_order: %s", exc)

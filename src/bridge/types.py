@@ -4,7 +4,6 @@ from bridge.models.expense import ExpenseDict, ExpenseInputDict
 from bridge.models.order import (
     FreightResultDict,
     OrderDict,
-    OrderInputDict,
     OrderSummaryDict,
     XmlImportResultDict,
 )
@@ -22,7 +21,6 @@ __all__ = [
     "ExpenseInputDict",
     "FreightResultDict",
     "OrderDict",
-    "OrderInputDict",
     "OrderSummaryDict",
     "XmlImportResultDict",
     "PageResponseDict",

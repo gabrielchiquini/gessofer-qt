@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing_extensions import TypedDict
+from typing import TypedDict
 
 from bridge.models.product import ProductDict
 
@@ -17,27 +17,15 @@ class OrderDict(TypedDict):
     products: list[ProductDict]
 
 
-class OrderInputDict(TypedDict):
-    """Order dict accepted by save_orders bridge function."""
-
-    id: str
-    date: str
-    supplier: str
-    nfeKey: str
-    freight: int
-    unloading: int
-    products: list[ProductInputDict]
-
-
 class OrderSummaryDict(TypedDict):
     """An order summary for the list-and-navigate table view."""
 
-    id: str                    # order UUID
-    date: str                  # YYYY-MM-DD (ISO, will be converted to BR in widget)
+    id: str  # order UUID
+    date: str  # YYYY-MM-DD (ISO, will be converted to BR in widget)
     supplier: str
     product_count: int
-    products_total: int        # cents
-    order_total: int           # cents (products + freight + unloading)
+    products_total: int  # cents
+    order_total: int  # cents (products + freight + unloading)
 
 
 class FreightResultDict(TypedDict):

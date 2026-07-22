@@ -51,15 +51,9 @@ class TextField(QWidget):
         self._edit: QLineEdit = QLineEdit(self)
         self._error: QLabel = QLabel("", self)
 
-        # Label styling: bold, 12px
-        _label_font: QFont = QFont()
-        _label_font.setPointSize(12)
-        _label_font.setBold(True)
-        self._label.setFont(_label_font)
-
         # Error label styling: 9px, red
         _error_font: QFont = QFont()
-        _error_font.setPointSize(9)
+        _error_font.setPixelSize(9)
         self._error.setFont(_error_font)
         self._error.setStyleSheet("color: red;")
         self._error.setVisible(False)
@@ -75,7 +69,7 @@ class TextField(QWidget):
         _layout.setContentsMargins(0, 0, 0, 0)
         _layout.setSpacing(2)
         _layout.addWidget(self._label)
-        _layout.addWidget(self._edit, stretch=1)
+        _layout.addWidget(self._edit)
         _layout.addWidget(self._error)
 
         # Size policy

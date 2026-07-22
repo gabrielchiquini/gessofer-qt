@@ -2,16 +2,11 @@ from __future__ import annotations
 
 from PySide6.QtCore import Signal
 from PySide6.QtGui import QRegularExpressionValidator
-from PySide6.QtWidgets import (
-    QHBoxLayout,
-    QLabel,
-    QLineEdit,
-    QVBoxLayout,
-    QWidget,
-)
+from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 from bridge.models.order import OrderDict
 from frontend.components.card import Card
+from frontend.components.text_field import TextField
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from backend.utils.date import iso_to_br_date
 
@@ -29,66 +24,59 @@ class OrderHeaderCard(QWidget):
         self._card.set_title("Dados do pedido")
 
         # ── Header Fields ─────────────────────────────────────────────
-        self.supplier_input: QLineEdit = QLineEdit(self)
-        self.supplier_input.setPlaceholderText("Fornecedor")
+        self.supplier_input: TextField = TextField(
+            self,
+            label="Fornecedor",
+            placeholder="Fornecedor",
+            required=True,
+        )
         self.supplier_input.setMinimumWidth(180)
 
-        self.date_input: QLineEdit = QLineEdit(self)
-        self.date_input.setInputMask("99/99/9999")
-        self.date_input.setPlaceholderText("DD/MM/AAAA")
+        self.date_input: TextField = TextField(
+            self,
+            label="Data",
+            placeholder="DD/MM/AAAA",
+            input_mask="99/99/9999",
+            required=True,
+        )
 
-        self.freight_input: QLineEdit = QLineEdit(self)
-        self.freight_input.setPlaceholderText("R$ 0,00")
+        self.freight_input: TextField = TextField(
+            self,
+            label="Frete",
+            placeholder="R$ 0,00",
+            regex_validation_pattern=r"^\d*([.,]\d{1,2})?$",
+        )
         freight_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*([.,]\d{1,2})?$"
         )
-        self.freight_input.setValidator(freight_validator)
+        self.freight_input._edit.setValidator(freight_validator)
 
-        self.unloading_input: QLineEdit = QLineEdit(self)
-        self.unloading_input.setPlaceholderText("R$ 0,00")
+        self.unloading_input: TextField = TextField(
+            self,
+            label="Descarga",
+            placeholder="R$ 0,00",
+            regex_validation_pattern=r"^\d*([.,]\d{1,2})?$",
+        )
         unloading_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*([.,]\d{1,2})?$"
         )
-        self.unloading_input.setValidator(unloading_validator)
+        self.unloading_input._edit.setValidator(unloading_validator)
 
-        # Header layout — vertical label/input pairs
+        # Header layout — TextField widgets (each has its own label internally)
         header_layout: QHBoxLayout = QHBoxLayout()
 
-        # Fornecedor
-        _col_fornecedor: QVBoxLayout = QVBoxLayout()
-        _col_fornecedor.setSpacing(0)
-        _col_fornecedor.addWidget(QLabel("Fornecedor:", self))
-        _col_fornecedor.addWidget(self.supplier_input)
-        header_layout.addLayout(_col_fornecedor)
-
-        # Data
-        _col_data: QVBoxLayout = QVBoxLayout()
-        _col_data.setSpacing(0)
-        _col_data.addWidget(QLabel("Data:", self))
-        _col_data.addWidget(self.date_input)
-        header_layout.addLayout(_col_data)
-
-        # Frete
-        _col_frete: QVBoxLayout = QVBoxLayout()
-        _col_frete.setSpacing(0)
-        _col_frete.addWidget(QLabel("Frete:", self))
-        _col_frete.addWidget(self.freight_input)
-        header_layout.addLayout(_col_frete)
-
-        # Descarga
-        _col_descarga: QVBoxLayout = QVBoxLayout()
-        _col_descarga.setSpacing(0)
-        _col_descarga.addWidget(QLabel("Descarga:", self))
-        _col_descarga.addWidget(self.unloading_input)
-        header_layout.addLayout(_col_descarga)
+        header_layout.addWidget(self.supplier_input)
+        header_layout.addWidget(self.date_input)
+        header_layout.addWidget(self.freight_input)
+        header_layout.addWidget(self.unloading_input)
 
         self._card.set_content(header_layout)
 
         # ── Signal Connections ────────────────────────────────────────
-        self.supplier_input.textChanged.connect(self._on_header_changed)
-        self.date_input.textChanged.connect(self._on_header_changed)
-        self.freight_input.textChanged.connect(self._on_header_changed)
-        self.unloading_input.textChanged.connect(self._on_header_changed)
+        self.supplier_input.connect_text_changed(self._on_header_changed)
+        self.date_input.connect_text_changed(self._on_header_changed)
+        self.freight_input.connect_text_changed(self._on_header_changed)
+        self.unloading_input.connect_text_changed(self._on_header_changed)
 
         # ── Main Layout ───────────────────────────────────────────────
         main_layout: QVBoxLayout = QVBoxLayout(self)
@@ -97,7 +85,7 @@ class OrderHeaderCard(QWidget):
 
     # ── Header Change Handling ──────────────────────────────────────
 
-    def _on_header_changed(self) -> None:
+    def _on_header_changed(self, _: str) -> None:
         """Emit order_changed when any header field changes."""
         self.order_changed.emit()
 
@@ -105,35 +93,35 @@ class OrderHeaderCard(QWidget):
 
     def get_supplier(self) -> str:
         """Return the supplier text."""
-        return self.supplier_input.text().strip()
+        return self.supplier_input.get_text().strip()
 
     def get_date(self) -> str:
         """Return the date text."""
-        return self.date_input.text().strip()
+        return self.date_input.get_text().strip()
 
     def get_freight_cents(self) -> int:
         """Return freight value in cents."""
-        return parse_currency_to_cents(self.freight_input.text())
+        return parse_currency_to_cents(self.freight_input.get_text())
 
     def get_unloading_cents(self) -> int:
         """Return unloading value in cents."""
-        return parse_currency_to_cents(self.unloading_input.text())
+        return parse_currency_to_cents(self.unloading_input.get_text())
 
     def set_supplier(self, text: str) -> None:
         """Set the supplier text."""
-        self.supplier_input.setText(text)
+        self.supplier_input.set_text(text)
 
     def set_date_br(self, text: str) -> None:
         """Set the date in BR format (dd/MM/yyyy)."""
-        self.date_input.setText(text)
+        self.date_input.set_text(text)
 
     def set_freight_cents(self, cents: int) -> None:
         """Set the freight value from cents."""
-        self.freight_input.setText(cents_to_display(cents))
+        self.freight_input.set_text(cents_to_display(cents))
 
     def set_unloading_cents(self, cents: int) -> None:
         """Set the unloading value from cents."""
-        self.unloading_input.setText(cents_to_display(cents))
+        self.unloading_input.set_text(cents_to_display(cents))
 
     def set_order_data(self, order_data: OrderDict) -> None:
         """Load all four fields from an OrderDict."""
@@ -152,14 +140,18 @@ class OrderHeaderCard(QWidget):
 
     def validate(self) -> tuple[bool, list[str]]:
         """
-        Validate date format and supplier required.
+        Validate supplier and date format.
         Returns (True, []) if valid, (False, [errors]) if not.
         """
         errors: list[str] = []
 
-        date_text: str = self.date_input.text().strip()
-        supplier_text: str = self.supplier_input.text().strip()
+        # Supplier validation (TextField handles required)
+        supplier_valid, supplier_error = self.supplier_input.validate()
+        if not supplier_valid:
+            errors.append(supplier_error)
 
+        # Date semantic validation
+        date_text: str = self.date_input.get_text().strip()
         if not date_text:
             errors.append("Data do pedido obrigatória.")
         else:
@@ -178,7 +170,4 @@ class OrderHeaderCard(QWidget):
                         f"Formato de data inválido: '{date_text}'. Use DD/MM/AAAA."
                     )
 
-        if not supplier_text:
-            errors.append("Fornecedor obrigatório.")
-
-        return (len(errors) == 0, errors)
+        return len(errors) == 0, errors

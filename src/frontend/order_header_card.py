@@ -46,10 +46,6 @@ class OrderHeaderCard(QWidget):
             placeholder="R$ 0,00",
             regex_validation_pattern=r"^\d*([.,]\d{1,2})?$",
         )
-        freight_validator: QRegularExpressionValidator = QRegularExpressionValidator(
-            r"^\d*([.,]\d{1,2})?$"
-        )
-        self.freight_input._edit.setValidator(freight_validator)
 
         self.unloading_input: TextField = TextField(
             self,
@@ -57,10 +53,6 @@ class OrderHeaderCard(QWidget):
             placeholder="R$ 0,00",
             regex_validation_pattern=r"^\d*([.,]\d{1,2})?$",
         )
-        unloading_validator: QRegularExpressionValidator = QRegularExpressionValidator(
-            r"^\d*([.,]\d{1,2})?$"
-        )
-        self.unloading_input._edit.setValidator(unloading_validator)
 
         # Header layout — TextField widgets (each has its own label internally)
         header_layout: QHBoxLayout = QHBoxLayout()

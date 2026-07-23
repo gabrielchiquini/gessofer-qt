@@ -140,10 +140,10 @@ class ProductRowWidget(QWidget):
         price_text: str = self.price_input.text().strip()
 
         name_filled: bool = bool(name)
-        qty_filled: bool = quantity_text != ""
+        quantity_filled: bool = quantity_text != ""
         price_filled: bool = bool(price_text)
 
-        filled_count: int = sum([name_filled, qty_filled, price_filled])
+        filled_count: int = sum([name_filled, quantity_filled, price_filled])
 
         if 0 < filled_count < 3:
             errors: list[str] = []
@@ -151,7 +151,7 @@ class ProductRowWidget(QWidget):
                 errors.append(
                     "Nome do produto obrigatório quando outros campos estão preenchidos."
                 )
-            if not qty_filled:
+            if not quantity_filled:
                 errors.append(
                     "Quantidade do produto obrigatória quando outros campos estão preenchidos."
                 )

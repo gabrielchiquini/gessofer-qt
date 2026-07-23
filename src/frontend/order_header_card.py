@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from PySide6.QtCore import Signal
-from PySide6.QtGui import QRegularExpressionValidator
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 from bridge.models.order import OrderDict
@@ -9,6 +8,7 @@ from frontend.components.card import Card
 from frontend.components.text_field import TextField
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from backend.utils.date import iso_to_br_date
+from frontend.util.validators import DateValidator
 
 
 class OrderHeaderCard(QWidget):
@@ -38,6 +38,8 @@ class OrderHeaderCard(QWidget):
             placeholder="DD/MM/AAAA",
             input_mask="99/99/9999",
             required=True,
+            custom_validator=DateValidator(self),
+            custom_error_message="Data inválida",
         )
 
         self.freight_input: TextField = TextField(
@@ -131,8 +133,11 @@ class OrderHeaderCard(QWidget):
         self.unloading_input.clear()
 
     def validate(self) -> tuple[bool, list[str]]:
-        """
-        Validate supplier and date format.
+        """Validate supplier (required) and return any errors.
+
+        Date format and semantics are enforced by the ``DateValidator``
+        attached to ``date_input`` via the ``TextField``.
+
         Returns (True, []) if valid, (False, [errors]) if not.
         """
         errors: list[str] = []
@@ -142,24 +147,9 @@ class OrderHeaderCard(QWidget):
         if not supplier_valid:
             errors.append(supplier_error)
 
-        # Date semantic validation
-        date_text: str = self.date_input.get_text().strip()
-        if not date_text:
-            errors.append("Data do pedido obrigatória.")
-        else:
-            parts: list[str] = date_text.split("/")
-            if len(parts) != 3:
-                errors.append(
-                    f"Formato de data inválido: '{date_text}'. Use DD/MM/AAAA."
-                )
-            else:
-                try:
-                    d, m, y = int(parts[0]), int(parts[1]), int(parts[2])
-                    if not (1 <= d <= 31 and 1 <= m <= 12 and y >= 1900):
-                        errors.append(f"Data inválida: '{date_text}'.")
-                except ValueError:
-                    errors.append(
-                        f"Formato de data inválido: '{date_text}'. Use DD/MM/AAAA."
-                    )
+        # Date validation (TextField handles format + semantics)
+        date_valid, date_error = self.date_input.validate()
+        if not date_valid:
+            errors.append(date_error)
 
         return len(errors) == 0, errors

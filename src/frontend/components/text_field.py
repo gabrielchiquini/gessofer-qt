@@ -19,7 +19,7 @@ class _RequiredValidator(QValidator):
     def validate(self, input_field: str, pos: int) -> QValidator.State:
         if input_field.strip():
             return QValidator.State.Acceptable
-        return QValidator.State.Invalid
+        return QValidator.State.Intermediate
 
 
 class _CombinedValidator(QValidator):
@@ -72,6 +72,7 @@ class TextField(QWidget):
             required: bool = False,
             regex_validation_pattern: str | None = None,
             custom_validator: QValidator | None = None,
+            custom_error_message: str | None = None,
     ) -> None:
         """Initialize the TextField.
 
@@ -83,8 +84,15 @@ class TextField(QWidget):
             required: Whether the field is required (whitespace-only is invalid).
             regex_validation_pattern: Regex pattern string for validation.
             custom_validator: A QValidator instance to apply to the QLineEdit.
+            custom_error_message: Custom error message to show on validation failure (overrides default).
         """
         super().__init__(parent)
+
+        # ── Internal state ────────────────────────────────────────────
+        self._required: bool = required
+        self._error_message: str = ""
+        self._was_validated: bool = False
+        self._custom_error_message: str | None = custom_error_message
 
         # ── Internal widgets ──────────────────────────────────────────
         self._label: QLabel = QLabel(label, self)
@@ -95,11 +103,11 @@ class TextField(QWidget):
         _error_font: QFont = QFont()
         _error_font.setPixelSize(9)
         self._error.setFont(_error_font)
-        self._error.setStyleSheet("color: red;")
-        self._error.setVisible(False)
+        self._error.setStyleSheet("color: #bc2f32;")
 
         # QLineEdit setup
         self._edit.setPlaceholderText(placeholder)
+        self._edit.setContentsMargins(0,0,0,0)
         if input_mask is not None:
             self._edit.setInputMask(input_mask)
 
@@ -158,16 +166,17 @@ class TextField(QWidget):
 
     def set_validation_state(
             self,
-            is_valid: bool,
             error_message: str | None = None,
     ) -> None:
         """Set the validation state and optional error message.
 
         Args:
-            is_valid: Whether the field is currently valid.
             error_message: Error message to display (empty if valid).
         """
-        self._error.setText(error_message or "")
+        if error_message is not None:
+            self._error_message = error_message
+        else:
+            self._error_message = ""
         self._update_validation_visibility()
 
     # ── Property: was validated ───────────────────────────────────────
@@ -190,6 +199,7 @@ class TextField(QWidget):
     def clear(self) -> None:
         """Clear text, reset validation, clear error, reset was_validated."""
         self._edit.clear()
+        self._error_message = ""
         self._error.setText("")
         self.set_was_validated(False)
 
@@ -201,9 +211,10 @@ class TextField(QWidget):
         Returns:
             A tuple of (validity, error message string).
         """
+        self.set_was_validated(True)
         if self._is_valid():
             return True, ""
-        return False, self._error.text() or "Campo inválido."
+        return False, self._get_error_message()
 
     # ── Internal helpers ──────────────────────────────────────────────
 
@@ -215,10 +226,26 @@ class TextField(QWidget):
         state = validator.validate(self._edit.text(), 0)
         return state == QValidator.State.Acceptable
 
+    def _get_error_message(self) -> str:
+        """Return the error message based on validation failure type.
+
+        Returns ``"Campo obrigatório"`` when the field is required and empty,
+        ``"Valor inválido"`` for all other validation failures, or
+        ``custom_error_message`` when set.
+        """
+        if self._custom_error_message is not None:
+            return self._custom_error_message
+        if self._required and not self._edit.text().strip():
+            return "Campo obrigatório"
+        return "Valor inválido"
+
     def _validate(self) -> None:
-        """Run validation and persist the result to error label visibility."""
+        """Run validation and persist the result to error label text."""
         if self._is_valid():
-            self._error.setText("")
+            self._error_message = ""
+        else:
+            self._error_message = self._get_error_message()
+        self._error.setText(self._error_message)
         self._update_validation_visibility()
 
     # ── Signal connection helpers ─────────────────────────────────────
@@ -248,8 +275,11 @@ class TextField(QWidget):
         self._edit.textEdited.connect(callback)
 
     def _update_validation_visibility(self) -> None:
-        """Show the error label only when the field has been touched."""
-        self._error.setVisible(self._was_validated)
+        """Keep the error label always visible to occupy space.
+
+        The error text is only shown when ``was_validated`` is True.
+        """
+        self._error.setText(self._error_message if self._was_validated else "")
 
     def _text_edited(self) -> None:
         """React to user text edits: mark as validated and re-check."""

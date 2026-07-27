@@ -10,7 +10,6 @@ from bridge.models.order import (
 from bridge.models.product import (
     PageResponseDict,
     ProductDict,
-    ProductInputDict,
     ProductListItemDict,
     T,
 )
@@ -25,7 +24,6 @@ __all__ = [
     "XmlImportResultDict",
     "PageResponseDict",
     "ProductDict",
-    "ProductInputDict",
     "ProductListItemDict",
     "T",
     "ValidationDict",

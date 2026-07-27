@@ -64,9 +64,6 @@ class OrderItemsCard(QWidget):
         # ── Signal Connections ────────────────────────────────────────
         self.distribute_button.clicked.connect(self._on_distribute_freight)
 
-        # ── Initialize: add one empty row ─────────────────────────────
-        self._add_empty_row()
-
         # ── Main Layout ───────────────────────────────────────────────
         main_layout: QVBoxLayout = QVBoxLayout(self)
         main_layout.setContentsMargins(0, 0, 0, 0)
@@ -77,32 +74,15 @@ class OrderItemsCard(QWidget):
 
     def _add_empty_row(self) -> ProductRowWidget:
         """Add a new empty product row to the layout."""
-        last_row = None
-        if len(self._product_rows) > 0:
-            last_row = self._product_rows[-1]
-        row = ProductRowWidget(self)
-        self._product_rows.append(row)
-        self.products_layout.addWidget(row)
-        row.row_changed.connect(self._on_row_changed)
+        row = self.setup_row()
         self._update_delete_buttons()
-        # if last_row is not None:
-        #     self.setTabOrder(last_row.price_input, row.name_input)
         self.row_added.emit(row)
         return row
 
     def _on_row_changed(self) -> None:
         """Handle changes in a product row: auto-add or auto-remove."""
         changed_row: ProductRowWidget = self.sender()  # type: ignore[union-attr]
-        row_index: int = self._product_rows.index(changed_row)
-
-        # Auto-remove: if non-last row becomes empty
-        if row_index < len(self._product_rows) - 1 and changed_row.is_empty():
-            self.products_layout.removeWidget(changed_row)
-            changed_row.deleteLater()
-            self._product_rows.pop(row_index)
-            self._update_delete_buttons()
-            self.order_changed.emit()
-            return
+        changed_row.validate()
 
         # Auto-add: if the last row is filled (not empty), add a new empty row
         last_row = self._product_rows[-1]
@@ -149,14 +129,14 @@ class OrderItemsCard(QWidget):
             row.get_product_data(order_id, i) for i, row in enumerate(self._product_rows[:-1]) # ignores last empty row
         ]
 
-    def validate(self) -> tuple[bool, list[str]]:
+    def validate(self, *, show_errors: bool = False) -> tuple[bool, list[str]]:
         """
         Validate each product row.
         Returns combined results: (True, []) if all valid, (False, [errors]) if any invalid.
         """
         errors: list[str] = []
         for i, row in enumerate(self._product_rows):
-            valid, row_errors = row.validate()
+            valid, row_errors = row.validate(show_errors=show_errors)
             if not valid:
                 for err in row_errors:
                     errors.append(f"Produto {i + 1}: {err}")
@@ -174,37 +154,32 @@ class OrderItemsCard(QWidget):
 
         # Add rows from order data
         for product in order_data["products"]:
-            row = ProductRowWidget(self, product_data=product)
-            self._product_rows.append(row)
-            self.products_layout.addWidget(row)
-            row.row_changed.connect(self._on_row_changed)
+            self.setup_row(product=product)
+        self._add_empty_row()
 
         self._update_delete_buttons()
         self.order_changed.emit()
 
-    def clear(self) -> None:
-        """Remove all rows, add one empty row."""
-        for row in self._product_rows:
-            self.products_layout.removeWidget(row)
-            row.deleteLater()
-        self._product_rows.clear()
-
-        new_row = self._add_empty_row()
-        self.order_changed.emit()
+    def setup_row(self, *, product: ProductDict | None = None):
+        row = ProductRowWidget(self, product_data=product)
+        self._product_rows.append(row)
+        self.products_layout.addWidget(row)
+        row.row_changed.connect(self._on_row_changed)
+        row.delete_pressed.connect(self.delete_row)
+        return row
 
     def add_row(self) -> ProductRowWidget:
         """Public method to add a row (for XML import or other callers)."""
         return self._add_empty_row()
 
-    def remove_row_at(self, index: int) -> None:
-        """Public method to remove a row at a given index."""
-        if 0 <= index < len(self._product_rows):
-            row = self._product_rows[index]
-            self.products_layout.removeWidget(row)
-            row.deleteLater()
-            self._product_rows.pop(index)
-            self._update_delete_buttons()
-            self.order_changed.emit()
+    def delete_row(self):
+        row: ProductRowWidget = self.sender()  # type: ignore[union-attr]
+        row.deleteLater()
+        self.products_layout.removeWidget(row)
+        index = self._product_rows.index(row)
+        self._product_rows.pop(index)
+        self._update_delete_buttons()
+        self.order_changed.emit()
 
     def get_product_rows(self) -> list[ProductRowWidget]:
         """Return the _product_rows list (for external access if needed)."""

@@ -26,6 +26,7 @@ class OrderEditDialog(QDialog):
 
     order_saved: Signal = Signal(object)
     closed: Signal = Signal()
+    _was_validated = False
 
     def __init__(
             self,
@@ -56,6 +57,8 @@ class OrderEditDialog(QDialog):
         if order_data is not None:
             self.header_card.set_order_data(order_data)
             self.items_card.set_order_data(order_data)
+        else:
+            self.items_card.add_row()
 
         # ── Footer Buttons ────────────────────────────────────────────
         self.btn_save: QPushButton = QPushButton("Salvar", self)
@@ -97,14 +100,13 @@ class OrderEditDialog(QDialog):
 
     def _on_save(self) -> None:
         """Handle save button click."""
+        self._was_validated = True
         # Validate header
         header_valid, header_errors = self.header_card.validate()
         # Validate items
-        items_valid, items_errors = self.items_card.validate()
+        items_valid, items_errors = self.items_card.validate(show_errors=True)
 
-        all_errors = header_errors + items_errors
         if not (header_valid and items_valid):
-            self._show_message("Há campos inválidos: " + "; ".join(all_errors), "error")
             return
 
         # Assemble full order data from both cards
@@ -135,9 +137,8 @@ class OrderEditDialog(QDialog):
         )
 
         # Enable/disable distribute button
-        header_valid, _ = self.header_card.validate()
         items_valid, _ = self.items_card.validate()
-        can_distribute: bool = header_valid and items_valid and total_cents > 0
+        can_distribute: bool = items_valid and total_cents > 0
         self.items_card.distribute_button.setEnabled(can_distribute)
 
     def _show_message(self, text: str, level: str) -> None:

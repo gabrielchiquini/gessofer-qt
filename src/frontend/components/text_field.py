@@ -162,7 +162,7 @@ class TextField(QWidget):
 
     def get_validation_state(self) -> bool:
         """Return whether the field is currently valid (Acceptable)."""
-        return self._is_valid()
+        return self.is_valid()
 
     def set_validation_state(
             self,
@@ -212,13 +212,13 @@ class TextField(QWidget):
             A tuple of (validity, error message string).
         """
         self.set_was_validated(True)
-        if self._is_valid():
+        if self.is_valid():
             return True, ""
         return False, self._get_error_message()
 
     # ── Internal helpers ──────────────────────────────────────────────
 
-    def _is_valid(self) -> bool:
+    def is_valid(self) -> bool:
         """Return True if the QLineEdit validator reports Acceptable."""
         validator = self._edit.validator()
         if validator is None:
@@ -241,7 +241,7 @@ class TextField(QWidget):
 
     def _validate(self) -> None:
         """Run validation and persist the result to error label text."""
-        if self._is_valid():
+        if self.is_valid():
             self._error_message = ""
         else:
             self._error_message = self._get_error_message()

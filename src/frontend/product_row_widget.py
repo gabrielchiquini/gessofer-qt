@@ -3,11 +3,13 @@ from __future__ import annotations
 import uuid
 
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QRegularExpressionValidator
+from PySide6.QtGui import QRegularExpressionValidator, QFont
 from PySide6.QtWidgets import (
     QHBoxLayout,
+    QLabel,
     QLineEdit,
     QPushButton,
+    QVBoxLayout,
     QWidget,
 )
 
@@ -20,6 +22,7 @@ class ProductRowWidget(QWidget):
     """A single product entry row with name, quantity, price, total (read-only), and delete button."""
 
     row_changed: Signal = Signal()
+    delete_pressed: Signal = Signal()
 
     def __init__(
             self,
@@ -65,13 +68,29 @@ class ProductRowWidget(QWidget):
         self.delete_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # Layout
-        layout: QHBoxLayout = QHBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
-        layout.addWidget(self.name_input, stretch=1)
-        layout.addWidget(self.quantity_input)
-        layout.addWidget(self.price_input)
-        layout.addWidget(self.total_input)
-        layout.addWidget(self.delete_button)
+        self._error: QLabel = QLabel("", self)
+
+        # Error label styling: 9px, red
+        _error_font: QFont = QFont()
+        _error_font.setPixelSize(9)
+        self._error.setFont(_error_font)
+        self._error.setStyleSheet("color: #bc2f32;")
+        self._error.setVisible(False)
+
+        main_layout: QVBoxLayout = QVBoxLayout(self)
+        main_layout.setContentsMargins(6, 6, 6, 0)
+        main_layout.setSpacing(0)
+
+        row_layout: QHBoxLayout = QHBoxLayout()
+        row_layout.setContentsMargins(0, 0, 0, 0)
+        row_layout.addWidget(self.name_input, stretch=1)
+        row_layout.addWidget(self.quantity_input)
+        row_layout.addWidget(self.price_input)
+        row_layout.addWidget(self.total_input)
+        row_layout.addWidget(self.delete_button)
+
+        main_layout.addLayout(row_layout)
+        main_layout.addWidget(self._error)
 
         # Signal connections for auto-calculation
         self.price_input.textChanged.connect(self._recalculate_total)
@@ -83,7 +102,7 @@ class ProductRowWidget(QWidget):
         if product_data is not None:
             self.name_input.setText(product_data.get("name", ""))
             self.quantity_input.setText(str(product_data.get("quantity", 0)))
-            self.price_input.setText(cents_to_display(product_data.get("price", 0)))
+            self.price_input.setText(cents_to_display(product_data.get("price")))
             self.total_input.setText(cents_to_display(product_data.get("total", 0)))
 
         # Initial total calculation
@@ -96,6 +115,7 @@ class ProductRowWidget(QWidget):
         quantity: int = int(quantity_text) if quantity_text else 0
         total_cents: int = price_cents * quantity
         self.total_input.setText(cents_to_display(total_cents))
+        self._on_any_changed()
 
     def _on_any_changed(self) -> None:
         """Emit row_changed signal whenever any field changes."""
@@ -103,7 +123,7 @@ class ProductRowWidget(QWidget):
 
     def _on_delete(self) -> None:
         """Handle delete button click."""
-        pass
+        self.delete_pressed.emit()
 
     def is_empty(self) -> bool:
         """Return True if name is empty AND quantity is 0 AND price is 0."""
@@ -129,7 +149,7 @@ class ProductRowWidget(QWidget):
             item_ordinal=ordinal,
         )
 
-    def validate(self) -> tuple[bool, list[str]]:
+    def validate(self, *, show_errors: bool = False) -> tuple[bool, list[str]]:
         """
         Validate the row using requiredIfFilled logic.
         If any of name/quantity/price is filled, all three must be filled.
@@ -139,26 +159,30 @@ class ProductRowWidget(QWidget):
         quantity_text: str = self.quantity_input.text().strip()
         price_text: str = self.price_input.text().strip()
 
-        name_filled: bool = bool(name)
-        quantity_filled: bool = quantity_text != ""
-        price_filled: bool = bool(price_text)
+        name_valid: bool = bool(name)
+        quantity_valid: bool = bool(quantity_text)
+        price_valid: bool = bool(price_text)
 
-        filled_count: int = sum([name_filled, quantity_filled, price_filled])
+        filled_count: int = sum([name_valid, quantity_valid, price_valid])
 
         if 0 < filled_count < 3:
             errors: list[str] = []
-            if not name_filled:
+            if not name_valid and (show_errors or self.name_input.isModified()):
                 errors.append(
                     "Nome do produto obrigatório quando outros campos estão preenchidos."
                 )
-            if not quantity_filled:
+            if not quantity_valid and (show_errors or self.quantity_input.isModified()):
                 errors.append(
                     "Quantidade do produto obrigatória quando outros campos estão preenchidos."
                 )
-            if not price_filled:
+            if not price_valid and (show_errors or self.price_input.isModified()):
                 errors.append(
                     "Preço do produto obrigatório quando outros campos estão preenchidos."
                 )
+            if len(errors) > 0:
+                self._error.setText(errors[0])
+                self._error.setVisible(True)
             return False, errors
 
+        self._error.setVisible(False)
         return True, []

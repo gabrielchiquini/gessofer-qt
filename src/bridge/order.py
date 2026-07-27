@@ -8,7 +8,7 @@ from backend.injector_module import get_injector
 from backend.models.dto import OrderInput
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_order_service import SaveOrderService, SaveExpenseService
-from bridge.models.order import OrderDict
+from bridge.models.order import Order
 from bridge.product import orm_order_to_dict, _get_fetch_handler
 
 logger = logging.getLogger(__name__)
@@ -74,7 +74,7 @@ def save_single_order(order: OrderInput) -> bool:
         return False
 
 
-def fetch_order_by_id(order_id: str) -> OrderDict | None:
+def fetch_order_by_id(order_id: str) -> Order | None:
     """
     Fetch a single order by UUID, including all products.
 
@@ -82,7 +82,7 @@ def fetch_order_by_id(order_id: str) -> OrderDict | None:
         order_id: The order UUID.
 
     Returns:
-        OrderDict with products, or None if not found.
+        Order dataclass with products, or None if not found.
     """
     session: Session = _get_fetch_handler()._session_factory()
     try:

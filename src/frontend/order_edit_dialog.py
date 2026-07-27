@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 
 from backend import OrderInput
 from backend.utils.currency import cents_to_display
-from bridge.models.order import OrderDict
+from bridge.models.order import Order
 from bridge.order import fetch_order_by_id, save_single_order
 from frontend.order_header_card import OrderHeaderCard
 from frontend.order_items_card import OrderItemsCard
@@ -40,11 +40,11 @@ class OrderEditDialog(QDialog):
 
         # ── State ─────────────────────────────────────────────────────
         if order_id:
-            order_data: OrderDict | None = fetch_order_by_id(order_id)
+            order_data: Order | None = fetch_order_by_id(order_id)
         else:
             order_data = None
 
-        self._order_id: str = order_data["id"] if order_data else str(uuid.uuid4())
+        self._order_id: str = order_data.id if order_data else str(uuid.uuid4())
         self._is_new: bool = order_data is None
 
         # ── Header Card ───────────────────────────────────────────────

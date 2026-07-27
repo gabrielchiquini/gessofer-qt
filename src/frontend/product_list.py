@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QScrollArea, )
 from frontend.components import Card
 
-from bridge.models.product import PageResponseDict, ProductListItemDict
+from bridge.models.product import PageResponse, ProductListItem
 from bridge.product import fetch_products
 
 logger = logging.getLogger(__name__)
@@ -220,19 +220,19 @@ class ProductListView(QWidget):
             self._page_count = 0
             self.update_pagination()
 
-    def _process_result(self, result: PageResponseDict[ProductListItemDict]) -> None:
+    def _process_result(self, result: PageResponse[ProductListItem]) -> None:
         """Process a fetch result and populate the table."""
-        self._total = result["total"]
-        self._page_count = result["page_count"]
+        self._total = result.total
+        self._page_count = result.page_count
         self._model.setRowCount(0)
 
-        for item in result.get("items", []):
+        for item in result.items:
             row: list[QStandardItem] = [
-                QStandardItem(item.get("date", "")),
-                QStandardItem(item.get("supplier", "")),
-                QStandardItem(item.get("name", "")),
-                QStandardItem(item.get("price", 0)),
-                QStandardItem(item.get("totalPrice", 0)),
+                QStandardItem(item.date),
+                QStandardItem(item.supplier),
+                QStandardItem(item.name),
+                QStandardItem(item.price),
+                QStandardItem(item.total_price),
             ]
             self._model.appendRow(row)
         self.table_view.verticalScrollBar().setValue(0)

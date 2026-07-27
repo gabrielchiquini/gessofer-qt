@@ -6,8 +6,8 @@ from typing import Callable
 from injector import inject
 from sqlalchemy.orm import Session
 
-from bridge.models.order import OrderDict
-from bridge.models.product import ProductDict, ProductListItemDict, PageResponseDict
+from bridge.models.order import Order as OrderDataclass
+from bridge.models.product import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
 from backend.models.dto import PageResponse
@@ -33,8 +33,8 @@ class FetchHandler:
         supplier: str | None = None,
         product: str | None = None,
         month: str | None = None,
-    ) -> PageResponseDict[ProductListItemDict]:
-        """Fetch paginated products with optional filters. Returns bridge-compatible product page response."""
+    ) -> BridgePageResponse[ProductListItem]:
+        """Fetch paginated products with optional filters. Returns a BridgePageResponse[ProductListItem]."""
         session: Session = self._session_factory()
         try:
             repo = OrderRepository(session)
@@ -43,8 +43,8 @@ class FetchHandler:
         finally:
             session.close()
 
-    def fetch_orders_for_month(self, month: str) -> list[OrderDict]:
-        """Fetch orders for a month in MM/yyyy format. Returns list of order dicts."""
+    def fetch_orders_for_month(self, month: str) -> list[OrderDataclass]:
+        """Fetch orders for a month in MM/yyyy format. Returns list of Order dataclass instances."""
         session: Session = self._session_factory()
         try:
             m, y = parse_month_for_orders(month)
@@ -55,54 +55,54 @@ class FetchHandler:
             session.close()
 
 
-def orm_product_to_dict(product: Product) -> ProductDict:
-    """Transform an ORM Product entity into a bridge-compatible dict."""
-    return {
-        "id": product.ID,
-        "name": product.NAME,
-        "quantity": product.QUANTITY,
-        "price": product.PRICE,
-        "total": product.TOTAL_PRICE,
-        "order_id": product.ORDER_ID,
-        "itemOrdinal": product.ITEM_ORDINAL,
-    }
+def orm_product_to_dict(product: Product) -> ProductDataclass:
+    """Transform an ORM Product entity into a Product dataclass."""
+    return ProductDataclass(
+        id=product.ID,
+        name=product.NAME,
+        quantity=product.QUANTITY,
+        price=product.PRICE,
+        total=product.TOTAL_PRICE,
+        order_id=product.ORDER_ID,
+        item_ordinal=product.ITEM_ORDINAL,
+    )
 
 
-def orm_order_to_dict(order: Order) -> OrderDict:
-    """Transform an ORM Order entity into a bridge-compatible dict."""
-    return {
-        "id": order.ID,
-        "date": order.DATE.isoformat() if order.DATE else "",
-        "supplier": order.SUPPLIER,
-        "nfeKey": order.NFE_KEY or "",
-        "freight": order.FREIGHT,
-        "unloading": order.UNLOADING,
-        "products": [orm_product_to_dict(p) for p in order.products],
-    }
+def orm_order_to_dict(order: Order) -> OrderDataclass:
+    """Transform an ORM Order entity into an Order dataclass."""
+    return OrderDataclass(
+        id=order.ID,
+        date=order.DATE.isoformat() if order.DATE else "",
+        supplier=order.SUPPLIER,
+        nfe_key=order.NFE_KEY or "",
+        freight=order.FREIGHT,
+        unloading=order.UNLOADING,
+        products=[orm_product_to_dict(p) for p in order.products],
+    )
 
 
-def product_list_item_to_dict(product: Product) -> ProductListItemDict:
-    """Transform an ORM Product entity into a dict for the widget bridge Product List table."""
+def product_list_item_to_dict(product: Product) -> ProductListItem:
+    """Transform an ORM Product entity into a ProductListItem dataclass."""
     date_str = datetime_to_br_date(product.order.DATE)
-    return {
-        "date": date_str,
-        "supplier": product.order.SUPPLIER if product.order else "",
-        "name": product.NAME,
-        "price": cents_to_display(product.PRICE),
-        "totalPrice": cents_to_display(product.TOTAL_PRICE),
-        "orderId": product.ORDER_ID,
-    }
+    return ProductListItem(
+        date=date_str,
+        supplier=product.order.SUPPLIER if product.order else "",
+        name=product.NAME,
+        price=cents_to_display(product.PRICE),
+        total_price=cents_to_display(product.TOTAL_PRICE),
+        order_id=product.ORDER_ID,
+    )
 
 
-def product_page_to_dict(response: PageResponse[Product]) -> PageResponseDict[ProductListItemDict]:
-    """Transform a PageResponse[Product] into a bridge-compatible dict."""
-    return {
-        "items": [product_list_item_to_dict(p) for p in response.items],
-        "page": response.page,
-        "page_count": response.page_count,
-        "total": response.total,
-        "page_size": response.page_size,
-    }
+def product_page_to_dict(response: PageResponse[Product]) -> BridgePageResponse[ProductListItem]:
+    """Transform a PageResponse[Product] into a BridgePageResponse[ProductListItem]."""
+    return BridgePageResponse(
+        items=[product_list_item_to_dict(p) for p in response.items],
+        page=response.page,
+        page_count=response.page_count,
+        total=response.total,
+        page_size=response.page_size,
+    )
 
 
 _fetch_handler: FetchHandler | None = None
@@ -122,7 +122,7 @@ def fetch_products(
     supplier: str = "",
     product: str = "",
     month: str = "",
-) -> PageResponseDict[ProductListItemDict]:
+) -> BridgePageResponse[ProductListItem]:
     """
     Fetch paginated product list with optional filters.
 
@@ -133,8 +133,8 @@ def fetch_products(
         month: Optional month filter in MM/yyyy format.
 
     Returns:
-        Dict with keys: items, page, page_count, total, page_size.
-        On error, returns an empty-page dict.
+        BridgePageResponse[ProductListItem] with paginated product data.
+        On error, returns an empty-page response.
     """
     try:
         handler = _get_fetch_handler()
@@ -147,16 +147,16 @@ def fetch_products(
     except Exception as exc:
         logger.error("Error in fetch_products: %s", exc)
         logger.debug("Traceback", exc_info=True)
-        return {
-            "items": [],
-            "page": page,
-            "page_count": 0,
-            "total": 0,
-            "page_size": 50,
-        }
+        return BridgePageResponse(
+            items=[],
+            page=page,
+            page_count=0,
+            total=0,
+            page_size=50,
+        )
 
 
-def fetch_orders_for_month(month: str) -> list[OrderDict]:
+def fetch_orders_for_month(month: str) -> list[OrderDataclass]:
     """
     Fetch all orders for a given month.
 
@@ -164,7 +164,7 @@ def fetch_orders_for_month(month: str) -> list[OrderDict]:
         month: Month in MM/yyyy format.
 
     Returns:
-        List of order dicts. On error, returns [].
+        List of Order dataclass instances. On error, returns [].
     """
     try:
         handler = _get_fetch_handler()

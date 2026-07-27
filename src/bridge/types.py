@@ -1,30 +1,30 @@
 from __future__ import annotations
 
-from bridge.models.expense import ExpenseDict, ExpenseInputDict
+from bridge.models.expense import Expense, ExpenseInput
 from bridge.models.order import (
-    FreightResultDict,
-    OrderDict,
-    OrderSummaryDict,
-    XmlImportResultDict,
+    FreightResult,
+    Order,
+    OrderSummary,
+    XmlImportResult,
 )
 from bridge.models.product import (
-    PageResponseDict,
-    ProductDict,
-    ProductListItemDict,
+    PageResponse,
+    Product,
+    ProductListItem,
     T,
 )
-from bridge.models.validation import ValidationDict
+from bridge.models.validation import Validation
 
 __all__ = [
-    "ExpenseDict",
-    "ExpenseInputDict",
-    "FreightResultDict",
-    "OrderDict",
-    "OrderSummaryDict",
-    "XmlImportResultDict",
-    "PageResponseDict",
-    "ProductDict",
-    "ProductListItemDict",
+    "Expense",
+    "ExpenseInput",
+    "FreightResult",
+    "Order",
+    "OrderSummary",
+    "XmlImportResult",
+    "PageResponse",
+    "Product",
+    "ProductListItem",
     "T",
-    "ValidationDict",
+    "Validation",
 ]

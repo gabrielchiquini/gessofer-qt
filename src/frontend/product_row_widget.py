@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
 
 from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from bridge.models.product import ProductDict
+from bridge.models.product import Product
 
 
 class ProductRowWidget(QWidget):
@@ -27,10 +27,10 @@ class ProductRowWidget(QWidget):
     def __init__(
             self,
             parent: QWidget | None = None,
-            product_data: ProductDict | None = None,
+            product_data: Product | None = None,
     ) -> None:
         super().__init__(parent)
-        self._id: str = product_data["id"] if product_data else str(uuid.uuid4())
+        self._id: str = product_data.id if product_data else str(uuid.uuid4())
 
         # Name input
         self.name_input: QLineEdit = QLineEdit(self)
@@ -100,10 +100,10 @@ class ProductRowWidget(QWidget):
 
         # Pre-fill if product_data provided
         if product_data is not None:
-            self.name_input.setText(product_data.get("name", ""))
-            self.quantity_input.setText(str(product_data.get("quantity", 0)))
-            self.price_input.setText(cents_to_display(product_data.get("price")))
-            self.total_input.setText(cents_to_display(product_data.get("total", 0)))
+            self.name_input.setText(product_data.name)
+            self.quantity_input.setText(str(product_data.quantity))
+            self.price_input.setText(cents_to_display(getattr(product_data, "price", 0)))
+            self.total_input.setText(cents_to_display(getattr(product_data, "total", 0)))
 
         # Initial total calculation
         self._recalculate_total()
@@ -136,7 +136,7 @@ class ProductRowWidget(QWidget):
     def get_product_data(
             self, order_id: str, ordinal: int,
     ) -> ProductInput:
-        """Return a ProductDict from the current widget state."""
+        """Return a ProductInput from the current widget state."""
         return ProductInput(
             id=self._id,
             name=self.name_input.text().strip(),

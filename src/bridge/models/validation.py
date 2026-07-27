@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from typing_extensions import TypedDict
+from dataclasses import dataclass, field
+from typing import List
 
 
-class ValidationDict(TypedDict):
-    """Result of a validation operation as a dict."""
-
+@dataclass
+class Validation:
+    """Result of a validation operation."""
     valid: bool
-    errors: list[str]
+    errors: List[str] = field(default_factory=list)

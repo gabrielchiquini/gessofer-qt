@@ -5,7 +5,7 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from bridge.models.expense import ExpenseDict, ExpenseInputDict
+from bridge.models.expense import Expense as BridgeExpense, ExpenseInput as ExpenseInputDataclass
 from backend.entities.orm import Expense
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
@@ -24,7 +24,7 @@ class _ExpenseFetchHandler:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
 
-    def fetch_expenses_for_month(self, month: str) -> list[ExpenseDict]:
+    def fetch_expenses_for_month(self, month: str) -> list[BridgeExpense]:
         """Fetch expenses for a month in YYYY-MM format."""
         session: Session = self._session_factory()
         try:
@@ -53,14 +53,14 @@ class _ExpenseSaveHandler:
         self._save_expense_service.save_expenses(expenses, month)
 
 
-def expense_to_dict(expense: Expense) -> ExpenseDict:
-    """Transform an ORM Expense entity into a bridge-compatible dict."""
-    return {
-        "id": expense.ID,
-        "month": expense.MONTH,
-        "description": expense.DESCRIPTION,
-        "value": expense.VALUE,
-    }
+def expense_to_dict(expense: Expense) -> BridgeExpense:
+    """Transform an ORM Expense entity into a BridgeExpense dataclass."""
+    return BridgeExpense(
+        id=expense.ID,
+        month=expense.MONTH,
+        description=expense.DESCRIPTION,
+        value=expense.VALUE,
+    )
 
 
 _fetch_handler: _ExpenseFetchHandler | None = None
@@ -93,7 +93,7 @@ def _get_save_handler() -> _ExpenseSaveHandler:
     return _save_handler
 
 
-def fetch_expenses_for_month(month: str) -> list[ExpenseDict]:
+def fetch_expenses_for_month(month: str) -> list[BridgeExpense]:
     """
     Fetch expenses for a given month.
 
@@ -101,7 +101,7 @@ def fetch_expenses_for_month(month: str) -> list[ExpenseDict]:
         month: Month in MM/yyyy format (will be converted to YYYY-MM).
 
     Returns:
-        List of expense dicts. On error, returns [].
+        List of BridgeExpense dataclass instances. On error, returns [].
     """
     try:
         handler = _get_fetch_handler()
@@ -116,14 +116,14 @@ def fetch_expenses_for_month(month: str) -> list[ExpenseDict]:
 
 
 def save_expenses(
-    expenses: list[ExpenseInputDict],
+    expenses: list[ExpenseInputDataclass],
     month: str,
 ) -> bool:
     """
     Save a list of expenses for a given month.
 
     Args:
-        expenses: List of expense dicts with 'description' and 'value' keys.
+        expenses: List of ExpenseInput dataclass instances.
         month: Month in MM/yyyy format (will be converted to YYYY-MM).
 
     Returns:
@@ -134,7 +134,7 @@ def save_expenses(
         m_str, y_str = month.strip().split("/")
         yyyy_mm = f"{y_str}-{m_str}"
         expense_inputs: list[ExpenseInput] = [
-            ExpenseInput(description=e["description"], value=e["value"])
+            ExpenseInput(description=e.description, value=e.value)
             for e in expenses
         ]
         handler.save_expenses(expense_inputs, yyyy_mm)

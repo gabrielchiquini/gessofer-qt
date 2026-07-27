@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSizePolicy,
 )
 
-from bridge.models.order import OrderSummaryDict
+from bridge.models.order import OrderSummary
 from bridge.order_summary import fetch_order_summaries
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
@@ -127,25 +127,25 @@ class OrderEditListView(QWidget):
 
         self._current_month = month
         try:
-            summaries: list[OrderSummaryDict] = fetch_order_summaries(month)
+            summaries: list[OrderSummary] = fetch_order_summaries(month)
             self._process_orders(summaries)
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
             self._model.setRowCount(0)
 
-    def _process_orders(self, summaries: list[OrderSummaryDict]) -> None:
+    def _process_orders(self, summaries: list[OrderSummary]) -> None:
         """Process order summaries and populate the table."""
         self._model.setRowCount(0)
 
         for summary in summaries:
-            date_br: str = iso_to_br_date(summary["date"])
-            products_total_display: str = cents_to_display(summary["products_total"])
-            order_total_display: str = cents_to_display(summary["order_total"])
+            date_br: str = iso_to_br_date(summary.date)
+            products_total_display: str = cents_to_display(summary.products_total)
+            order_total_display: str = cents_to_display(summary.order_total)
 
             row: list[QStandardItem] = [
                 QStandardItem(date_br),
-                QStandardItem(summary["supplier"]),
-                QStandardItem(str(summary["product_count"])),
+                QStandardItem(summary.supplier),
+                QStandardItem(str(summary.product_count)),
                 QStandardItem(products_total_display),
                 QStandardItem(order_total_display),
                 QStandardItem(""),
@@ -155,7 +155,7 @@ class OrderEditListView(QWidget):
         # Place "Editar" buttons in the last column
         for row_index, summary in enumerate(summaries):
             edit_btn = QPushButton("[Editar]", self)
-            order_id: str = summary["id"]
+            order_id: str = summary.id
             edit_btn.clicked.connect(
                 lambda checked=False, oid=order_id: self._on_edit_clicked(oid)
             )

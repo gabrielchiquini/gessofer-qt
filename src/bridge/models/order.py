@@ -1,25 +1,26 @@
 from __future__ import annotations
 
-from typing import TypedDict
+from dataclasses import dataclass, field
+from typing import List
 
-from bridge.models.product import ProductDict
+from bridge.models.product import Product
 
 
-class OrderDict(TypedDict):
-    """An order entity dict (from orm_order_to_dict)."""
-
+@dataclass
+class Order:
+    """An order entity as returned by orm_order_to_dict."""
     id: str
     date: str  # YYYY-MM-DD
     supplier: str
-    nfeKey: str
+    nfe_key: str  # changed from nfeKey to snake_case
     freight: int
     unloading: int
-    products: list[ProductDict]
+    products: List[Product] = field(default_factory=list)
 
 
-class OrderSummaryDict(TypedDict):
+@dataclass
+class OrderSummary:
     """An order summary for the list-and-navigate table view."""
-
     id: str  # order UUID
     date: str  # YYYY-MM-DD (ISO, will be converted to BR in widget)
     supplier: str
@@ -28,20 +29,20 @@ class OrderSummaryDict(TypedDict):
     order_total: int  # cents (products + freight + unloading)
 
 
-class FreightResultDict(TypedDict):
-    """Result of a freight distribution calculation as a dict."""
-
+@dataclass
+class FreightResult:
+    """Result of a freight distribution calculation."""
     order_id: str
     old_freight: int
     old_unloading: int
     ratio: float
     products_total_before: int
     products_total_after: int
-    new_products: list[ProductDict]
+    new_products: List[Product] = field(default_factory=list)
 
 
-class XmlImportResultDict(TypedDict):
-    """Result of an XML import operation as a dict."""
-
-    orders: list[OrderDict]
-    warnings: list[str]
+@dataclass
+class XmlImportResult:
+    """Result of an XML import operation."""
+    orders: List[Order] = field(default_factory=list)
+    warnings: List[str] = field(default_factory=list)

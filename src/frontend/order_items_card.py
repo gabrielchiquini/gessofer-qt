@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
 
 from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from bridge.models.order import OrderDict
-from bridge.models.product import ProductDict
+from bridge.models.order import Order
+from bridge.models.product import Product
 from frontend.business import distribute_freight
 from frontend.components.card import Card
 from frontend.product_row_widget import ProductRowWidget
@@ -105,12 +105,12 @@ class OrderItemsCard(QWidget):
             "products": products_list,
         }
         result = distribute_freight(order_data)  # type: ignore[arg-type]
-        if result and result.get("new_products"):
-            new_products: list[ProductDict] = result["new_products"]
+        if result and result.new_products:
+            new_products: list[Product] = result.new_products
             for i, new_product in enumerate(new_products):
                 if i < len(self._product_rows):
                     self._product_rows[i].price_input.setText(
-                        cents_to_display(new_product["price"])
+                        cents_to_display(new_product.price)
                     )
             self.order_changed.emit()
 
@@ -124,7 +124,7 @@ class OrderItemsCard(QWidget):
         )
 
     def get_products_list(self, order_id: str = "") -> list[ProductInput]:
-        """Return a list of ProductDict from all product rows."""
+        """Return a list of ProductInput from all product rows."""
         return [
             row.get_product_data(order_id, i) for i, row in enumerate(self._product_rows[:-1]) # ignores last empty row
         ]
@@ -144,7 +144,7 @@ class OrderItemsCard(QWidget):
 
     # ── Data Loading ────────────────────────────────────────────────
 
-    def set_order_data(self, order_data: OrderDict) -> None:
+    def set_order_data(self, order_data: Order) -> None:
         """Replace product rows with those from order_data."""
         # Remove all existing rows
         for row in self._product_rows:
@@ -153,14 +153,14 @@ class OrderItemsCard(QWidget):
         self._product_rows.clear()
 
         # Add rows from order data
-        for product in order_data["products"]:
+        for product in order_data.products:
             self.setup_row(product=product)
         self._add_empty_row()
 
         self._update_delete_buttons()
         self.order_changed.emit()
 
-    def setup_row(self, *, product: ProductDict | None = None):
+    def setup_row(self, *, product: Product | None = None):
         row = ProductRowWidget(self, product_data=product)
         self._product_rows.append(row)
         self.products_layout.addWidget(row)

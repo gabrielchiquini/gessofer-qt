@@ -1,22 +1,19 @@
 from __future__ import annotations
 
-from typing_extensions import TypedDict
+from dataclasses import dataclass
 
 
-class ExpenseDict(TypedDict):
-    """An expense entity dict (from expense_to_dict)."""
-
+@dataclass
+class Expense:
+    """An expense entity as returned by expense_to_dict."""
     id: int
     month: str
     description: str
     value: int
 
 
-class ExpenseInputDict(TypedDict, total=False):
-    """Expense dict accepted by save_expenses bridge function.
-
-    Only 'description' and 'value' are required.
-    """
-
+@dataclass
+class ExpenseInput:
+    """Expense input accepted by save_expenses bridge function."""
     description: str
     value: int

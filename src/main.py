@@ -1,8 +1,12 @@
+import logging
 import sys
 from pathlib import Path
+
+from Custom_Widgets.QCustomQToolTip import QCustomQToolTipFilter
 from PySide6.QtWidgets import QApplication
+
 from frontend.app import MainWindow
-import logging
+
 
 def main() -> None:
     logging.basicConfig(

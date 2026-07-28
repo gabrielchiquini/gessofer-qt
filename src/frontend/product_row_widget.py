@@ -3,15 +3,16 @@ from __future__ import annotations
 import uuid
 from pathlib import Path
 
-from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QRegularExpressionValidator, QFont, QIcon
+from Custom_Widgets.QCustomQToolTip import QCustomQToolTip
+from PySide6.QtCore import Signal, Qt, QObject, QEvent
+from PySide6.QtGui import QRegularExpressionValidator, QFont, QIcon, QMouseEvent
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
     QLineEdit,
     QPushButton,
     QVBoxLayout,
-    QWidget,
+    QWidget, QToolTip,
 )
 
 from backend import ProductInput
@@ -35,6 +36,7 @@ class ProductRowWidget(QWidget):
             product_data: Product | None = None,
     ) -> None:
         super().__init__(parent)
+        self.hover_filter = None
         self._id: str = product_data.id if product_data else str(uuid.uuid4())
 
         # Name input
@@ -201,7 +203,32 @@ class ProductRowWidget(QWidget):
     def set_warnings(self, warnings: list[str]) -> None:
         """Show warning icon with tooltip, or hide if no warnings."""
         if warnings:
-            self.warning_icon.setToolTip("; ".join(warnings))
+            text = "; ".join(warnings)
+            # self.hover_filter = MouseHoverFilter(text)
+            # self.warning_icon.installEventFilter(self.hover_filter)
             self.warning_icon.setPixmap(svg_to_pixmap(_EXCLAMATION_ICON_PATH, 18, 18))
+            QCustomQToolTip(
+                text=text,
+                parent=self,
+                target=self.warning_icon,
+                duration=1500,
+                tailPosition="top-center"
+            )
+            self.warning_icon.setToolTip(text)
         else:
             self.warning_icon.setToolTip("")
+
+class MouseHoverFilter(QObject):
+    def __init__(self, tooltip: str):
+        super().__init__()
+        self.tooltip = tooltip
+
+
+    def eventFilter(self, obj, event):
+        if event.type() == QEvent.Type.Enter:
+            event: QMouseEvent = event # type: ignore[union-attr]
+            QToolTip.showText(event.globalPos(), self.tooltip)
+        elif event.type() == QEvent.Type.Leave:
+            event: QMouseEvent = event # type: ignore[union-attr]
+
+        return super().eventFilter(obj, event)

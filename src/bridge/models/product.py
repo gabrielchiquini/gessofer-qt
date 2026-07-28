@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Generic, TypeVar, List
 
 T = TypeVar("T")
@@ -37,3 +37,4 @@ class Product:
     total: int
     order_id: str
     item_ordinal: int | None = None
+    warnings: List[str] = field(default_factory=list)

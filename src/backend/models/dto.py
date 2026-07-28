@@ -29,6 +29,7 @@ class ProductInput:
     total: int  # total_price in cents
     order_id: str
     item_ordinal: int
+    warnings: list[str] = field(default_factory=list)
 
 
 @dataclass

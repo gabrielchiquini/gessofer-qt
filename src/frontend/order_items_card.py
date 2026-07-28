@@ -44,7 +44,7 @@ class OrderItemsCard(QWidget):
         self._card.set_content(self.products_layout)
 
         # ── Footer ────────────────────────────────────────────────────
-        self.products_total_label: QLabel = QLabel(
+        self._products_total_label: QLabel = QLabel(
             "Total dos produtos: R$ 0,00", self
         )
         self.distribute_button: QPushButton = QPushButton(
@@ -54,7 +54,7 @@ class OrderItemsCard(QWidget):
         self.distribute_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         footer_layout: QHBoxLayout = QHBoxLayout()
-        footer_layout.addWidget(self.products_total_label)
+        footer_layout.addWidget(self._products_total_label)
         footer_layout.addStretch()
         footer_layout.addWidget(self.distribute_button)
 
@@ -88,14 +88,12 @@ class OrderItemsCard(QWidget):
         last_row = self._product_rows[-1]
         if not last_row.is_empty() and changed_row is last_row:
             new_row = self._add_empty_row()
-            self.order_changed.emit()
+            self._order_changed()
 
     def _update_delete_buttons(self) -> None:
         """Enable delete button only for non-last rows."""
         for i, row in enumerate(self._product_rows):
             row.delete_button.setEnabled(i < len(self._product_rows) - 1)
-
-    # ── Freight Distribution ────────────────────────────────────────
 
     def _on_distribute_freight(self) -> None:
         """Distribute freight/unloading costs across product prices."""
@@ -112,9 +110,9 @@ class OrderItemsCard(QWidget):
                     self._product_rows[i].price_input.setText(
                         cents_to_display(new_product.price)
                     )
-            self.order_changed.emit()
+            self._order_changed()
 
-    # ── Data Access ─────────────────────────────────────────────────
+    # ── Freight Distribution ────────────────────────────────────────
 
     def get_products_total(self) -> int:
         """Sum of all product totals in cents."""
@@ -122,6 +120,8 @@ class OrderItemsCard(QWidget):
             parse_currency_to_cents(row.total_input.text())
             for row in self._product_rows
         )
+
+    # ── Data Access ─────────────────────────────────────────────────
 
     def get_products_list(self, order_id: str = "") -> list[ProductInput]:
         """Return a list of ProductInput from all product rows."""
@@ -142,8 +142,6 @@ class OrderItemsCard(QWidget):
                     errors.append(f"Produto {i + 1}: {err}")
         return len(errors) == 0, errors
 
-    # ── Data Loading ────────────────────────────────────────────────
-
     def set_order_data(self, order_data: Order) -> None:
         """Replace product rows with those from order_data."""
         # Remove all existing rows
@@ -154,11 +152,15 @@ class OrderItemsCard(QWidget):
 
         # Add rows from order data
         for product in order_data.products:
-            self.setup_row(product=product)
+            row = self.setup_row(product=product)
+            if hasattr(product, "warnings") and product.warnings:
+                row.set_warnings(product.warnings)
         self._add_empty_row()
 
         self._update_delete_buttons()
-        self.order_changed.emit()
+        self._order_changed()
+
+    # ── Data Loading ────────────────────────────────────────────────
 
     def setup_row(self, *, product: Product | None = None):
         row = ProductRowWidget(self, product_data=product)
@@ -179,8 +181,20 @@ class OrderItemsCard(QWidget):
         index = self._product_rows.index(row)
         self._product_rows.pop(index)
         self._update_delete_buttons()
-        self.order_changed.emit()
+        self._order_changed()
 
     def get_product_rows(self) -> list[ProductRowWidget]:
         """Return the _product_rows list (for external access if needed)."""
         return self._product_rows
+
+    def _order_changed(self):
+        total_cents: int = self.get_products_total()
+        self._products_total_label.setText(
+            f"Total dos produtos: {cents_to_display(total_cents)}"
+        )
+
+        # Enable/disable distribute button
+        items_valid, _ = self.validate()
+        can_distribute: bool = items_valid and total_cents > 0
+        self.distribute_button.setEnabled(can_distribute)
+        self.order_changed.emit()

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import logging
+from pathlib import Path
 
 from PySide6.QtCore import Qt
-from PySide6.QtGui import QStandardItemModel, QStandardItem
+from PySide6.QtGui import QIcon, QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame,
     QLabel, QLineEdit, QPushButton, QTableView,
@@ -16,6 +17,8 @@ from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
 
 logger = logging.getLogger(__name__)
+
+_EDIT_ICON: QIcon = QIcon(str(Path(__file__).parent.parent.parent / "assets" / "edit.svg"))
 
 
 class OrderEditListView(QWidget):
@@ -68,12 +71,14 @@ class OrderEditListView(QWidget):
 
         self.btn_search = QPushButton("Consultar", self)
         self.btn_add = QPushButton("＋ Adicionar Nota", self)
+        self.btn_import_xml = QPushButton("Importar XML", self)
 
         filter_layout.addWidget(QLabel("Mês", self))
         filter_layout.addWidget(self.filter_month)
         filter_layout.addStretch()
         filter_layout.addWidget(self.btn_search)
         filter_layout.addWidget(self.btn_add)
+        filter_layout.addWidget(self.btn_import_xml)
 
         return filter_frame
 
@@ -118,6 +123,7 @@ class OrderEditListView(QWidget):
         """Connect widget signals."""
         self.btn_search.clicked.connect(self.fetch_orders)
         self.btn_add.clicked.connect(self._on_add_clicked)
+        self.btn_import_xml.clicked.connect(self._on_import_xml_clicked)
 
     def fetch_orders(self) -> None:
         """Read current month from input, fetch and display orders."""
@@ -154,7 +160,7 @@ class OrderEditListView(QWidget):
 
         # Place "Editar" buttons in the last column
         for row_index, summary in enumerate(summaries):
-            edit_btn = QPushButton("[Editar]", self)
+            edit_btn = QPushButton(_EDIT_ICON, "Editar", self)
             order_id: str = summary.id
             edit_btn.clicked.connect(
                 lambda checked=False, oid=order_id: self._on_edit_clicked(oid)
@@ -183,6 +189,42 @@ class OrderEditListView(QWidget):
             self,
             order_id=None,
         )
+        dialog.order_saved.connect(self._on_order_saved)
+        dialog.exec()
+
+    def _on_import_xml_clicked(self) -> None:
+        """Handle Importar XML button click — open file dialog, parse XML, show dialog."""
+        from pathlib import Path as PathLib
+        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from frontend.order_edit_dialog import OrderEditDialog
+        from frontend.business import import_xml
+
+        # 1. Open file dialog
+        file_path: str = ""
+        file_path, _ = QFileDialog.getOpenFileName(
+            self,
+            "Selecionar Arquivo XML",
+            "",
+            "Arquivos XML (*.xml)",
+        )
+        if not file_path:
+            return  # User cancelled
+
+        # 2. Parse XML
+        result = import_xml(str(PathLib(file_path).resolve()))
+
+        # 3. Handle result
+        if not result.orders:
+            QMessageBox.critical(
+                self,
+                "Erro ao importar XML",
+                "Nenhum pedido encontrado no arquivo XML selecionado.",
+            )
+            return
+
+        # 4. Open OrderEditDialog pre-populated with the parsed order
+        order = result.orders[0]  # Single NFe → single order
+        dialog = OrderEditDialog(self, order=order)
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
 

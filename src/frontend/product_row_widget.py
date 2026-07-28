@@ -1,9 +1,10 @@
 from __future__ import annotations
 
 import uuid
+from pathlib import Path
 
 from PySide6.QtCore import Signal, Qt
-from PySide6.QtGui import QRegularExpressionValidator, QFont
+from PySide6.QtGui import QRegularExpressionValidator, QFont, QIcon
 from PySide6.QtWidgets import (
     QHBoxLayout,
     QLabel,
@@ -16,6 +17,10 @@ from PySide6.QtWidgets import (
 from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from bridge.models.product import Product
+from frontend.util.icons import svg_to_pixmap
+
+_EXCLAMATION_ICON_PATH = str(Path(__file__).parent.parent.parent / "assets" / "circle-exclamation.svg")
+_EXCLAMATION_ICON: QIcon = QIcon(_EXCLAMATION_ICON_PATH)
 
 
 class ProductRowWidget(QWidget):
@@ -47,7 +52,7 @@ class ProductRowWidget(QWidget):
 
         # Price input — currency format
         self.price_input: QLineEdit = QLineEdit(self)
-        self.price_input.setPlaceholderText("R$ 0,00")
+        self.price_input.setPlaceholderText("0,00")
         price_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*([.,]\d{1,2})?$"
         )
@@ -56,7 +61,7 @@ class ProductRowWidget(QWidget):
 
         # Total input — read-only, gray
         self.total_input: QLineEdit = QLineEdit(self)
-        self.total_input.setPlaceholderText("R$ 0,00")
+        self.total_input.setPlaceholderText("0,00")
         self.total_input.setReadOnly(True)
         self.total_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.total_input.setStyleSheet("color: gray;")
@@ -66,6 +71,11 @@ class ProductRowWidget(QWidget):
         self.delete_button: QPushButton = QPushButton("✕", self)
         self.delete_button.setFixedSize(28, 28)
         self.delete_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+
+        # Warning icon — shown when product has import warnings
+        assets_dir: Path = Path(__file__).parent.parent / "assets"
+        self.warning_icon: QLabel = QLabel(self)
+        self.warning_icon.setFixedSize(18, 18)
 
         # Layout
         self._error: QLabel = QLabel("", self)
@@ -87,6 +97,7 @@ class ProductRowWidget(QWidget):
         row_layout.addWidget(self.quantity_input)
         row_layout.addWidget(self.price_input)
         row_layout.addWidget(self.total_input)
+        row_layout.addWidget(self.warning_icon)
         row_layout.addWidget(self.delete_button)
 
         main_layout.addLayout(row_layout)
@@ -186,3 +197,11 @@ class ProductRowWidget(QWidget):
 
         self._error.setVisible(False)
         return True, []
+
+    def set_warnings(self, warnings: list[str]) -> None:
+        """Show warning icon with tooltip, or hide if no warnings."""
+        if warnings:
+            self.warning_icon.setToolTip("; ".join(warnings))
+            self.warning_icon.setPixmap(svg_to_pixmap(_EXCLAMATION_ICON_PATH, 18, 18))
+        else:
+            self.warning_icon.setToolTip("")

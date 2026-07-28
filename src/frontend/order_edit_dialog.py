@@ -32,20 +32,11 @@ class OrderEditDialog(QDialog):
             self,
             parent: QWidget | None = None,
             order_id: str | None = None,
+            order: Order | None = None,
     ) -> None:
         super().__init__(parent)
-        self.setWindowTitle("Novo Pedido" if order_id is None else "Editar Pedido")
         self.setModal(True)
         self.setMinimumSize(600, 500)
-
-        # ── State ─────────────────────────────────────────────────────
-        if order_id:
-            order_data: Order | None = fetch_order_by_id(order_id)
-        else:
-            order_data = None
-
-        self._order_id: str = order_data.id if order_data else str(uuid.uuid4())
-        self._is_new: bool = order_data is None
 
         # ── Header Card ───────────────────────────────────────────────
         self.header_card: OrderHeaderCard = OrderHeaderCard(self)
@@ -53,12 +44,31 @@ class OrderEditDialog(QDialog):
         # ── Items Card ────────────────────────────────────────────────
         self.items_card: OrderItemsCard = OrderItemsCard(self)
 
-        # ── Load existing order data if available ─────────────────────
-        if order_data is not None:
-            self.header_card.set_order_data(order_data)
-            self.items_card.set_order_data(order_data)
+        # ── State ─────────────────────────────────────────────────────
+        if order is not None:
+            # XML import path: order already parsed
+            self._imported_order: Order = order
+            self._order_id: str = order.id
+            self._is_new: bool = True
+            self.header_card.set_order_data(order)
+            self.items_card.set_order_data(order)
+        elif order_id:
+            # Existing edit path: fetch from DB
+            order_data: Order | None = fetch_order_by_id(order_id)
+            self._order_id: str = order_data.id if order_data else str(uuid.uuid4())
+            self._is_new: bool = order_data is None
+            if order_data is not None:
+                self.header_card.set_order_data(order_data)
+                self.items_card.set_order_data(order_data)
+            else:
+                self.items_card.add_row()
         else:
+            # Blank new order path
+            self._order_id: str = str(uuid.uuid4())
+            self._is_new: bool = True
             self.items_card.add_row()
+
+        self.setWindowTitle("Novo Pedido" if self._is_new else "Editar Pedido")
 
         # ── Footer Buttons ────────────────────────────────────────────
         self.btn_save: QPushButton = QPushButton("Salvar", self)
@@ -93,8 +103,8 @@ class OrderEditDialog(QDialog):
         layout.addWidget(footer_container)
 
         # ── Signal Connections ────────────────────────────────────────
-        self.header_card.order_changed.connect(self._on_card_changed)
-        self.items_card.order_changed.connect(self._on_card_changed)
+        self.header_card.order_changed.connect(self.header_card.order_changed)
+        self.items_card.order_changed.connect(self.items_card.order_changed)
         self.btn_save.clicked.connect(self._on_save)
         self.btn_close.clicked.connect(self.reject)
 
@@ -109,12 +119,17 @@ class OrderEditDialog(QDialog):
         if not (header_valid and items_valid):
             return
 
+        # Preserve nfe_key from XML-imported orders
+        nfe_key: str = ""
+        if hasattr(self, "_imported_order") and self._imported_order is not None:
+            nfe_key = self._imported_order.nfe_key
+
         # Assemble full order data from both cards
         order_data = OrderInput(
             id=self._order_id,
             date=date.strptime(self.header_card.get_date(), "%d/%m/%Y"),
             supplier=self.header_card.get_supplier(),
-            nfe_key="",  # TODO: add nfe_key_input field to header card
+            nfe_key=nfe_key,
             freight=self.header_card.get_freight_cents(),
             unloading=self.header_card.get_unloading_cents(),
             products=self.items_card.get_products_list(self._order_id),
@@ -128,18 +143,6 @@ class OrderEditDialog(QDialog):
             self.accept()
         else:
             self._show_message("Erro ao salvar pedido.", "error")
-
-    def _on_card_changed(self) -> None:
-        """Update footer total and distribute button state on card changes."""
-        total_cents: int = self.items_card.get_products_total()
-        self.items_card.products_total_label.setText(
-            f"Total dos produtos: {cents_to_display(total_cents)}"
-        )
-
-        # Enable/disable distribute button
-        items_valid, _ = self.items_card.validate()
-        can_distribute: bool = items_valid and total_cents > 0
-        self.items_card.distribute_button.setEnabled(can_distribute)
 
     def _show_message(self, text: str, level: str) -> None:
         """Show a styled message in the message label, auto-clear after 5 seconds."""

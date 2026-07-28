@@ -192,6 +192,8 @@ class XmlImportService:
             if prod is None:
                 continue
 
+            current_warnings: list[str] = []
+
             x_prod = self._get_child_text(prod, "xProd") or ""
             v_prod_str = self._get_child_text(prod, "vProd") or "0"
             q_com_str = self._get_child_text(prod, "qCom") or "0"
@@ -209,7 +211,7 @@ class XmlImportService:
 
             # Check if quantity is an integer
             if quantity != int(quantity):
-                warnings.append("Quantidade não inteira.")
+                current_warnings.append("Quantidade não inteira.")
                 quantity = 0
 
             quantity_int = int(quantity)
@@ -227,7 +229,7 @@ class XmlImportService:
                         try:
                             ipi_value = round(float(ipi_v_elem.text) * 100)
                             if ipi_value > 0:
-                                warnings.append("Produto com IPI.")
+                                current_warnings.append("Produto com IPI.")
                         except ValueError:
                             pass
 
@@ -238,7 +240,7 @@ class XmlImportService:
                         try:
                             icms_st_value = round(float(v_elem.text) * 100)
                             if icms_st_value > 0:
-                                warnings.append("Produto com ST.")
+                                current_warnings.append("Produto com ST.")
                         except ValueError:
                             pass
 
@@ -263,7 +265,9 @@ class XmlImportService:
                 total=total_price,
                 order_id="",  # Will be set when order is created
                 item_ordinal=None,
+                warnings=current_warnings,
             )
+            warnings.extend(current_warnings)
             products.append(product)
 
         return products

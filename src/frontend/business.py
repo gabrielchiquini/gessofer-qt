@@ -60,6 +60,7 @@ def xml_import_result_to_dict(result: BackendXmlImportResult) -> XmlImportResult
                         total=p.total,
                         order_id=p.order_id,
                         item_ordinal=p.item_ordinal,
+                        warnings=getattr(p, "warnings", []),
                     )
                     for p in o.products
                 ],

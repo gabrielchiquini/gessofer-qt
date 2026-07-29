@@ -6,11 +6,12 @@ using the ``cryptography`` library.
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.serialization import pkcs12
+
+from backend.certificate.read_pem import CERTIFICATE_FILE
 
 
 def extract_pem_from_pfx(pfx_path: str, pfx_password: str) -> tuple[str, str]:
@@ -80,14 +81,11 @@ def save_pem_from_pfx(pfx_path: str, pfx_password: str) -> tuple[Path, Path]:
     """
     pem_cert, pem_key = extract_pem_from_pfx(pfx_path, pfx_password)
 
-    output_dir = Path(os.environ["LOCALAPPDATA"], "gessofer-app", "certificate")
-    output_dir.mkdir(parents=True, exist_ok=True)
+    CERTIFICATE_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-    cert_path = output_dir / "certificate.pem"
-    key_path = output_dir / "private_key.pem"
+    key_path = CERTIFICATE_FILE.parent / "private_key.pem"
 
-    cert_path.write_text(pem_cert, encoding="utf-8")
+    CERTIFICATE_FILE.write_text(pem_cert, encoding="utf-8")
     key_path.write_text(pem_key, encoding="utf-8")
 
-    return cert_path, key_path
-
+    return CERTIFICATE_FILE, key_path

@@ -6,6 +6,7 @@ from frontend.constants import MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
 from frontend.navbar import NavigationBar
 from frontend.order_edit_list import OrderEditListView
 from frontend.product_list import ProductListView
+from frontend.certificate_status import CertificateStatusView
 
 
 class MainWindow(QMainWindow):
@@ -40,3 +41,7 @@ class MainWindow(QMainWindow):
         elif label == "Cadastrar" and group_title == "Notas":
             order_view = OrderEditListView(self)
             self.setCentralWidget(order_view)
+
+        elif label == "Status" and group_title == "Certificado":
+            cert_view = CertificateStatusView(self)
+            self.setCentralWidget(cert_view)

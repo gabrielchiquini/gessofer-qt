@@ -11,6 +11,9 @@ NAV_GROUPS: list[dict[str, Any]] = [
         {"label": "Lista", "group": "Despesas"},
         {"label": "Cadastrar", "group": "Despesas"},
     ]},
+    {"title": "Certificado", "items": [
+        {"label": "Status", "group": "Certificado"},
+    ]},
 ]
 
 SIDEBAR_WIDTH: int = 200

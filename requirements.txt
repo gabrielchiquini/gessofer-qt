@@ -10,3 +10,5 @@ QT-PyQt-PySide-Custom-Widgets==2.2.1
 requests
 urllib3
 cryptography==49.0.0
+
+lxml

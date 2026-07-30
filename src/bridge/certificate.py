@@ -24,6 +24,29 @@ class _CertificateHandler:
         """
         return get_certificate_info()
 
+    def save_certificate_from_pfx(self, pfx_path: str, pfx_password: str) -> bool:
+        """
+        Import a PFX certificate file and save the PEM certificate and private key.
+
+        Calls the backend ``save_pem_from_pfx`` which writes the PEM files to
+        ``%LOCALAPPDATA%\\gessofer-app\\certificate\\``.
+
+        Args:
+            pfx_path: Absolute path to the .pfx/.p12 file.
+            pfx_password: Password for the PFX file.
+
+        Returns:
+            True on success.
+
+        Raises:
+            ValueError: If the PFX file cannot be parsed (wrong password, corrupted).
+            OSError: If the output directory cannot be written.
+        """
+        from backend.certificate import save_pem_from_pfx
+
+        save_pem_from_pfx(pfx_path, pfx_password)
+        return True
+
 
 _handler: _CertificateHandler | None = None
 
@@ -54,3 +77,25 @@ def fetch_certificate_info() -> CertificateInfo:
             expiration_date="",
             is_valid=False,
         )
+
+
+def save_certificate_from_pfx(pfx_path: str, pfx_password: str) -> bool:
+    """
+    Import a PFX certificate file and save the PEM certificate and private key.
+
+    This is the bridge-layer entry point. Errors propagate to the caller
+    (the UI dialog will show them via QMessageBox).
+
+    Args:
+        pfx_path: Absolute path to the .pfx/.p12 file.
+        pfx_password: Password for the PFX file.
+
+    Returns:
+        True on success.
+
+    Raises:
+        ValueError: If the PFX file cannot be parsed.
+        OSError: If the output directory cannot be written.
+    """
+    handler = _get_handler()
+    return handler.save_certificate_from_pfx(pfx_path, pfx_password)

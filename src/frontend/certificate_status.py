@@ -1,14 +1,11 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QFont
 from PySide6.QtWidgets import (
-    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QSpacerItem,
-    QSizePolicy,
-)
+    QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, )
 
 from bridge.certificate import fetch_certificate_info
 from bridge.models.certificate import CertificateInfo
+from frontend.certificate_change_dialog import CertificateChangeDialog
 
 
 class CertificateStatusView(QWidget):
@@ -61,5 +58,9 @@ class CertificateStatusView(QWidget):
             self.expiration_label.setText("")
 
     def _on_change_clicked(self) -> None:
-        """Handle the 'alterar certificado' button click (placeholder)."""
-        pass
+        """Handle the 'alterar certificado' button click."""
+
+        dialog = CertificateChangeDialog(self)
+        dialog.exec()
+        # After dialog closes, refresh the certificate display
+        self._load_certificate()

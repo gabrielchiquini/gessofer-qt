@@ -18,6 +18,7 @@ from bridge.models.certificate import CertificateInfo
 
 _CERTIFICATE_DIR = Path(os.environ.get("LOCALAPPDATA", ""), "gessofer-app", "certificate")
 CERTIFICATE_FILE = _CERTIFICATE_DIR / "certificate.pem"
+KEY_FILE = _CERTIFICATE_DIR / "private_key.pem"
 
 logger = logging.getLogger(__name__)
 
@@ -70,3 +71,11 @@ def get_certificate_info() -> CertificateInfo:
         expiration_date=expiration_date,
         is_valid=is_valid,
     )
+
+def get_certificate_pair() -> tuple[bytes, bytes]:
+    certificate = CERTIFICATE_FILE.read_bytes()
+    key = KEY_FILE.read_bytes()
+    return certificate, key
+
+def get_certificate_files() -> tuple[Path, Path]:
+    return CERTIFICATE_FILE, KEY_FILE

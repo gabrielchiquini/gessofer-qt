@@ -1,5 +1,6 @@
 import ssl
 
+import requests
 from requests import Session
 from requests.adapters import HTTPAdapter
 from zeep import Transport
@@ -40,3 +41,11 @@ def create_transport():
         return Transport(session=session)
     except Exception as e:
         raise ValueError(f"Erro ao carregar certificado PFX: {e}")
+
+def create_session():
+    ssl_context = create_ssl_context()
+    session = requests.Session()
+    session.ssl_context = ssl_context
+    certificate, key = get_certificate_files()
+    session.cert = (str(certificate), str(key))
+    return session

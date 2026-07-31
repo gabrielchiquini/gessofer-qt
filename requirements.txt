@@ -66,3 +66,4 @@ watchdog==6.0.0
 webencodings==0.5.1
 WinGrab==0.0.2
 zeep==4.3.3
+signxml==5.1.0

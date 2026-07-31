@@ -81,15 +81,12 @@ def _download_nfe(nfe_key: str) -> bytes:
         raise Exception(f"Error searching NFe: {error_element_text}")
 
 
-def confirm_nfe(nfe_key):
-    pass
-
-
 def search_nfe(nfe_key: str):
     response = _download_nfe(nfe_key)
     if response.startswith(b"<nfeProc"):
         return response.decode("utf-8")
     else:
+
         confirm_nfe(nfe_key)
 
 # <retDistDFeInt xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.portalfiscal.inf.br/nfe" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" versao="1.01"><tpAmb>1</tpAmb><verAplic>1.7.8</verAplic><cStat>138</cStat><xMotivo>Documento localizado</xMotivo><dhResp>2026-07-28T19:22:01-03:00</dhResp><loteDistDFeInt><docZip schema="resNFe_v1.01.xsd">H4sIAAAAAAAEAIVS226CQBD9FcO77MyyXDNuYry2UbRqL+kbAgqtggUqfn5XsW3sS19mZ8+ey2SyVMSlP4xbp/0uK71TGXW0pKoOHmN1Xeu1oefFlnEAZC/TyTJM4n2g/ZDT/8ntNCurIAtjrXWMizLIOxrqgFePG/0hL6pgt0nLMNjpabbR1wXLNrEmKUzUiNIwuQWmZVvCFqhSAF3XNAHOrXC4y120DEdwMEAQazTU8+f38lZD7ALSyc/3sez6vdmi2xotZo/z1mTV7xJrHuhuIG0UgMraRnSIKYCiZLBPJQdutcFso7tCx0PXA2iDoSqxhkDVwR9KJHY56aiK5QjUTQWdLxSl26dgJ/N1kEdi8v7QE6+jJPkcv0Xj5/6H6/jTjvJqSCp0EYfrKv+Ty8Hj4jf3yqFsXuSVxPO60DVsg4Nt2sQamMJlWp03owb5bok1n0B+AQupGY8NAgAA</docZip></loteDistDFeInt></retDistDFeInt>

@@ -233,46 +233,33 @@ class OrderEditListView(QWidget):
 
     def _on_consultar_xml_clicked(self) -> None:
         """Handle Consultar XML button click — open NFe search dialog."""
+        from frontend.nfe_search_dialog import NfeSearchDialog
+
+        dialog = NfeSearchDialog(self)
+        dialog.nfe_result.connect(self._on_nfe_result)
+        dialog.exec()
+
+    def _on_nfe_result(self, xml_path: str) -> None:
+        """Handle successful NFe search — import XML and open edit dialog."""
         from PySide6.QtWidgets import QMessageBox
 
-        from frontend.nfe_search_dialog import NfeSearchDialog
-        from backend.sefaz.nfe_service import NfeSearchService
         from frontend.business import import_xml
         from frontend.order_edit_dialog import OrderEditDialog
 
-        search_dialog = NfeSearchDialog(self)
+        result = import_xml(xml_path)
 
-        def _on_nfe_searched(nfe_key: str) -> None:
-            """Callback when the user enters a valid NFe key."""
-            try:
-                service = NfeSearchService()
-                xml_file_path: str = service.search_and_save(nfe_key)
+        if not result.orders:
+            QMessageBox.critical(
+                self,
+                "Erro ao importar XML",
+                "Nenhum pedido encontrado no XML baixado da SEFAZ.",
+            )
+            return
 
-                result = import_xml(xml_file_path)
-
-                if not result.orders:
-                    QMessageBox.critical(
-                        self,
-                        "Erro ao importar XML",
-                        "Nenhum pedido encontrado no XML baixado da SEFAZ.",
-                    )
-                    return
-
-                order = result.orders[0]
-                edit_dialog = OrderEditDialog(self, order=order)
-                edit_dialog.order_saved.connect(self._on_order_saved)
-                edit_dialog.exec()
-
-            except Exception as exc:
-                logger.exception("Erro ao consultar NFe: %s", exc)
-                QMessageBox.critical(
-                    self,
-                    "Erro ao consultar NFe",
-                    f"Não foi possível consultar a NFe na SEFAZ.\n\nDetalhes: {exc}",
-                )
-
-        search_dialog.nfe_searched.connect(_on_nfe_searched)
-        search_dialog.exec()
+        order = result.orders[0]
+        edit_dialog = OrderEditDialog(self, order=order)
+        edit_dialog.order_saved.connect(self._on_order_saved)
+        edit_dialog.exec()
 
     def _on_order_saved(self, order_data: object) -> None:
         """Handle successful order save — refresh the order table."""

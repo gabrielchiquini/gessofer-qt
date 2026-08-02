@@ -21,6 +21,7 @@ from bridge.models.validation import Validation
 if TYPE_CHECKING:
     from bridge.certificate import fetch_certificate_info, save_certificate_from_pfx
     from bridge.expense import fetch_expenses_for_month, save_expenses
+    from bridge.nfe import search_nfe_key
     from bridge.order import fetch_order_by_id, save_orders, save_single_order
     from bridge.order_summary import OrderSummary, fetch_order_summaries
     from bridge.product import fetch_orders_for_month, fetch_products
@@ -45,4 +46,5 @@ __all__ = [
     "fetch_expenses_for_month",
     "fetch_certificate_info",
     "save_certificate_from_pfx",
+    "search_nfe_key",
 ]

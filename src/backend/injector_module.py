@@ -8,6 +8,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from backend.database.connection import get_engine
+from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.save_order_service import SaveExpenseService, SaveOrderService
 
 T = TypeVar("T")
@@ -61,6 +62,11 @@ class InjectorModule(Module):
     def provide_save_expense_service(self, engine: Engine) -> SaveExpenseService:
         """Provide a singleton SaveExpenseService with the Engine injected."""
         return SaveExpenseService(engine=engine)
+
+    @singleton
+    def provide_nfe_search_service(self) -> NfeSearchService:
+        """Provide a singleton NfeSearchService."""
+        return NfeSearchService()
 
 
 def get_injector() -> Injector:

@@ -9,6 +9,7 @@ from backend.certificate.read_pem import get_certificate_files
 
 CNPJ = "10245625000177"
 NS = {"xmlns": "http://www.portalfiscal.inf.br/nfe"}
+NSMAP = {"nfe": "http://www.portalfiscal.inf.br/nfe"}
 
 
 def create_ssl_context():

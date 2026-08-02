@@ -7,8 +7,9 @@ from lxml import etree
 from lxml.etree import ElementBase
 from zeep import Client
 
+from backend.sefaz.config import WSDL_SEARCH
 from backend.sefaz.confirm import confirm_nfe
-from backend.sefaz.util import create_transport, CNPJ, NS
+from backend.sefaz.util import create_transport, CNPJ, NS, NSMAP
 
 logger = logging.getLogger(__name__)
 
@@ -40,7 +41,7 @@ def _download_nfe_request(
     if not cnpj or len(cnpj) != 14:
         raise ValueError("O CNPJ deve ter exatamente 14 dígitos.")
 
-    url_wsdl = "https://www1.nfe.fazenda.gov.br/NFeDistribuicaoDFe/NfeDistribuicaoDFe.asmx?WSDL"
+    url_wsdl = WSDL_SEARCH
 
     transport = create_transport()
 
@@ -60,29 +61,22 @@ def _download_nfe_request(
 
 
 def _download_nfe(nfe_key: str) -> bytes:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        style='{',
-        format='{asctime} | {levelname:<8} | {name:<12} | {message}'
-    )
-    logger = logging.getLogger('zeep.transports')
-    logger.setLevel(logging.DEBUG)
     response = _download_nfe_request(
         nfe_key=nfe_key,
         cnpj=CNPJ,
     )
 
-    doc_zip_elem = response.find(".//nfe:docZip", namespaces=NS)
+    doc_zip_elem = response.find(".//nfe:docZip", namespaces=NSMAP)
     if doc_zip_elem is not None:
         compressed = doc_zip_elem.text
         decompressed = gzip.decompress(base64.b64decode(compressed))
         return decompressed
     else:
-        error_element = response.find(".//nfe:xMotivo", namespaces=NS)
+        error_element = response.find(".//nfe:xMotivo", namespaces=NSMAP)
         if error_element is None:
             raise Exception(f"Error searching NFe: unknown")
         error_element_text = error_element.text
-        print(error_element_text)
+        logger.warning("Erro ao consultar NFe: %s", error_element_text)
         raise Exception(f"Error searching NFe: {error_element_text}")
 
 

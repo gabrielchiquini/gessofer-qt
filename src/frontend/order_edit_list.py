@@ -72,6 +72,7 @@ class OrderEditListView(QWidget):
         self.btn_search = QPushButton("Consultar", self)
         self.btn_add = QPushButton("＋ Adicionar Nota", self)
         self.btn_import_xml = QPushButton("Importar XML", self)
+        self.btn_search_xml = QPushButton("Consultar XML", self)
 
         filter_layout.addWidget(QLabel("Mês", self))
         filter_layout.addWidget(self.filter_month)
@@ -79,6 +80,7 @@ class OrderEditListView(QWidget):
         filter_layout.addWidget(self.btn_search)
         filter_layout.addWidget(self.btn_add)
         filter_layout.addWidget(self.btn_import_xml)
+        filter_layout.addWidget(self.btn_search_xml)
 
         return filter_frame
 
@@ -124,6 +126,7 @@ class OrderEditListView(QWidget):
         self.btn_search.clicked.connect(self.fetch_orders)
         self.btn_add.clicked.connect(self._on_add_clicked)
         self.btn_import_xml.clicked.connect(self._on_import_xml_clicked)
+        self.btn_search_xml.clicked.connect(self._on_consultar_xml_clicked)
 
     def fetch_orders(self) -> None:
         """Read current month from input, fetch and display orders."""
@@ -227,6 +230,49 @@ class OrderEditListView(QWidget):
         dialog = OrderEditDialog(self, order=order)
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
+
+    def _on_consultar_xml_clicked(self) -> None:
+        """Handle Consultar XML button click — open NFe search dialog."""
+        from PySide6.QtWidgets import QMessageBox
+
+        from frontend.nfe_search_dialog import NfeSearchDialog
+        from backend.sefaz.nfe_service import NfeSearchService
+        from frontend.business import import_xml
+        from frontend.order_edit_dialog import OrderEditDialog
+
+        search_dialog = NfeSearchDialog(self)
+
+        def _on_nfe_searched(nfe_key: str) -> None:
+            """Callback when the user enters a valid NFe key."""
+            try:
+                service = NfeSearchService()
+                xml_file_path: str = service.search_and_save(nfe_key)
+
+                result = import_xml(xml_file_path)
+
+                if not result.orders:
+                    QMessageBox.critical(
+                        self,
+                        "Erro ao importar XML",
+                        "Nenhum pedido encontrado no XML baixado da SEFAZ.",
+                    )
+                    return
+
+                order = result.orders[0]
+                edit_dialog = OrderEditDialog(self, order=order)
+                edit_dialog.order_saved.connect(self._on_order_saved)
+                edit_dialog.exec()
+
+            except Exception as exc:
+                logger.exception("Erro ao consultar NFe: %s", exc)
+                QMessageBox.critical(
+                    self,
+                    "Erro ao consultar NFe",
+                    f"Não foi possível consultar a NFe na SEFAZ.\n\nDetalhes: {exc}",
+                )
+
+        search_dialog.nfe_searched.connect(_on_nfe_searched)
+        search_dialog.exec()
 
     def _on_order_saved(self, order_data: object) -> None:
         """Handle successful order save — refresh the order table."""

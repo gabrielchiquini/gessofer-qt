@@ -1,13 +1,16 @@
 import base64
 import gzip
 import logging
+from time import sleep
 
 from lxml import etree
 from lxml.etree import ElementBase
 from zeep import Client
 
-from backend.sefaz.util import create_transport, CNPJ
+from backend.sefaz.confirm import confirm_nfe
+from backend.sefaz.util import create_transport, CNPJ, NS
 
+logger = logging.getLogger(__name__)
 
 def _download_nfe_request(
         nfe_key: str,
@@ -76,18 +79,27 @@ def _download_nfe(nfe_key: str) -> bytes:
         return decompressed
     else:
         error_element = response.find(".//nfe:xMotivo", namespaces=NS)
+        if error_element is None:
+            raise Exception(f"Error searching NFe: unknown")
         error_element_text = error_element.text
         print(error_element_text)
         raise Exception(f"Error searching NFe: {error_element_text}")
 
 
 def search_nfe(nfe_key: str):
-    response = _download_nfe(nfe_key)
-    if response.startswith(b"<nfeProc"):
-        return response.decode("utf-8")
+    response = _download_nfe(nfe_key).decode("utf-8")
+    logger.info(f"First search response: {response}")
+    if _is_nfe(response):
+        return response
     else:
+        reasons = confirm_nfe(nfe_key)
+        sleep(1)
+        response = _download_nfe(nfe_key).decode("utf-8")
+        if _is_nfe(response):
+            return response
+        logger.info(f"Second search response: {response}")
+        raise Exception(f"Erro NFe: {reasons}")
 
-        confirm_nfe(nfe_key)
 
-# <retDistDFeInt xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://www.portalfiscal.inf.br/nfe" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" versao="1.01"><tpAmb>1</tpAmb><verAplic>1.7.8</verAplic><cStat>138</cStat><xMotivo>Documento localizado</xMotivo><dhResp>2026-07-28T19:22:01-03:00</dhResp><loteDistDFeInt><docZip schema="resNFe_v1.01.xsd">H4sIAAAAAAAEAIVS226CQBD9FcO77MyyXDNuYry2UbRqL+kbAgqtggUqfn5XsW3sS19mZ8+ey2SyVMSlP4xbp/0uK71TGXW0pKoOHmN1Xeu1oefFlnEAZC/TyTJM4n2g/ZDT/8ntNCurIAtjrXWMizLIOxrqgFePG/0hL6pgt0nLMNjpabbR1wXLNrEmKUzUiNIwuQWmZVvCFqhSAF3XNAHOrXC4y120DEdwMEAQazTU8+f38lZD7ALSyc/3sez6vdmi2xotZo/z1mTV7xJrHuhuIG0UgMraRnSIKYCiZLBPJQdutcFso7tCx0PXA2iDoSqxhkDVwR9KJHY56aiK5QjUTQWdLxSl26dgJ/N1kEdi8v7QE6+jJPkcv0Xj5/6H6/jTjvJqSCp0EYfrKv+Ty8Hj4jf3yqFsXuSVxPO60DVsg4Nt2sQamMJlWp03owb5bok1n0B+AQupGY8NAgAA</docZip></loteDistDFeInt></retDistDFeInt>
-# _download_nfe("35260567647412000199550020004829291638420304")
+def _is_nfe(response: str) -> bool:
+    return response.startswith("<nfeProc")

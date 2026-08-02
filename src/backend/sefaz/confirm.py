@@ -8,6 +8,7 @@ from backend.sefaz.config import WSDL_CONFIRM
 from backend.sefaz.sign import sign_element
 from backend.sefaz.util import CNPJ, NS, create_session
 
+logger = logging.getLogger(__name__)
 
 def confirm_nfe(
         nfe_key: str,
@@ -113,7 +114,7 @@ def confirm_nfe(
     }
     print(soap_envelope)
     response = session.post(service_url, data=soap_envelope, headers=headers, timeout=60)
-    logging.info(f"Confirmação realizada status={response.status_code} response={response.text}")
+    logger.info(f"Confirmação realizada status={response.status_code} response={response.text}")
     response_xml = etree.fromstring(response.content)
 
     # Namespace SOAP
@@ -124,9 +125,8 @@ def confirm_nfe(
     reasons = response_xml.findall('.//{*}xMotivo')
     reasons = list(map(lambda item: item.text, reasons))
 
-    logging.info(f"Motivos retornados: {" | ".join(reasons)}")
-    # Retornar o XML do body como string
-    return etree.tostring(body_elem, encoding='unicode', xml_declaration=False)
+    logger.info(f"Motivos retornados: {" | ".join(reasons)}")
+    return reasons
 
 
 if __name__ == '__main__':

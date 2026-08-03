@@ -17,8 +17,8 @@ from backend import OrderInput
 from backend.utils.currency import cents_to_display
 from bridge.models.order import Order
 from bridge.order import fetch_order_by_id, save_single_order
-from frontend.order_header_card import OrderHeaderCard
-from frontend.order_items_card import OrderItemsCard
+from frontend.views.order_edit.order_header_card import OrderHeaderCard
+from frontend.views.order_edit.order_items_card import OrderItemsCard
 
 
 class OrderEditDialog(QDialog):

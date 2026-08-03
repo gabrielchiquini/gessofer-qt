@@ -17,7 +17,7 @@ from bridge.models.order import Order
 from bridge.models.product import Product
 from frontend.business import distribute_freight
 from frontend.components.card import Card
-from frontend.product_row_widget import ProductRowWidget
+from frontend.views.order_edit.product_row_widget import ProductRowWidget
 
 
 class OrderItemsCard(QWidget):

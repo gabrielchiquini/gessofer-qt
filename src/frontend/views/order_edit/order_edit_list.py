@@ -174,7 +174,7 @@ class OrderEditListView(QWidget):
 
     def _on_edit_clicked(self, order_id: str) -> None:
         """Handle Edit button click — open the order edit dialog."""
-        from frontend.order_edit_dialog import OrderEditDialog
+        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 
         dialog = OrderEditDialog(
             self,
@@ -185,7 +185,7 @@ class OrderEditListView(QWidget):
 
     def _on_add_clicked(self) -> None:
         """Handle Add button click — open a blank order edit dialog."""
-        from frontend.order_edit_dialog import OrderEditDialog
+        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 
         month: str = self.filter_month.text().strip()
         dialog = OrderEditDialog(
@@ -199,7 +199,7 @@ class OrderEditListView(QWidget):
         """Handle Importar XML button click — open file dialog, parse XML, show dialog."""
         from pathlib import Path as PathLib
         from PySide6.QtWidgets import QFileDialog, QMessageBox
-        from frontend.order_edit_dialog import OrderEditDialog
+        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
         from frontend.business import import_xml
 
         # 1. Open file dialog
@@ -244,7 +244,7 @@ class OrderEditListView(QWidget):
         from PySide6.QtWidgets import QMessageBox
 
         from frontend.business import import_xml
-        from frontend.order_edit_dialog import OrderEditDialog
+        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 
         result = import_xml(xml_path)
 

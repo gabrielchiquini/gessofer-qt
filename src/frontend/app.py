@@ -3,10 +3,10 @@ from __future__ import annotations
 from PySide6.QtWidgets import QMainWindow, QWidget
 
 from frontend.constants import MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
-from frontend.navbar import NavigationBar
-from frontend.order_edit_list import OrderEditListView
-from frontend.product_list import ProductListView
-from frontend.certificate_status import CertificateStatusView
+from frontend.components.navbar import NavigationBar
+from frontend.views.order_edit.order_edit_list import OrderEditListView
+from frontend.views.product_list import ProductListView
+from frontend.views.certificate_status.certificate_status import CertificateStatusView
 
 
 class MainWindow(QMainWindow):

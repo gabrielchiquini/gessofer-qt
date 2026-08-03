@@ -5,7 +5,7 @@ from PySide6.QtWidgets import (
 
 from bridge.certificate import fetch_certificate_info
 from bridge.models.certificate import CertificateInfo
-from frontend.certificate_change_dialog import CertificateChangeDialog
+from frontend.views.certificate_status.certificate_change_dialog import CertificateChangeDialog
 
 
 class CertificateStatusView(QWidget):

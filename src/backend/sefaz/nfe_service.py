@@ -9,6 +9,11 @@ from backend.sefaz.nfe_search import _is_nfe, search_nfe
 
 logger = logging.getLogger(__name__)
 
+RECEIPTS_DIR: Path = Path(
+    os.environ.get("LOCALAPPDATA", ""),
+    "gessofer-app",
+    "notas",
+)
 
 class NfeSearchService:
     """Service that searches NFe via SEFAZ, saves XML to disk, and returns the file path."""
@@ -37,18 +42,17 @@ class NfeSearchService:
             )
 
         # 2. Ensure output directory exists
-        output_dir: Path = Path(
-            os.environ.get("LOCALAPPDATA", ""),
-            "gessofer-app",
-            "notas",
-        )
-        output_dir.mkdir(parents=True, exist_ok=True)
+        RECEIPTS_DIR.mkdir(parents=True, exist_ok=True)
 
-        # 3. Search SEFAZ
+        # 3. Check if receipt XML already exists on disk
+        file_path: Path = RECEIPTS_DIR / f"{clean_key}.xml"
+        if file_path.exists():
+            return str(file_path.resolve())
+
+        # 4. Search SEFAZ
         response: str = search_nfe(clean_key)
 
         # 5. Save to disk
-        file_path: Path = output_dir / f"{clean_key}.xml"
         file_path.write_text(response, encoding="utf-8")
 
         return str(file_path.resolve())

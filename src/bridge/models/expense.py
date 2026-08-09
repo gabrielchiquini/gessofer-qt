@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 
 @dataclass
-class Expense:
+class ExpenseOutput:
     """An expense entity as returned by expense_to_dict."""
     id: int
     month: str

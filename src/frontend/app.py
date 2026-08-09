@@ -7,6 +7,7 @@ from frontend.components.navbar import NavigationBar
 from frontend.views.order_edit.order_edit_list import OrderEditListView
 from frontend.views.product_list import ProductListView
 from frontend.views.certificate_status.certificate_status import CertificateStatusView
+from frontend.views.expense_list import ExpenseListView
 
 
 class MainWindow(QMainWindow):
@@ -45,3 +46,15 @@ class MainWindow(QMainWindow):
         elif label == "Status" and group_title == "Certificado":
             cert_view = CertificateStatusView(self)
             self.setCentralWidget(cert_view)
+
+        elif label == "Lista" and group_title == "Despesas":
+            expense_view = ExpenseListView(self)
+            self.setCentralWidget(expense_view)
+
+        elif label == "Cadastrar" and group_title == "Despesas":
+            from PySide6.QtWidgets import QMessageBox
+            QMessageBox.information(
+                self,
+                "Em desenvolvimento",
+                "A tela de cadastro de despesas ainda está em desenvolvimento.",
+            )

@@ -30,8 +30,6 @@ class OrderHeaderCard(QWidget):
             placeholder="Fornecedor",
             required=True,
         )
-        self._supplier_input.setMinimumWidth(180)
-
         self._date_input: TextField = TextField(
             self,
             label="Data",
@@ -59,10 +57,10 @@ class OrderHeaderCard(QWidget):
         # Header layout — TextField widgets (each has its own label internally)
         header_layout: QHBoxLayout = QHBoxLayout()
 
-        header_layout.addWidget(self._supplier_input)
-        header_layout.addWidget(self._date_input)
-        header_layout.addWidget(self._freight_input)
-        header_layout.addWidget(self._unloading_input)
+        header_layout.addWidget(self._supplier_input, 50)
+        header_layout.addWidget(self._date_input, 20)
+        header_layout.addWidget(self._freight_input, 15)
+        header_layout.addWidget(self._unloading_input, 15)
 
         self._card.set_content(header_layout)
 

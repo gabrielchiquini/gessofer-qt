@@ -36,7 +36,7 @@ class OrderEditDialog(QDialog):
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
-        self.setMinimumSize(600, 500)
+        self.setMinimumSize(800, 600)
 
         # ── Header Card ───────────────────────────────────────────────
         self.header_card: OrderHeaderCard = OrderHeaderCard(self)

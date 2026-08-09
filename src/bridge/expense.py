@@ -5,7 +5,7 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from bridge.models.expense import Expense as BridgeExpense, ExpenseInput as ExpenseInputDataclass
+from bridge.models.expense import ExpenseOutput, ExpenseInput as ExpenseInputDataclass
 from backend.entities.orm import Expense
 from backend.database.connection import get_engine
 from backend.injector_module import get_injector
@@ -24,7 +24,7 @@ class _ExpenseFetchHandler:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
 
-    def fetch_expenses_for_month(self, month: str) -> list[BridgeExpense]:
+    def fetch_expenses_for_month(self, month: str) -> list[ExpenseOutput]:
         """Fetch expenses for a month in YYYY-MM format."""
         session: Session = self._session_factory()
         try:
@@ -53,9 +53,9 @@ class _ExpenseSaveHandler:
         self._save_expense_service.save_expenses(expenses, month)
 
 
-def expense_to_dict(expense: Expense) -> BridgeExpense:
+def expense_to_dict(expense: Expense) -> ExpenseOutput:
     """Transform an ORM Expense entity into a BridgeExpense dataclass."""
-    return BridgeExpense(
+    return ExpenseOutput(
         id=expense.ID,
         month=expense.MONTH,
         description=expense.DESCRIPTION,
@@ -93,7 +93,7 @@ def _get_save_handler() -> _ExpenseSaveHandler:
     return _save_handler
 
 
-def fetch_expenses_for_month(month: str) -> list[BridgeExpense]:
+def fetch_expenses_for_month(month: str) -> list[ExpenseOutput]:
     """
     Fetch expenses for a given month.
 

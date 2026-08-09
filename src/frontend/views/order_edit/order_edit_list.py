@@ -76,11 +76,11 @@ class OrderEditListView(QWidget):
 
         filter_layout.addWidget(QLabel("Mês", self))
         filter_layout.addWidget(self.filter_month)
-        filter_layout.addStretch()
         filter_layout.addWidget(self.btn_search)
-        filter_layout.addWidget(self.btn_add)
-        filter_layout.addWidget(self.btn_import_xml)
+        filter_layout.addStretch()
         filter_layout.addWidget(self.btn_search_xml)
+        filter_layout.addWidget(self.btn_import_xml)
+        filter_layout.addWidget(self.btn_add)
 
         return filter_frame
 

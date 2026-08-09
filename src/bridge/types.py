@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from bridge.models.expense import Expense, ExpenseInput
+from bridge.models.expense import ExpenseOutput, ExpenseInput
 from bridge.models.order import (
     FreightResult,
     Order,
@@ -16,7 +16,7 @@ from bridge.models.product import (
 from bridge.models.validation import Validation
 
 __all__ = [
-    "Expense",
+    "ExpenseOutput",
     "ExpenseInput",
     "FreightResult",
     "Order",

@@ -4,7 +4,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from bridge.models.certificate import CertificateInfo
-from bridge.models.expense import Expense, ExpenseInput
+from bridge.models.expense import ExpenseOutput, ExpenseInput
 from bridge.models.order import (
     FreightResult,
     Order,
@@ -30,7 +30,7 @@ __all__ = [
     "CertificateInfo",
     "ProductListItem",
     "Product",
-    "Expense",
+    "ExpenseOutput",
     "ExpenseInput",
     "FreightResult",
     "OrderSummary",

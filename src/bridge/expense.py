@@ -5,15 +5,17 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
-from bridge.models.expense import ExpenseOutput, ExpenseInput as ExpenseInputDataclass
-from backend.entities.orm import Expense
 from backend.database.connection import get_engine
+from backend.entities.orm import Expense
 from backend.injector_module import get_injector
 from backend.models.dto import ExpenseInput
 from backend.repositories.expense_repository import ExpenseRepository
-from backend.repositories.order_repository import OrderRepository
-from backend.services.save_order_service import SaveExpenseService, SaveOrderService
-from backend.utils.date import parse_month_for_expenses
+from backend.services.save_order_service import SaveExpenseService
+from bridge.models.expense import (
+    ExpenseInput as ExpenseInputDataclass,
+    ExpenseOutput,
+    ExpensesForMonthOutput,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -24,13 +26,18 @@ class _ExpenseFetchHandler:
     def __init__(self, session_factory: Callable[[], Session]) -> None:
         self._session_factory = session_factory
 
-    def fetch_expenses_for_month(self, month: str) -> list[ExpenseOutput]:
+    def fetch_expenses_for_month(
+        self,
+        month: str,
+    ) -> ExpensesForMonthOutput:
         """Fetch expenses for a month in YYYY-MM format."""
         session: Session = self._session_factory()
         try:
             repo = ExpenseRepository(session)
             expenses = repo.fetch_expenses_for_month(month)
-            return [expense_to_dict(e) for e in expenses]
+            outputs: list[ExpenseOutput] = [expense_to_dict(e) for e in expenses]
+            total: int = sum(o.value for o in outputs)
+            return ExpensesForMonthOutput(expenses=outputs, total=total)
         except Exception as exc:
             logger.error("Error fetching expenses: %s", exc)
             raise
@@ -45,9 +52,9 @@ class _ExpenseSaveHandler:
         self._save_expense_service = save_expense_service
 
     def save_expenses(
-        self,
-        expenses: list[ExpenseInput],
-        month: str,
+            self,
+            expenses: list[ExpenseInput],
+            month: str,
     ) -> None:
         """Save expenses in a single transaction."""
         self._save_expense_service.save_expenses(expenses, month)
@@ -93,7 +100,7 @@ def _get_save_handler() -> _ExpenseSaveHandler:
     return _save_handler
 
 
-def fetch_expenses_for_month(month: str) -> list[ExpenseOutput]:
+def fetch_expenses_for_month(month: str) -> ExpensesForMonthOutput:
     """
     Fetch expenses for a given month.
 
@@ -101,7 +108,8 @@ def fetch_expenses_for_month(month: str) -> list[ExpenseOutput]:
         month: Month in MM/yyyy format (will be converted to YYYY-MM).
 
     Returns:
-        List of BridgeExpense dataclass instances. On error, returns [].
+        ExpensesForMonthOutput with the list of expenses and the total value.
+        On error, returns an ExpensesForMonthOutput with empty expenses and total 0.
     """
     try:
         handler = _get_fetch_handler()
@@ -112,12 +120,12 @@ def fetch_expenses_for_month(month: str) -> list[ExpenseOutput]:
     except Exception as exc:
         logger.error("Error in fetch_expenses_for_month: %s", exc)
         logger.debug("Traceback", exc_info=True)
-        return []
+        return ExpensesForMonthOutput(expenses=[], total=0)
 
 
 def save_expenses(
-    expenses: list[ExpenseInputDataclass],
-    month: str,
+        expenses: list[ExpenseInputDataclass],
+        month: str,
 ) -> bool:
     """
     Save a list of expenses for a given month.

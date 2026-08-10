@@ -6,13 +6,14 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QFrame,
-    QTableView, QScrollArea, QHBoxLayout,
+    QTableView, QScrollArea, QHBoxLayout, QSizePolicy, QLabel,
 )
 
 from bridge.expense import fetch_expenses_for_month
-from bridge.models.expense import ExpenseOutput as BridgeExpense
+from bridge.models.expense import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
 from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
+from frontend.components import Card
 from frontend.components.month_filter import MonthFilter
 
 logger = logging.getLogger(__name__)
@@ -25,6 +26,7 @@ class ExpenseListView(QWidget):
         super().__init__(parent)
         self._current_month: str = ""
         self._model: QStandardItemModel = QStandardItemModel(0, 2)
+        self.total_label: QLabel = QLabel("Total: R$ 0,00", self)
         self._setup_ui()
         self._connect_signals()
 
@@ -56,29 +58,46 @@ class ExpenseListView(QWidget):
         filter_layout.addStretch()
 
         # Table with scroll area
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll.setStyleSheet("QScrollArea { border: 0px; border-radius: 0px; }")
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.table_view = QTableView(self)
-        self.table_view.setModel(self._model)
+        self.table_view.setFrameShape(QFrame.Shape.NoFrame)
+        self.table_view.setFrameShadow(QFrame.Shadow.Plain)
+        self.table_view.setStyleSheet("QTableView {     background-color: white; }")
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
         self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
         self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
-        self.table_view.setAlternatingRowColors(True)
+        self.table_view.verticalHeader().setVisible(False)
+        self.table_view.setModel(self._model)
+
         self.table_view.verticalHeader().setVisible(False)
 
         self._model.setHorizontalHeaderLabels(["Despesa", "Valor"])
 
         self._setup_table_size()
 
-        scroll.setWidget(self.table_view)
+        self.scroll.setWidget(self.table_view)
 
-        # Initially hidden (empty mode)
-        scroll.setVisible(False)
+        # Card container with footer
+        self.card = Card(self)
+        self.card.set_content(self.scroll)
+
+        footer_layout: QHBoxLayout = QHBoxLayout()
+        footer_layout.setContentsMargins(12, 8, 12, 8)
+        footer_label: QLabel = QLabel("Total:", self)
+        footer_label.setStyleSheet("font-weight: bold;")
+        footer_layout.addWidget(footer_label)
+        footer_layout.addStretch()
+        footer_layout.addWidget(self.total_label)
+        self.card.set_footer(footer_layout)
 
         layout.addWidget(filter_frame)
-        layout.addWidget(scroll, 1)
-
-        self.scroll = scroll
+        layout.addWidget(self.card, 1)
 
     def _connect_signals(self) -> None:
         """Connect widget signals."""
@@ -91,13 +110,16 @@ class ExpenseListView(QWidget):
 
         self._current_month = month
         try:
-            expenses = fetch_expenses_for_month(month)
-            self._process_expenses(expenses)
+            result: ExpensesForMonthOutput = fetch_expenses_for_month(month)
+            self._process_expenses(result.expenses)
+            self.total_label.setText(f"Total: {cents_to_display(result.total)}")
             self.scroll.setVisible(True)
+            self.card.setVisible(True)
         except Exception as exc:
             logger.exception("Error fetching expenses: %s", exc)
             self._model.setRowCount(0)
             self.scroll.setVisible(False)
+            self.card.setVisible(False)
 
     def _process_expenses(self, expenses: list[BridgeExpense]) -> None:
         """Process expense items and populate the table."""
@@ -117,6 +139,7 @@ class ExpenseListView(QWidget):
         self.month_filter.clear()
         self._current_month = ""
         self.scroll.setVisible(False)
+        self.card.setVisible(False)
 
     def _setup_table_size(self) -> None:
         """Set column widths dynamically based on viewport."""

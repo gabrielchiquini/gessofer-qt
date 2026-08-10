@@ -13,6 +13,13 @@ class ExpenseOutput:
 
 
 @dataclass
+class ExpensesForMonthOutput:
+    """Result of fetching expenses for a month, including the total."""
+    expenses: list[ExpenseOutput]
+    total: int
+
+
+@dataclass
 class ExpenseInput:
     """Expense input accepted by save_expenses bridge function."""
     description: str

@@ -40,3 +40,10 @@ class XmlParseError(BackendError):
 
     def __init__(self, message: str) -> None:
         super().__init__("Erro ao processar XML", message)
+
+
+class BackupError(BackendError):
+    """Raised when a backup operation fails."""
+
+    def __init__(self, detail_message: str) -> None:
+        super().__init__("Erro ao realizar backup do banco de dados", detail_message)

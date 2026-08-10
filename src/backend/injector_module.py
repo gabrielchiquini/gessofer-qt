@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from backend.database.connection import get_engine
 from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.save_order_service import SaveExpenseService, SaveOrderService
+from backend.services.backup_service import BackupService
 
 T = TypeVar("T")
 
@@ -67,6 +68,13 @@ class InjectorModule(Module):
     def provide_nfe_search_service(self) -> NfeSearchService:
         """Provide a singleton NfeSearchService."""
         return NfeSearchService()
+
+    @singleton
+    def provide_backup_service(self) -> "BackupService":
+        """Provide a singleton BackupService with the backup directory path."""
+        from backend.utils.backup import discover_backup_dir
+
+        return BackupService(backup_dir=discover_backup_dir())
 
 
 def get_injector() -> Injector:

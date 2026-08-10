@@ -4,6 +4,15 @@ from .entities.orm import Order, Product, Expense
 from .models.dto import OrderInput, ProductInput, ExpenseInput, PageResponse
 from .repositories.order_repository import OrderRepository
 from .repositories.expense_repository import ExpenseRepository
+
+# Utils
+from .utils.backup import (
+    classify_backup,
+    compute_retention_decision,
+    discover_backup_dir,
+    get_backup_path,
+    parse_backup_filename,
+)
 from .utils.currency import cents_to_display, parse_currency_to_cents
 from .utils.date import (
     parse_month_for_orders,
@@ -17,9 +26,10 @@ from .utils.date import (
 from .utils.text import normalize_text
 
 # Errors
-from .errors import BackendError, ValidationError, DatabaseError, XmlParseError
+from .errors import BackendError, ValidationError, DatabaseError, XmlParseError, BackupError
 
 # Services
+from .services.backup_service import BackupService
 from .services.save_order_service import SaveOrderService, SaveExpenseService
 from .services.freight_distribution import FreightDistributionService
 from .services.xml_import_service import XmlImportService
@@ -45,6 +55,11 @@ __all__ = [
     "OrderRepository",
     "ExpenseRepository",
     # Utils
+    "classify_backup",
+    "compute_retention_decision",
+    "discover_backup_dir",
+    "get_backup_path",
+    "parse_backup_filename",
     "cents_to_display",
     "parse_currency_to_cents",
     "parse_month_for_orders",
@@ -60,7 +75,9 @@ __all__ = [
     "ValidationError",
     "DatabaseError",
     "XmlParseError",
+    "BackupError",
     # Services
+    "BackupService",
     "SaveOrderService",
     "SaveExpenseService",
     "FreightDistributionService",

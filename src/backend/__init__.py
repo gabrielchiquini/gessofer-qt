@@ -20,7 +20,6 @@ from .utils.date import (
     br_date_to_iso,
     iso_to_br_date,
     current_month_orders,
-    current_month_expenses,
     format_time_now,
 )
 from .utils.text import normalize_text
@@ -67,7 +66,6 @@ __all__ = [
     "br_date_to_iso",
     "iso_to_br_date",
     "current_month_orders",
-    "current_month_expenses",
     "format_time_now",
     "normalize_text",
     # Errors

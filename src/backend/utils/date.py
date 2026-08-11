@@ -81,13 +81,6 @@ def current_month_orders() -> str:
     now = datetime.now()
     return now.strftime("%m/%Y")
 
-
-def current_month_expenses() -> str:
-    """Return the current month in 'YYYY-MM' format for expenses."""
-    now = datetime.now()
-    return now.strftime("%Y-%m")
-
-
 def format_time_now() -> str:
     """Return current time in 'HH:mm' format for save messages."""
     return datetime.now().strftime("%H:%M")

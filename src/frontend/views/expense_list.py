@@ -6,7 +6,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtGui import QStandardItemModel, QStandardItem
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QFrame,
-    QTableView, QScrollArea, QHBoxLayout, QSizePolicy, QLabel,
+    QTableView, QScrollArea, QHBoxLayout, QSizePolicy, QLabel, QPushButton,
 )
 
 from bridge.expense import fetch_expenses_for_month
@@ -15,6 +15,7 @@ from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
 from frontend.components import Card
 from frontend.components.month_filter import MonthFilter
+from frontend.views.expense_edit import ExpenseEditDialog
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +28,15 @@ class ExpenseListView(QWidget):
         self._current_month: str = ""
         self._model: QStandardItemModel = QStandardItemModel(0, 2)
         self.total_label: QLabel = QLabel("Total: R$ 0,00", self)
+        self._edit_dialog: ExpenseEditDialog | None = None
         self._setup_ui()
         self._connect_signals()
 
-    def resizeEvent(self, event: object) -> None:
+    def resizeEvent(self, event) -> None:
         super().resizeEvent(event)
         self._setup_table_size()
 
-    def showEvent(self, event: object) -> None:
+    def showEvent(self, event) -> None:
         super().showEvent(event)
         self._setup_table_size()
         if not self._current_month:
@@ -55,6 +57,9 @@ class ExpenseListView(QWidget):
 
         self.month_filter = MonthFilter(self)
         filter_layout.addWidget(self.month_filter)
+        self.btn_edit: QPushButton = QPushButton("Editar", self)
+        self.btn_edit.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
+        filter_layout.addWidget(self.btn_edit)
         filter_layout.addStretch()
 
         # Table with scroll area
@@ -102,6 +107,21 @@ class ExpenseListView(QWidget):
     def _connect_signals(self) -> None:
         """Connect widget signals."""
         self.month_filter.month_selected.connect(self.fetch_expenses)
+        self.btn_edit.clicked.connect(self._on_edit)
+
+    def _on_edit(self) -> None:
+        """Open the expense edit dialog for the current month."""
+        month: str = self.month_filter.get_month()
+        if not month or not month.strip():
+            return
+        edit_dialog = ExpenseEditDialog(self, month=month)
+        edit_dialog.expenses_saved.connect(self._on_expenses_saved)
+        edit_dialog.exec()
+        self._edit_dialog = edit_dialog
+
+    def _on_expenses_saved(self, month: str) -> None:
+        """Refresh the expense list after a successful save."""
+        self.fetch_expenses(month)
 
     def fetch_expenses(self, month: str) -> None:
         """Fetch and display expenses for the given month."""

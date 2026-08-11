@@ -86,7 +86,7 @@ def get_injector() -> Injector:
     Returns:
         The Injector instance configured with InjectorModule.
     """
-    return Injector(InjectorModule)
+    return _get_app_injector()
 
 
 # Module-level injector for use in API files
@@ -97,24 +97,5 @@ def _get_app_injector() -> Injector:
     """Get or create the application-wide injector (lazy initialization)."""
     global _app_injector
     if _app_injector is None:
-        _app_injector = get_injector()
+        _app_injector = Injector(InjectorModule)
     return _app_injector
-
-
-def call_with_injection(callable: Callable[..., T], *args: Any, **kwargs: Any) -> T:
-    """
-    Call a function with dependencies injected by the application injector.
-
-    This is a convenience wrapper around Injector.call_with_injection() for use
-    in API modules that need to create injected function wrappers.
-
-    Args:
-        callable: The function to call.
-        *args: Positional arguments to pass to the function.
-        **kwargs: Keyword arguments to pass to the function.
-
-    Returns:
-        The return value of the callable.
-    """
-    injector = _get_app_injector()
-    return injector.call_with_injection(callable, args=args, kwargs=kwargs)

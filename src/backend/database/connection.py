@@ -14,14 +14,21 @@ def discover_database_path() -> str:
     """
     Discover the database file path using the priority order:
     1. DATABASE_URL environment variable (development/tests)
-    2. %LOCALAPPDATA%\\gessofer-tauri\\main.db (production)
-    3. %TEMP%\\tmp-gessofer-tauri.db (tests fallback)
+    2. CWD main.db (local development)
+    3. %LOCALAPPDATA%\\gessofer-tauri\\main.db (production)
 
     Returns the absolute path as a string.
     Raises FileNotFoundError if no database is found and no env var is set.
     """
-    
-    # Step 3: Check CWD
+
+    # Step 1: Check DATABASE_URL FIRST
+    db_url = os.environ.get("DATABASE_URL")
+    if db_url:
+        path = db_url.replace("sqlite:///", "").replace("sqlite://", "")
+        print("Using DATABASE_URL DB")
+        return os.path.abspath(path)
+
+    # Step 2: Check CWD
     cwd = os.curdir
     if cwd:
         test_path = os.path.join(cwd, "main.db")
@@ -29,20 +36,11 @@ def discover_database_path() -> str:
             print("Using CWD DB")
             return os.path.abspath(test_path)
 
-    # Step 1: Check DATABASE_URL
-    db_url = os.environ.get("DATABASE_URL")
-    if db_url:
-        # Strip "sqlite://" prefix if present
-        path = db_url.replace("sqlite:///", "").replace("sqlite://", "")
-        print("Using APPDATA DB")
-        return os.path.abspath(path)
-
-    # Step 2: Check production path
+    # Step 3: Check production path
     prod_path = os.path.join(DEFAULT_DB_DIR, DEFAULT_DB_FILE)
     if os.path.isfile(prod_path):
         print("Using PROD DB")
         return os.path.abspath(prod_path)
-
 
     raise FileNotFoundError(
         "Nenhum arquivo de banco encontrado. "

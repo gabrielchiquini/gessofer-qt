@@ -9,3 +9,4 @@ QT-PyQt-PySide-Custom-Widgets==2.2.1
 requests==2.34.2
 SQLAlchemy==2.0.51
 signxml==5.1.0
+pytest-qt==4.5.0

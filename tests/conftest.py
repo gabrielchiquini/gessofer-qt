@@ -1,182 +1,33 @@
+"""Pytest configuration and fixture glue code for Gessofer-Qt.
+
+This module re-exports fixtures from the fixtures package so that
+existing tests continue to work without changes.  The actual
+fixture implementations live in:
+
+- tests/fixtures/database.py   (temp_engine, session_factory)
+- tests/fixtures/orders.py     (seeded_fetch_handler, fetch_handler, sample_page)
+- tests/fixtures/expenses.py   (expense_test_env, expense_list_widget)
+"""
 from __future__ import annotations
 
-from datetime import date, datetime
-from typing import Generator
+# Database fixtures
+from tests.fixtures.database import session_factory, temp_engine
 
-import pytest
-from sqlalchemy import create_engine
-from sqlalchemy.orm import Session
+# Order fixtures
+from tests.fixtures.orders import fetch_handler, sample_page, seeded_fetch_handler
 
-from backend.entities.orm import Base, Order, Product
-from bridge.product import FetchHandler
-from backend.models.dto import PageResponse
-from backend.utils.text import normalize_text
+# Expense fixtures
+from tests.fixtures.expenses import expense_list_widget, expense_test_env
 
-
-# ── Database fixtures ─────────────────────────────────────────────
-
-
-@pytest.fixture
-def in_memory_engine() -> Generator[object, None, None]:
-    """Create an in-memory SQLite engine with all tables created from ORM models."""
-    engine = create_engine("sqlite:///:memory:")
-    Base.metadata.create_all(engine)
-    yield engine
-
-
-@pytest.fixture
-def session_factory(in_memory_engine: object):
-    """Create a session factory that produces fresh sessions."""
-
-    def factory() -> Session:
-        return Session(in_memory_engine)
-
-    return factory
-
-
-# ── Seed data ─────────────────────────────────────────────────────
-#
-# Order A: 2024-07-10, "Cimento Portland"
-#   Product 1: "Cimento CP-II 50kg", price=25000, total=25000, qty=1
-#   Product 2: "Cimento CP-II 1kg",  price=500,  total=500,  qty=1
-#
-# Order B: 2024-07-15, "Areia Premium LTDA"
-#   Product 3: "Areia média", price=15000, total=30000, qty=2
-#
-# Order C: 2024-08-05, "Cimento Portland"
-#   Product 4: "Cimento CP-I 50kg", price=22000, total=22000, qty=1
-#
-# Order D: 2024-08-20, "Tijolo & Cia"
-#   Product 5: "Tijolo cerâmico 8 furos", price=1200, total=24000, qty=20
-#
-# Order E: 2024-07-25, "Cimento Portland"
-#   Product 6: "Cal hidratada 20kg", price=8000, total=16000, qty=2
-#
-# NOTE: The actual search_products code has a bug where the 'supplier'
-# parameter filters on Product.NAME_NORMALIZED (the product name column),
-# not on Order.SUPPLIER_NORMALIZED. Both 'supplier' and 'product'
-# parameters filter the same column. The tests below reflect this actual
-# behavior rather than the intended behavior.
-#
-# Product normalized names:
-#   "cimento cp-ii 50kg"
-#   "cimento cp-ii 1kg"
-#   "areia media"          (accent removed by normalize_text)
-#   "cimento cp-i 50kg"
-#   "tijolo ceramico 8 furos"
-#   "cal hidratada 20kg"
-
-
-@pytest.fixture
-def seeded_fetch_handler(session_factory) -> FetchHandler:
-    """FetchHandler with test data seeded into the in-memory database."""
-    handler = FetchHandler(session_factory)
-    now = datetime.now()
-
-    orders_data = [
-        # Order A: July 2024, Cimento Portland
-        (
-            "order-a",
-            date(2024, 7, 10),
-            "Cimento Portland",
-            "45678901234567",
-            5000,
-            1000,
-            [
-                ("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 1),
-                ("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 2),
-            ],
-        ),
-        # Order B: July 2024, Areia Premium LTDA
-        (
-            "order-b",
-            date(2024, 7, 15),
-            "Areia Premium LTDA",
-            "12345678901234",
-            3000,
-            500,
-            [
-                ("prod-b1", "Areia média", 2, 15000, 30000, 1),
-            ],
-        ),
-        # Order C: August 2024, Cimento Portland
-        (
-            "order-c",
-            date(2024, 8, 5),
-            "Cimento Portland",
-            "98765432109876",
-            4000,
-            800,
-            [
-                ("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 1),
-            ],
-        ),
-        # Order D: August 2024, Tijolo & Cia
-        (
-            "order-d",
-            date(2024, 8, 20),
-            "Tijolo & Cia",
-            "11223344556677",
-            6000,
-            1200,
-            [
-                ("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1),
-            ],
-        ),
-        # Order E: July 2024, Cimento Portland
-        (
-            "order-e",
-            date(2024, 7, 25),
-            "Cimento Portland",
-            "55667788990011",
-            2000,
-            500,
-            [
-                ("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 1),
-            ],
-        ),
-    ]
-
-    with handler._session_factory() as session:
-        for order_id, order_date, supplier, nfe_key, freight, unloading, products in orders_data:
-            order = Order(
-                ID=order_id,
-                DATE=order_date,
-                SUPPLIER=supplier,
-                SUPPLIER_NORMALIZED=normalize_text(supplier),
-                NFE_KEY=nfe_key,
-                FREIGHT=freight,
-                UNLOADING=unloading,
-                CREATED_AT=now,
-                UPDATED_AT=now,
-            )
-            session.add(order)
-            for prod_id, prod_name, qty, price, total, ordinal in products:
-                product = Product(
-                    ID=prod_id,
-                    NAME=prod_name,
-                    NAME_NORMALIZED=normalize_text(prod_name),
-                    QUANTITY=qty,
-                    PRICE=price,
-                    TOTAL_PRICE=total,
-                    ORDER_ID=order_id,
-                    ITEM_ORDINAL=ordinal,
-                    CREATED_AT=now,
-                    UPDATED_AT=now,
-                )
-                session.add(product)
-        session.commit()
-
-    return handler
-
-
-@pytest.fixture
-def fetch_handler(seeded_fetch_handler: FetchHandler) -> FetchHandler:
-    """FetchHandler with test data seeded (alias for seeded_fetch_handler)."""
-    return seeded_fetch_handler
-
-
-@pytest.fixture
-def sample_page(seeded_fetch_handler: FetchHandler) -> PageResponse:
-    """A PageResponse with seeded data for transformer tests."""
-    return seeded_fetch_handler.fetch_products(page=1)
+__all__ = [
+    # Database
+    "temp_engine",
+    "session_factory",
+    # Orders
+    "seeded_fetch_handler",
+    "fetch_handler",
+    "sample_page",
+    # Expenses
+    "expense_test_env",
+    "expense_list_widget",
+]

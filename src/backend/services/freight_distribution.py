@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import List
 
-from backend.models.dto import OrderInput, ProductInput
+from models import OrderInput, ProductInput
 
 logger = logging.getLogger(__name__)
 

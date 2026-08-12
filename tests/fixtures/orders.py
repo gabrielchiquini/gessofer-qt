@@ -1,13 +1,11 @@
 from __future__ import annotations
 
 from datetime import date, datetime
-from typing import Generator
 
 import pytest
-from sqlalchemy.orm import Session
 
 from backend.entities.orm import Order, Product
-from backend.models.dto import PageResponse
+from models import PageResponse
 from backend.utils.text import normalize_text
 from bridge.product import FetchHandler
 

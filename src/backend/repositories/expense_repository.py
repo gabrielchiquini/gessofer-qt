@@ -7,7 +7,7 @@ from sqlalchemy import select, delete
 from sqlalchemy.orm import Session
 
 from backend.entities.orm import Expense
-from backend.models.dto import ExpenseInput
+from models import ExpenseInput
 
 
 class ExpenseRepository:

@@ -1,11 +1,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
-from typing import List, Optional
+from typing import List
 
-from backend.models.dto import ExpenseInput, OrderInput
-from backend.utils.date import br_date_to_iso, parse_month_for_orders, parse_month_for_expenses
+from models import ExpenseInput, OrderInput
+from backend.utils.date import br_date_to_iso
 
 
 @dataclass

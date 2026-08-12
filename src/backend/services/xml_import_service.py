@@ -2,15 +2,13 @@ from __future__ import annotations
 
 import logging
 import uuid
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from typing import List, Optional
 from xml.etree import ElementTree as ET
 
 from backend.errors import XmlParseError
-from backend.models.dto import OrderInput, ProductInput
-from backend.utils.currency import parse_currency_to_cents
-from backend.utils.date import br_date_to_iso
+from models import OrderInput, ProductInput
 
 logger = logging.getLogger(__name__)
 

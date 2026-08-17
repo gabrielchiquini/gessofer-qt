@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-from bridge.models.product import Product
+from src.models.output import Product
 
 
 @dataclass

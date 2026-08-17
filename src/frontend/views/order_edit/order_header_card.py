@@ -5,7 +5,7 @@ from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from backend.utils.date import iso_to_br_date
-from bridge.models.order import Order
+from models.order import Order
 from frontend.components.card import Card
 from frontend.components.text_field import TextField
 from frontend.util.validators import DateValidator

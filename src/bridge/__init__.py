@@ -3,31 +3,29 @@ from __future__ import annotations
 # Lazy imports for functions to avoid circular dependencies
 from typing import TYPE_CHECKING
 
-from bridge.models.certificate import CertificateInfo
-from bridge.models.expense import (
-    ExpenseInput,
-    ExpenseOutput,
-    ExpensesForMonthOutput,
-)
-from bridge.models.order import (
+from models.certificate import CertificateInfo
+from models.input import ExpenseInput
+from models.output import ExpenseOutput, ExpensesForMonthOutput
+from models.order import (
     FreightResult,
     Order,
     OrderSummary,
     XmlImportResult,
 )
-from bridge.models.product import (
+from models.output import (
     PageResponse,
     Product,
     ProductListItem,
 )
-from bridge.models.validation import Validation
+from models.validation import Validation
 
 if TYPE_CHECKING:
     from bridge.certificate import fetch_certificate_info, save_certificate_from_pfx
     from bridge.expense import fetch_expenses_for_month, save_expenses
     from bridge.nfe import search_nfe_key
     from bridge.order import fetch_order_by_id, save_orders, save_single_order
-    from bridge.order_summary import OrderSummary, fetch_order_summaries
+    from models.order import OrderSummary
+    from bridge.order_summary import fetch_order_summaries
     from bridge.product import fetch_orders_for_month, fetch_products
 
 __all__ = [

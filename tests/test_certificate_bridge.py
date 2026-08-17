@@ -8,7 +8,7 @@ from unittest.mock import patch
 import pytest
 
 from bridge.certificate import fetch_certificate_info
-from bridge.models.certificate import CertificateInfo
+from models.certificate import CertificateInfo
 
 
 # Ensure src/ is on sys.path so bridge modules can be imported

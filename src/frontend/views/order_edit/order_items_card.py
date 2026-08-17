@@ -13,8 +13,8 @@ from PySide6.QtWidgets import (
 
 from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from bridge.models.order import Order
-from bridge.models.product import Product
+from models.order import Order
+from models.output import Product
 from frontend.business import distribute_freight
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget

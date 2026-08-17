@@ -7,11 +7,7 @@ from backend.injector_module import get_injector
 from models import ExpenseInput
 from backend.services.expense_fetch_handler import ExpenseFetchHandler
 from backend.services.expense_save_handler import ExpenseSaveHandler
-from bridge.models.expense import (
-    ExpenseInput as ExpenseInputDataclass,
-    ExpenseOutput,
-    ExpensesForMonthOutput,
-)
+from models.output import ExpenseOutput, ExpensesForMonthOutput
 
 logger = logging.getLogger(__name__)
 
@@ -50,7 +46,7 @@ def fetch_expenses_for_month(month: str) -> ExpensesForMonthOutput:
 
 
 def save_expenses(
-    expenses: list[ExpenseInputDataclass],
+    expenses: list[ExpenseInput],
     month: str,
 ) -> bool:
     """

@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
 )
 
 from bridge.expense import fetch_expenses_for_month
-from bridge.models.expense import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
+from models.output import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
 from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
 from frontend.components import Card

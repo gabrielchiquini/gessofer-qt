@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from bridge.models.order import Order, OrderSummary
+from models.order import Order, OrderSummary
 
 
 logger = logging.getLogger(__name__)

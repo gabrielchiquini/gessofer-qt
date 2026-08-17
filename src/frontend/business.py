@@ -9,9 +9,9 @@ from backend.services.freight_distribution import (
 )
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportResult as BackendXmlImportResult, XmlImportService
-from bridge.models.order import FreightResult, Order, XmlImportResult
-from bridge.models.product import Product
-from bridge.models.validation import Validation
+from models.order import FreightResult, Order, XmlImportResult
+from models.output import Product
+from models.validation import Validation
 
 logger = logging.getLogger(__name__)
 

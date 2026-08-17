@@ -4,7 +4,7 @@ import logging
 from typing import Callable
 
 from backend.certificate import get_certificate_info
-from bridge.models.certificate import CertificateInfo
+from models.certificate import CertificateInfo
 
 logger = logging.getLogger(__name__)
 

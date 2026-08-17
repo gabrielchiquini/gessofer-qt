@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QScrollArea, )
 from frontend.components import Card
 
-from bridge.models.product import PageResponse, ProductListItem
+from models.output import PageResponse, ProductListItem
 from bridge.product import fetch_products
 
 logger = logging.getLogger(__name__)

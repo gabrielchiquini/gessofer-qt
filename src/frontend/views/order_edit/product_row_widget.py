@@ -17,7 +17,7 @@ from PySide6.QtWidgets import (
 
 from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from bridge.models.product import Product
+from models.output import Product
 from frontend.util.icons import svg_to_pixmap
 
 _EXCLAMATION_ICON_PATH = str(Path(__file__).parent.parent.parent / "assets" / "circle-exclamation.svg")

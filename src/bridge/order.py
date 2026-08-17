@@ -9,7 +9,7 @@ from backend.injector_module import get_injector
 from models import OrderInput
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_handler import SaveHandler
-from bridge.models.order import Order
+from models.order import Order
 from bridge.product import orm_order_to_dict
 
 logger = logging.getLogger(__name__)

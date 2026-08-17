@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.entities.orm import Expense
 from backend.repositories.expense_repository import ExpenseRepository
-from bridge.models.expense import ExpenseOutput, ExpensesForMonthOutput
+from models.output import ExpenseOutput, ExpensesForMonthOutput
 
 logger = logging.getLogger(__name__)
 

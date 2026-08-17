@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 
 from models import ExpenseInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from bridge.models.expense import ExpenseOutput
+from models.output import ExpenseOutput
 
 
 class ExpenseRowWidget(QWidget):

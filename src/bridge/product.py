@@ -7,8 +7,8 @@ from backend.entities.orm import Order, Product
 from backend.utils.currency import cents_to_display
 from backend.utils.date import datetime_to_br_date
 from backend.services.fetch_handler import FetchHandler
-from bridge.models.order import Order as OrderDataclass
-from bridge.models.product import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
+from models.order import Order as OrderDataclass
+from models.output import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
 
 logger = logging.getLogger(__name__)
 

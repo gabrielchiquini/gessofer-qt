@@ -14,7 +14,7 @@ from pathlib import Path
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 
-from bridge.models.certificate import CertificateInfo
+from models.certificate import CertificateInfo
 
 _CERTIFICATE_DIR = Path(os.environ.get("LOCALAPPDATA", ""), "gessofer-app", "certificate")
 CERTIFICATE_FILE = _CERTIFICATE_DIR / "certificate.pem"

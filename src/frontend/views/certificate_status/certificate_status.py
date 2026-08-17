@@ -4,7 +4,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, )
 
 from bridge.certificate import fetch_certificate_info
-from bridge.models.certificate import CertificateInfo
+from models.certificate import CertificateInfo
 from frontend.views.certificate_status.certificate_change_dialog import CertificateChangeDialog
 
 

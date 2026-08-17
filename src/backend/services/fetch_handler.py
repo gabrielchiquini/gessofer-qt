@@ -7,8 +7,8 @@ from injector import inject
 from sqlalchemy.orm import Session
 
 from backend.repositories.order_repository import OrderRepository
-from bridge.models.order import Order as OrderDataclass
-from bridge.models.product import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
+from models.order import Order as OrderDataclass
+from models.output import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
 from backend.utils.date import parse_month_for_orders
 
 logger = logging.getLogger(__name__)

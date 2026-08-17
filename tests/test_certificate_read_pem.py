@@ -7,7 +7,7 @@ from unittest.mock import patch
 import pytest
 
 from backend.certificate.read_pem import get_certificate_info
-from bridge.models.certificate import CertificateInfo
+from models.certificate import CertificateInfo
 
 # Ensure src/ is on sys.path so backend modules can be imported
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

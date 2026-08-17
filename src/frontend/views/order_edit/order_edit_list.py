@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QScrollArea, QSizePolicy,
 )
 
-from bridge.models.order import OrderSummary
+from models.order import OrderSummary
 from bridge.order_summary import fetch_order_summaries
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders

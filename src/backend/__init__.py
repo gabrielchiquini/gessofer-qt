@@ -1,7 +1,8 @@
 from .database.connection import get_engine, discover_database_path
 from .injector_module import InjectorModule, get_injector
 from .entities.orm import Order, Product, Expense
-from models.dto import OrderInput, ProductInput, ExpenseInput, PageResponse
+from models.input import OrderInput, ProductInput, ExpenseInput
+from models.output import PageResponse
 from .repositories.order_repository import OrderRepository
 from .repositories.expense_repository import ExpenseRepository
 

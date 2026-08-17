@@ -38,3 +38,19 @@ class Product:
     order_id: str
     item_ordinal: int | None = None
     warnings: List[str] = field(default_factory=list)
+
+
+@dataclass
+class ExpenseOutput:
+    """An expense entity as returned by expense_to_dict."""
+    id: int
+    month: str
+    description: str
+    value: int
+
+
+@dataclass
+class ExpensesForMonthOutput:
+    """Result of fetching expenses for a month, including the total."""
+    expenses: list[ExpenseOutput]
+    total: int

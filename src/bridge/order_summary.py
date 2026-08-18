@@ -44,7 +44,7 @@ class OrderSummaryBridge:
 
 def _get_order_summary_bridge() -> OrderSummaryBridge:
     """Lazy-access the DI-registered OrderSummaryBridge singleton."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
     return get_injector().get(OrderSummaryBridge)
 
 

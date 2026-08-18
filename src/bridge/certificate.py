@@ -80,7 +80,7 @@ class CertificateBridge:
 
 def _get_certificate_bridge() -> CertificateBridge:
     """Lazy-access the DI-registered CertificateBridge singleton."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
     return get_injector().get(CertificateBridge)
 
 

@@ -28,7 +28,7 @@ def import_xml(file_path: str) -> XmlImportResult:
     Returns:
         XmlImportResult with parsed orders and any warnings.
     """
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     service = injector.get(BusinessService)

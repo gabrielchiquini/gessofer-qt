@@ -17,13 +17,12 @@ class MainWindow(QMainWindow):
 
     def __init__(
         self,
-        parent: QWidget,
         product_list_view_factory: ProductListViewFactory,
         order_edit_list_view_factory: OrderEditListViewFactory,
         expense_list_view_factory: ExpenseListViewFactory,
         certificate_status_view_factory: CertificateStatusViewFactory,
     ) -> None:
-        super().__init__(parent)
+        super().__init__(None)
         self.setWindowTitle("Gessofer")
         self.setMinimumSize(MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT)
         self._product_list_view_factory: ProductListViewFactory = product_list_view_factory

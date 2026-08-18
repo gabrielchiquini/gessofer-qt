@@ -23,7 +23,7 @@ class NfeBridge:
 
 def _get_nfe_bridge() -> NfeBridge:
     """Lazy-access the DI-registered NfeBridge singleton."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
     return get_injector().get(NfeBridge)
 
 

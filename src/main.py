@@ -5,7 +5,7 @@ from pathlib import Path
 from PySide6.QtWidgets import QApplication, QWidget
 
 from frontend.app import MainWindow
-from injector_module import get_injector
+from di.injector_module import get_injector
 from frontend.factories import (
     ProductListViewFactory,
     OrderEditListViewFactory,
@@ -37,7 +37,6 @@ def main() -> None:
     certificate_status_view_factory: CertificateStatusViewFactory = injector.get(CertificateStatusViewFactory)
 
     window = MainWindow(
-        parent=QWidget(),
         product_list_view_factory=product_list_view_factory,
         order_edit_list_view_factory=order_edit_list_view_factory,
         expense_list_view_factory=expense_list_view_factory,
@@ -47,7 +46,6 @@ def main() -> None:
 
     # ── Backup check (non-blocking, silent failure) ──────────────────
     try:
-        from injector_module import get_injector
         from backend.services.backup_service import BackupService
         from backend.database.connection import discover_database_path
         from backend.utils.backup import discover_backup_dir

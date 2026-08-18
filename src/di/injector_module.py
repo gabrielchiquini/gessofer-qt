@@ -6,6 +6,7 @@ from injector import Injector, Module, provider, singleton
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+from backend.business import BusinessService
 from backend.database.connection import get_engine
 from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.backup_service import BackupService
@@ -24,6 +25,9 @@ from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from bridge.product import ProductBridge
+from frontend.factories import ProductListViewFactory, OrderEditDialogFactory, NfeSearchDialogFactory, \
+    ExpenseEditDialogFactory, CertificateChangeDialogFactory, OrderEditListViewFactory, ExpenseListViewFactory, \
+    CertificateStatusViewFactory
 
 
 def _register_protocol_types() -> None:

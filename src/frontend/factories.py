@@ -284,7 +284,7 @@ def _make_certificate_change_dialog_factory(injector: Any) -> CertificateChangeD
 
 def make_product_list_view(parent: QWidget) -> ProductListView:
     """Create a ProductListView using DI-injected ProductBridge."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     product_bridge = injector.get(ProductBridge)
@@ -295,7 +295,7 @@ def make_order_edit_list_view(parent: QWidget) -> OrderEditListView:
     """Create an OrderEditListView using DI-injected dependencies."""
     from backend.business import BusinessService
 
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     order_bridge = injector.get(OrderBridge)
@@ -317,7 +317,7 @@ def make_order_edit_list_view(parent: QWidget) -> OrderEditListView:
 
 def make_expense_list_view(parent: QWidget) -> ExpenseListView:
     """Create an ExpenseListView using DI-injected dependencies."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     expense_bridge = injector.get(ExpenseBridge)
@@ -331,7 +331,7 @@ def make_expense_list_view(parent: QWidget) -> ExpenseListView:
 
 def make_certificate_status_view(parent: QWidget) -> CertificateStatusView:
     """Create a CertificateStatusView using DI-injected dependencies."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     certificate_bridge = injector.get(CertificateBridge)
@@ -349,7 +349,7 @@ def make_order_edit_dialog(
     order: Order | None = None,
 ) -> OrderEditDialog:
     """Create an OrderEditDialog using DI-injected dependencies."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     order_edit_dialog_factory = _make_order_edit_dialog_factory(injector)
@@ -358,7 +358,7 @@ def make_order_edit_dialog(
 
 def make_expense_edit_dialog(parent: QWidget, month: str) -> ExpenseEditDialog:
     """Create an ExpenseEditDialog using DI-injected ExpenseBridge."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     expense_edit_dialog_factory = _make_expense_edit_dialog_factory(injector)
@@ -367,7 +367,7 @@ def make_expense_edit_dialog(parent: QWidget, month: str) -> ExpenseEditDialog:
 
 def make_certificate_change_dialog(parent: QWidget) -> CertificateChangeDialog:
     """Create a CertificateChangeDialog using DI-injected CertificateBridge."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     certificate_change_dialog_factory = _make_certificate_change_dialog_factory(injector)
@@ -376,7 +376,7 @@ def make_certificate_change_dialog(parent: QWidget) -> CertificateChangeDialog:
 
 def make_nfe_search_dialog(parent: QWidget) -> NfeSearchDialog:
     """Create an NfeSearchDialog using DI-injected NfeBridge."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     nfe_search_dialog_factory = _make_nfe_search_dialog_factory(injector)

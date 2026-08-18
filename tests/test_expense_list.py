@@ -18,7 +18,7 @@ class TestExpenseListInitialLoad:
             qtbot: QtBot,
     ) -> None:
         """Show the widget and verify the month filter is set to current month."""
-        from injector_module import get_injector
+        from di.injector_module import get_injector
         from bridge.expense import ExpenseBridge
         from frontend.factories import ExpenseEditDialogFactory
         from PySide6.QtWidgets import QWidget

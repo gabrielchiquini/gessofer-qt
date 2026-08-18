@@ -104,11 +104,11 @@ def expense_test_env(
 
         # Step 4: Reset the app injector so get_injector() creates a fresh one
         # with the patched get_engine()
-        import injector_module
+        from di import injector_module
         injector_module._app_injector = None
 
         # Step 5: Call get_injector() which creates a fresh Injector using the patched get_engine()
-        from injector_module import get_injector
+        from di.injector_module import get_injector
         injector = get_injector()
 
         yield
@@ -116,7 +116,7 @@ def expense_test_env(
         # Teardown
         import backend.database.connection
         backend.database.connection.get_engine = original_get_engine  # type: ignore[assignment]
-        import injector_module
+        from di import injector_module
         injector_module._app_injector = None
         reset_bridge_singletons()
         try:
@@ -131,7 +131,7 @@ def expense_list_widget(
         qtbot: QtBot,
 ) -> Generator["ExpenseListView", None, None]:
     """Create an ExpenseListView wired to the test database."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
 
     injector = get_injector()
     expense_bridge: ExpenseBridge = injector.get(ExpenseBridge)

@@ -26,7 +26,7 @@ def test_fetch_certificate_info_no_file() -> None:
     read_pem_module.CERTIFICATE_FILE = Path("/nonexistent/path/certificate.pem")
     try:
         # Reset the injector so the bridge is re-created with fresh state
-        import injector_module
+        from di import injector_module
         original_injector = injector_module._app_injector
         injector_module._app_injector = None
         try:
@@ -49,7 +49,7 @@ def test_fetch_certificate_info_valid() -> None:
     read_pem_module.CERTIFICATE_FILE = TEST_PEM_PATH
     try:
         # Reset the injector so the bridge is re-created with fresh state
-        import injector_module
+        from di import injector_module
         original_injector = injector_module._app_injector
         injector_module._app_injector = None
         try:
@@ -110,7 +110,7 @@ def test_fetch_certificate_info_expired() -> None:
         original = read_pem_module.CERTIFICATE_FILE
         read_pem_module.CERTIFICATE_FILE = fake_path
         # Reset the injector so the bridge is re-created with fresh state
-        import injector_module
+        from di import injector_module
         original_injector = injector_module._app_injector
         injector_module._app_injector = None
         try:
@@ -139,7 +139,7 @@ def test_fetch_certificate_info_corrupted() -> None:
         original = read_pem_module.CERTIFICATE_FILE
         read_pem_module.CERTIFICATE_FILE = fake_path
         # Reset the injector so the bridge is re-created with fresh state
-        import injector_module
+        from di import injector_module
         original_injector = injector_module._app_injector
         injector_module._app_injector = None
         try:

@@ -65,7 +65,7 @@ class OrderBridge:
 
 def _get_order_bridge() -> OrderBridge:
     """Lazy-access the DI-registered OrderBridge singleton."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
     return get_injector().get(OrderBridge)
 
 

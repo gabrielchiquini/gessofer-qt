@@ -96,7 +96,7 @@ class ProductBridge:
 
 def _get_product_bridge() -> ProductBridge:
     """Lazy-access the DI-registered ProductBridge singleton."""
-    from injector_module import get_injector
+    from di.injector_module import get_injector
     return get_injector().get(ProductBridge)
 
 

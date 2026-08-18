@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QIcon, QStandardItemModel, QStandardItem
@@ -12,12 +13,14 @@ from PySide6.QtWidgets import (
 )
 
 from models.order import OrderSummary
-from bridge.order_summary import fetch_order_summaries, OrderSummaryBridge
+from bridge.order_summary import OrderSummaryBridge
 from bridge.nfe import NfeBridge
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
-from frontend.business import import_xml, BusinessService
+from backend.business import BusinessService
 from bridge.order import OrderBridge
+if TYPE_CHECKING:
+    from frontend.factories import OrderEditDialogFactory, NfeSearchDialogFactory
 
 logger = logging.getLogger(__name__)
 
@@ -29,17 +32,21 @@ class OrderEditListView(QWidget):
 
     def __init__(
         self,
-        parent: QWidget | None = None,
-        order_bridge: OrderBridge | None = None,
-        order_summary_bridge: OrderSummaryBridge | None = None,
-        business_service: BusinessService | None = None,
-        nfe_bridge: NfeBridge | None = None,
+        parent: QWidget,
+        order_bridge: OrderBridge,
+        order_summary_bridge: OrderSummaryBridge,
+        business_service: BusinessService,
+        nfe_bridge: NfeBridge,
+        order_edit_dialog_factory: OrderEditDialogFactory,
+        nfe_search_dialog_factory: NfeSearchDialogFactory,
     ) -> None:
         super().__init__(parent)
-        self._order_bridge: OrderBridge | None = order_bridge
-        self._order_summary_bridge: OrderSummaryBridge | None = order_summary_bridge
-        self._business_service: BusinessService | None = business_service
-        self._nfe_bridge: NfeBridge | None = nfe_bridge
+        self._order_bridge: OrderBridge = order_bridge
+        self._order_summary_bridge: OrderSummaryBridge = order_summary_bridge
+        self._business_service: BusinessService = business_service
+        self._nfe_bridge: NfeBridge = nfe_bridge
+        self._order_edit_dialog_factory: OrderEditDialogFactory = order_edit_dialog_factory
+        self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
         self._model: QStandardItemModel = QStandardItemModel(0, 6)
         self._current_month: str = ""
         self._setup_ui()
@@ -150,10 +157,7 @@ class OrderEditListView(QWidget):
 
         self._current_month = month
         try:
-            if self._order_summary_bridge is not None:
-                summaries: list[OrderSummary] = self._order_summary_bridge.fetch_order_summaries(month)
-            else:
-                summaries: list[OrderSummary] = fetch_order_summaries(month)
+            summaries: list[OrderSummary] = self._order_summary_bridge.fetch_order_summaries(month)
             self._process_orders(summaries)
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
@@ -191,24 +195,13 @@ class OrderEditListView(QWidget):
 
     def _on_edit_clicked(self, order_id: str) -> None:
         """Handle Edit button click — open the order edit dialog."""
-        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
-
-        dialog = OrderEditDialog(
-            self,
-            order_id=order_id,
-        )
+        dialog = self._order_edit_dialog_factory(self, order_id, None)
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
 
     def _on_add_clicked(self) -> None:
         """Handle Add button click — open a blank order edit dialog."""
-        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
-
-        month: str = self.filter_month.text().strip()
-        dialog = OrderEditDialog(
-            self,
-            order_id=None,
-        )
+        dialog = self._order_edit_dialog_factory(self, None, None)
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
 
@@ -216,7 +209,6 @@ class OrderEditListView(QWidget):
         """Handle Importar XML button click — open file dialog, parse XML, show dialog."""
         from pathlib import Path as PathLib
         from PySide6.QtWidgets import QFileDialog, QMessageBox
-        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 
         # 1. Open file dialog
         file_path: str = ""
@@ -230,10 +222,7 @@ class OrderEditListView(QWidget):
             return  # User cancelled
 
         # 2. Parse XML
-        if self._business_service is not None:
-            result = self._business_service.import_xml(str(PathLib(file_path).resolve()))
-        else:
-            result = import_xml(str(PathLib(file_path).resolve()))
+        result = self._business_service.import_xml(str(PathLib(file_path).resolve()))
 
         # 3. Handle result
         if not result.orders:
@@ -246,15 +235,13 @@ class OrderEditListView(QWidget):
 
         # 4. Open OrderEditDialog pre-populated with the parsed order
         order = result.orders[0]  # Single NFe → single order
-        dialog = OrderEditDialog(self, order=order)
+        dialog = self._order_edit_dialog_factory(self, None, order)
         dialog.order_saved.connect(self._on_order_saved)
         dialog.exec()
 
     def _on_consultar_xml_clicked(self) -> None:
         """Handle Consultar XML button click — open NFe search dialog."""
-        from frontend.nfe_search_dialog import NfeSearchDialog
-
-        dialog = NfeSearchDialog(self)
+        dialog = self._nfe_search_dialog_factory(self)
         dialog.nfe_result.connect(self._on_nfe_result)
         dialog.exec()
 
@@ -262,19 +249,8 @@ class OrderEditListView(QWidget):
         """Handle successful NFe search — import XML and open edit dialog."""
         from PySide6.QtWidgets import QMessageBox
 
-        from frontend.business import import_xml
-        from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
-
-        if self._nfe_bridge is not None:
-            result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
-        else:
-            from bridge.nfe import search_nfe_key
-            result_path = search_nfe_key(xml_path)
-
-        if self._business_service is not None:
-            result = self._business_service.import_xml(result_path)
-        else:
-            result = import_xml(result_path)
+        result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
+        result = self._business_service.import_xml(result_path)
 
         if not result.orders:
             QMessageBox.critical(
@@ -285,7 +261,7 @@ class OrderEditListView(QWidget):
             return
 
         order = result.orders[0]
-        edit_dialog = OrderEditDialog(self, order=order)
+        edit_dialog = self._order_edit_dialog_factory(self, None, order)
         edit_dialog.order_saved.connect(self._on_order_saved)
         edit_dialog.exec()
 

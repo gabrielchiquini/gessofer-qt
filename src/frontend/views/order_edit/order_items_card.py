@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from typing import Any
-
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -15,7 +13,7 @@ from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from models.order import Order
 from models.output import Product
-from frontend.business import BusinessService
+from backend.business import BusinessService
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
 
@@ -28,11 +26,11 @@ class OrderItemsCard(QWidget):
 
     def __init__(
         self,
-        parent: QWidget | None = None,
-        business_service: BusinessService | None = None,
+        parent: QWidget,
+        business_service: BusinessService,
     ) -> None:
         super().__init__(parent)
-        self._business_service = business_service
+        self._business_service: BusinessService = business_service
 
         # ── Card Container ────────────────────────────────────────────
         self._card: Card = Card(self)

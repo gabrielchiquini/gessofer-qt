@@ -3,17 +3,24 @@ from __future__ import annotations
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, )
 
-from bridge.certificate import fetch_certificate_info, CertificateBridge
+from bridge.certificate import CertificateBridge
 from models.certificate import CertificateInfo
-from frontend.views.certificate_status.certificate_change_dialog import CertificateChangeDialog
 
 
 class CertificateStatusView(QWidget):
     """Display the current certificate's status."""
 
-    def __init__(self, parent: QWidget | None = None, certificate_bridge: CertificateBridge | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        certificate_bridge: CertificateBridge,
+        certificate_change_dialog_factory: CertificateChangeDialogFactory,
+    ) -> None:
+        from frontend.factories import CertificateChangeDialogFactory  # noqa: F401, E402
+
         super().__init__(parent)
-        self._certificate_bridge: CertificateBridge | None = certificate_bridge
+        self._certificate_bridge: CertificateBridge = certificate_bridge
+        self._certificate_change_dialog_factory: CertificateChangeDialogFactory = certificate_change_dialog_factory
         self._setup_ui()
         self._load_certificate()
 
@@ -49,10 +56,7 @@ class CertificateStatusView(QWidget):
 
     def _load_certificate(self) -> None:
         """Fetch certificate info and update the UI labels."""
-        if self._certificate_bridge is not None:
-            info: CertificateInfo = self._certificate_bridge.fetch_certificate_info()
-        else:
-            info: CertificateInfo = fetch_certificate_info()
+        info: CertificateInfo = self._certificate_bridge.fetch_certificate_info()
 
         if info.is_valid:
             self.owner_label.setText(info.owner)
@@ -64,7 +68,7 @@ class CertificateStatusView(QWidget):
     def _on_change_clicked(self) -> None:
         """Handle the 'alterar certificado' button click."""
 
-        dialog = CertificateChangeDialog(self)
+        dialog = self._certificate_change_dialog_factory(self)
         dialog.exec()
         # After dialog closes, refresh the certificate display
         self._load_certificate()

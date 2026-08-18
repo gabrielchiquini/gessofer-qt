@@ -4,7 +4,7 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from bridge.nfe import search_nfe_key
+from bridge.nfe import NfeBridge
 
 logger = logging.getLogger(__name__)
 
@@ -21,16 +21,22 @@ class NfeSearchWorker(QObject):
     nfe_success: Signal = Signal(str)
     nfe_error: Signal = Signal(str)
 
-    def __init__(self, nfe_key: str, /) -> None:
+    def __init__(
+        self,
+        nfe_key: str,
+        /,
+        nfe_bridge: NfeBridge,
+    ) -> None:
         super().__init__()
         self._nfe_key = nfe_key
+        self._nfe_bridge: NfeBridge = nfe_bridge
 
     @Slot(str)
     def start_search(self) -> None:
         """Start the NFe search in this worker thread.
         """
         try:
-            xml_path: str = search_nfe_key(self._nfe_key)
+            xml_path: str = self._nfe_bridge.search_nfe_key(self._nfe_key)
             self.nfe_success.emit(xml_path)
         except Exception as exc:
             logger.error("Erro na busca NFe: %s", exc)

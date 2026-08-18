@@ -13,21 +13,25 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from bridge.certificate import save_certificate_from_pfx, CertificateBridge
+from bridge.certificate import CertificateBridge
 from frontend.components.card import Card
 
 
 class CertificateChangeDialog(QDialog):
     """Modal dialog for selecting a PFX certificate file and importing it."""
 
-    def __init__(self, parent: QWidget | None = None, certificate_bridge: CertificateBridge | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget,
+        certificate_bridge: CertificateBridge,
+    ) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Alterar Certificado")
         self.setMinimumSize(400, 180)
 
         # ── DI Bridge ─────────────────────────────────────────────────
-        self._certificate_bridge: CertificateBridge | None = certificate_bridge
+        self._certificate_bridge: CertificateBridge = certificate_bridge
 
         # ── Widgets ───────────────────────────────────────────────────
         self._pfx_path: str = ""
@@ -111,12 +115,9 @@ class CertificateChangeDialog(QDialog):
             return
 
         try:
-            if self._certificate_bridge is not None:
-                self._certificate_bridge.save_certificate_from_pfx(
-                    self._pfx_path, self.password_input.text(),
-                )
-            else:
-                save_certificate_from_pfx(self._pfx_path, self.password_input.text())
+            self._certificate_bridge.save_certificate_from_pfx(
+                self._pfx_path, self.password_input.text(),
+            )
             self.accept()
         except Exception as exc:
             QMessageBox.critical(

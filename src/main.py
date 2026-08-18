@@ -2,10 +2,16 @@ import logging
 import sys
 from pathlib import Path
 
-from Custom_Widgets.QCustomQToolTip import QCustomQToolTipFilter
-from PySide6.QtWidgets import QApplication
+from PySide6.QtWidgets import QApplication, QWidget
 
 from frontend.app import MainWindow
+from injector_module import get_injector
+from frontend.factories import (
+    ProductListViewFactory,
+    OrderEditListViewFactory,
+    ExpenseListViewFactory,
+    CertificateStatusViewFactory,
+)
 
 
 def main() -> None:
@@ -22,10 +28,21 @@ def main() -> None:
     src_dir = Path(__file__).resolve().parent
     if str(src_dir) not in sys.path:
         sys.path.insert(0, str(src_dir))
-    # Initialize DI container early so all widgets can resolve dependencies
-    from injector_module import get_injector
-    get_injector()  # Ensures injector is created before MainWindow
-    window = MainWindow()
+    # Initialize DI container and resolve factory types
+    injector = get_injector()
+
+    product_list_view_factory: ProductListViewFactory = injector.get(ProductListViewFactory)
+    order_edit_list_view_factory: OrderEditListViewFactory = injector.get(OrderEditListViewFactory)
+    expense_list_view_factory: ExpenseListViewFactory = injector.get(ExpenseListViewFactory)
+    certificate_status_view_factory: CertificateStatusViewFactory = injector.get(CertificateStatusViewFactory)
+
+    window = MainWindow(
+        parent=QWidget(),
+        product_list_view_factory=product_list_view_factory,
+        order_edit_list_view_factory=order_edit_list_view_factory,
+        expense_list_view_factory=expense_list_view_factory,
+        certificate_status_view_factory=certificate_status_view_factory,
+    )
     window.show()
 
     # ── Backup check (non-blocking, silent failure) ──────────────────

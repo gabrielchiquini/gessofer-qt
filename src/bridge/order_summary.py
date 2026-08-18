@@ -38,16 +38,3 @@ class OrderSummaryBridge:
             logger.debug("Traceback", exc_info=True)
             return []
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-
-
-def _get_order_summary_bridge() -> OrderSummaryBridge:
-    """Lazy-access the DI-registered OrderSummaryBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(OrderSummaryBridge)
-
-
-def fetch_order_summaries(month: str) -> list[OrderSummary]:
-    """Backward-compatible: delegates to OrderSummaryBridge.fetch_order_summaries()."""
-    return _get_order_summary_bridge().fetch_order_summaries(month)

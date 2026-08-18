@@ -1079,7 +1079,7 @@ window.show()
 **New state:**
 
 ```python
-from injector_module import get_injector
+from di.injector_module import get_injector
 
 injector = get_injector()
 window = MainWindow(injector=injector)

@@ -88,28 +88,3 @@ class ProductBridge:
             logger.debug("Traceback", exc_info=True)
             return []
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-# These delegate to the DI-registered ProductBridge singleton.
-# They will be removed once frontend widgets use ProductBridge directly.
-
-
-def _get_product_bridge() -> ProductBridge:
-    """Lazy-access the DI-registered ProductBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(ProductBridge)
-
-
-def fetch_products(
-    page: int,
-    supplier: str = "",
-    product: str = "",
-    month: str = "",
-) -> BridgePageResponse[ProductListItem]:
-    """Backward-compatible: delegates to ProductBridge.fetch_products()."""
-    return _get_product_bridge().fetch_products(page, supplier, product, month)
-
-
-def fetch_orders_for_month(month: str) -> list[OrderDataclass]:
-    """Backward-compatible: delegates to ProductBridge.fetch_orders_for_month()."""
-    return _get_product_bridge().fetch_orders_for_month(month)

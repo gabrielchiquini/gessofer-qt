@@ -63,24 +63,3 @@ class ExpenseBridge:
             logger.debug("Traceback", exc_info=True)
             return False
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-
-
-def _get_expense_bridge() -> ExpenseBridge:
-    """Lazy-access the DI-registered ExpenseBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(ExpenseBridge)
-
-
-def fetch_expenses_for_month(month: str) -> ExpensesForMonthOutput:
-    """Backward-compatible: delegates to ExpenseBridge.fetch_expenses_for_month()."""
-    return _get_expense_bridge().fetch_expenses_for_month(month)
-
-
-def save_expenses(
-    expenses: list[ExpenseInput],
-    month: str,
-) -> bool:
-    """Backward-compatible: delegates to ExpenseBridge.save_expenses()."""
-    return _get_expense_bridge().save_expenses(expenses, month)

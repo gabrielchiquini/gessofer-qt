@@ -17,16 +17,3 @@ class NfeBridge:
         """Search for an NFe via SEFAZ, save XML, return file path."""
         return self._nfe_search_service.search_and_save(nfe_key)
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-
-
-def _get_nfe_bridge() -> NfeBridge:
-    """Lazy-access the DI-registered NfeBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(NfeBridge)
-
-
-def search_nfe_key(nfe_key: str) -> str:
-    """Backward-compatible: delegates to NfeBridge.search_nfe_key()."""
-    return _get_nfe_bridge().search_nfe_key(nfe_key)

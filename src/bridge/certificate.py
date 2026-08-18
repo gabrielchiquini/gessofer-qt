@@ -74,21 +74,3 @@ class CertificateBridge:
             pfx_path, pfx_password
         )
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-
-
-def _get_certificate_bridge() -> CertificateBridge:
-    """Lazy-access the DI-registered CertificateBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(CertificateBridge)
-
-
-def fetch_certificate_info() -> CertificateInfo:
-    """Backward-compatible: delegates to CertificateBridge.fetch_certificate_info()."""
-    return _get_certificate_bridge().fetch_certificate_info()
-
-
-def save_certificate_from_pfx(pfx_path: str, pfx_password: str) -> bool:
-    """Backward-compatible: delegates to CertificateBridge.save_certificate_from_pfx()."""
-    return _get_certificate_bridge().save_certificate_from_pfx(pfx_path, pfx_password)

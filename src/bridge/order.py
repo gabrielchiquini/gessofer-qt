@@ -59,21 +59,3 @@ class OrderBridge:
             products=[orm_product_to_dict(p) for p in order.products],
         )
 
-
-# ── Backward-compatible re-exports ──────────────────────────────
-
-
-def _get_order_bridge() -> OrderBridge:
-    """Lazy-access the DI-registered OrderBridge singleton."""
-    from di.injector_module import get_injector
-    return get_injector().get(OrderBridge)
-
-
-def fetch_order_by_id(order_id: str) -> Order | None:
-    """Backward-compatible: delegates to OrderBridge.fetch_order_by_id()."""
-    return _get_order_bridge().fetch_order_by_id(order_id)
-
-
-def save_single_order(order: OrderInput) -> bool:
-    """Backward-compatible: delegates to OrderBridge.save_single_order()."""
-    return _get_order_bridge().save_single_order(order)

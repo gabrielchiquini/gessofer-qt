@@ -98,21 +98,22 @@ def expense_test_env(
         # Step 3: Reset bridge singletons
         reset_bridge_singletons()
 
-        # Step 4: Create injector — this calls get_engine() which uses our patched version
-        from injector import Injector
-        from backend.injector_module import InjectorModule
+        # Step 4: Reset the app injector so get_injector() creates a fresh one
+        # with the patched get_engine()
+        import injector_module
+        injector_module._app_injector = None
 
-        injector = Injector(InjectorModule)
-
-        # Step 5: Set module-level _app_injector
-        import backend.injector_module
-        backend.injector_module._app_injector = injector
+        # Step 5: Call get_injector() which creates a fresh Injector using the patched get_engine()
+        from injector_module import get_injector
+        injector = get_injector()
 
         yield
     finally:
         # Teardown
         import backend.database.connection
         backend.database.connection.get_engine = original_get_engine  # type: ignore[assignment]
+        import injector_module
+        injector_module._app_injector = None
         reset_bridge_singletons()
         try:
             os.unlink(db_path)

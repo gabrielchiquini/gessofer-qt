@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Callable
 
 from backend.certificate import get_certificate_info
 from models.certificate import CertificateInfo
@@ -48,54 +47,48 @@ class _CertificateHandler:
         return True
 
 
-_handler: _CertificateHandler | None = None
+class CertificateBridge:
+    """Bridge for certificate operations."""
 
+    def __init__(self, certificate_handler: _CertificateHandler) -> None:
+        self._certificate_handler = certificate_handler
 
-def _get_handler() -> _CertificateHandler:
-    """Lazy-initialize the certificate handler."""
-    global _handler
-    if _handler is None:
-        _handler = _CertificateHandler()
-    return _handler
+    def fetch_certificate_info(self) -> CertificateInfo:
+        """Fetch certificate information from the stored PEM file."""
+        try:
+            return self._certificate_handler.fetch_certificate_info()
+        except Exception as exc:
+            logger.error("Error fetching certificate info: %s", exc)
+            logger.debug("Traceback", exc_info=True)
+            return CertificateInfo(
+                owner="Nenhum certificado registrado",
+                expiration_date="",
+                is_valid=False,
+            )
 
-
-def fetch_certificate_info() -> CertificateInfo:
-    """
-    Fetch certificate information from the stored PEM file.
-
-    Returns:
-        CertificateInfo dataclass. On error, returns the "no certificate" default.
-    """
-    try:
-        handler = _get_handler()
-        return handler.fetch_certificate_info()
-    except Exception as exc:
-        logger.error("Error fetching certificate info: %s", exc)
-        logger.debug("Traceback", exc_info=True)
-        return CertificateInfo(
-            owner="Nenhum certificado registrado",
-            expiration_date="",
-            is_valid=False,
+    def save_certificate_from_pfx(
+            self, pfx_path: str, pfx_password: str
+    ) -> bool:
+        """Import a PFX certificate file and save PEM + private key."""
+        return self._certificate_handler.save_certificate_from_pfx(
+            pfx_path, pfx_password
         )
 
 
+# ── Backward-compatible re-exports ──────────────────────────────
+
+
+def _get_certificate_bridge() -> CertificateBridge:
+    """Lazy-access the DI-registered CertificateBridge singleton."""
+    from injector_module import get_injector
+    return get_injector().get(CertificateBridge)
+
+
+def fetch_certificate_info() -> CertificateInfo:
+    """Backward-compatible: delegates to CertificateBridge.fetch_certificate_info()."""
+    return _get_certificate_bridge().fetch_certificate_info()
+
+
 def save_certificate_from_pfx(pfx_path: str, pfx_password: str) -> bool:
-    """
-    Import a PFX certificate file and save the PEM certificate and private key.
-
-    This is the bridge-layer entry point. Errors propagate to the caller
-    (the UI dialog will show them via QMessageBox).
-
-    Args:
-        pfx_path: Absolute path to the .pfx/.p12 file.
-        pfx_password: Password for the PFX file.
-
-    Returns:
-        True on success.
-
-    Raises:
-        ValueError: If the PFX file cannot be parsed.
-        OSError: If the output directory cannot be written.
-    """
-    handler = _get_handler()
-    return handler.save_certificate_from_pfx(pfx_path, pfx_password)
+    """Backward-compatible: delegates to CertificateBridge.save_certificate_from_pfx()."""
+    return _get_certificate_bridge().save_certificate_from_pfx(pfx_path, pfx_password)

@@ -15,7 +15,7 @@ from backend import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from models.order import Order
 from models.output import Product
-from frontend.business import distribute_freight
+from frontend.business import BusinessService
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
 
@@ -26,8 +26,13 @@ class OrderItemsCard(QWidget):
     order_changed: Signal = Signal()
     row_added: Signal = Signal(ProductRowWidget)
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        business_service: BusinessService | None = None,
+    ) -> None:
         super().__init__(parent)
+        self._business_service = business_service
 
         # ── Card Container ────────────────────────────────────────────
         self._card: Card = Card(self)
@@ -98,11 +103,9 @@ class OrderItemsCard(QWidget):
     def _on_distribute_freight(self) -> None:
         """Distribute freight/unloading costs across product prices."""
         products_list: list[ProductInput] = self.get_products_list()
-        # Build a minimal order dict for distribute_freight
-        order_data: dict[str, Any] = {
-            "products": products_list,
-        }
-        result = distribute_freight(order_data)  # type: ignore[arg-type]
+        result = self._business_service.distribute_freight(
+            products_list  # type: ignore[arg-type]
+        )
         if result and result.new_products:
             new_products: list[Product] = result.new_products
             for i, new_product in enumerate(new_products):

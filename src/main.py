@@ -22,12 +22,15 @@ def main() -> None:
     src_dir = Path(__file__).resolve().parent
     if str(src_dir) not in sys.path:
         sys.path.insert(0, str(src_dir))
+    # Initialize DI container early so all widgets can resolve dependencies
+    from injector_module import get_injector
+    get_injector()  # Ensures injector is created before MainWindow
     window = MainWindow()
     window.show()
 
     # ── Backup check (non-blocking, silent failure) ──────────────────
     try:
-        from backend.injector_module import get_injector
+        from injector_module import get_injector
         from backend.services.backup_service import BackupService
         from backend.database.connection import discover_database_path
         from backend.utils.backup import discover_backup_dir

@@ -3,7 +3,7 @@ from __future__ import annotations
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, )
 
-from bridge.certificate import fetch_certificate_info
+from bridge.certificate import fetch_certificate_info, CertificateBridge
 from models.certificate import CertificateInfo
 from frontend.views.certificate_status.certificate_change_dialog import CertificateChangeDialog
 
@@ -11,8 +11,9 @@ from frontend.views.certificate_status.certificate_change_dialog import Certific
 class CertificateStatusView(QWidget):
     """Display the current certificate's status."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None, certificate_bridge: CertificateBridge | None = None) -> None:
         super().__init__(parent)
+        self._certificate_bridge: CertificateBridge | None = certificate_bridge
         self._setup_ui()
         self._load_certificate()
 
@@ -48,7 +49,10 @@ class CertificateStatusView(QWidget):
 
     def _load_certificate(self) -> None:
         """Fetch certificate info and update the UI labels."""
-        info: CertificateInfo = fetch_certificate_info()
+        if self._certificate_bridge is not None:
+            info: CertificateInfo = self._certificate_bridge.fetch_certificate_info()
+        else:
+            info: CertificateInfo = fetch_certificate_info()
 
         if info.is_valid:
             self.owner_label.setText(info.owner)

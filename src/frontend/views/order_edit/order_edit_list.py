@@ -12,9 +12,12 @@ from PySide6.QtWidgets import (
 )
 
 from models.order import OrderSummary
-from bridge.order_summary import fetch_order_summaries
+from bridge.order_summary import fetch_order_summaries, OrderSummaryBridge
+from bridge.nfe import NfeBridge
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
+from frontend.business import import_xml, BusinessService
+from bridge.order import OrderBridge
 
 logger = logging.getLogger(__name__)
 
@@ -24,8 +27,19 @@ _EDIT_ICON: QIcon = QIcon(str(Path(__file__).parent.parent.parent / "assets" / "
 class OrderEditListView(QWidget):
     """Month-selection bar + order table for order editing."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(
+        self,
+        parent: QWidget | None = None,
+        order_bridge: OrderBridge | None = None,
+        order_summary_bridge: OrderSummaryBridge | None = None,
+        business_service: BusinessService | None = None,
+        nfe_bridge: NfeBridge | None = None,
+    ) -> None:
         super().__init__(parent)
+        self._order_bridge: OrderBridge | None = order_bridge
+        self._order_summary_bridge: OrderSummaryBridge | None = order_summary_bridge
+        self._business_service: BusinessService | None = business_service
+        self._nfe_bridge: NfeBridge | None = nfe_bridge
         self._model: QStandardItemModel = QStandardItemModel(0, 6)
         self._current_month: str = ""
         self._setup_ui()
@@ -136,7 +150,10 @@ class OrderEditListView(QWidget):
 
         self._current_month = month
         try:
-            summaries: list[OrderSummary] = fetch_order_summaries(month)
+            if self._order_summary_bridge is not None:
+                summaries: list[OrderSummary] = self._order_summary_bridge.fetch_order_summaries(month)
+            else:
+                summaries: list[OrderSummary] = fetch_order_summaries(month)
             self._process_orders(summaries)
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
@@ -200,7 +217,6 @@ class OrderEditListView(QWidget):
         from pathlib import Path as PathLib
         from PySide6.QtWidgets import QFileDialog, QMessageBox
         from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
-        from frontend.business import import_xml
 
         # 1. Open file dialog
         file_path: str = ""
@@ -214,7 +230,10 @@ class OrderEditListView(QWidget):
             return  # User cancelled
 
         # 2. Parse XML
-        result = import_xml(str(PathLib(file_path).resolve()))
+        if self._business_service is not None:
+            result = self._business_service.import_xml(str(PathLib(file_path).resolve()))
+        else:
+            result = import_xml(str(PathLib(file_path).resolve()))
 
         # 3. Handle result
         if not result.orders:
@@ -246,7 +265,16 @@ class OrderEditListView(QWidget):
         from frontend.business import import_xml
         from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 
-        result = import_xml(xml_path)
+        if self._nfe_bridge is not None:
+            result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
+        else:
+            from bridge.nfe import search_nfe_key
+            result_path = search_nfe_key(xml_path)
+
+        if self._business_service is not None:
+            result = self._business_service.import_xml(result_path)
+        else:
+            result = import_xml(result_path)
 
         if not result.orders:
             QMessageBox.critical(

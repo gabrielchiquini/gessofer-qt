@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-# Lazy imports for functions to avoid circular dependencies
 from typing import TYPE_CHECKING
 
 from models.certificate import CertificateInfo
@@ -20,13 +19,12 @@ from models.output import (
 from models.validation import Validation
 
 if TYPE_CHECKING:
-    from bridge.certificate import fetch_certificate_info, save_certificate_from_pfx
-    from bridge.expense import fetch_expenses_for_month, save_expenses
-    from bridge.nfe import search_nfe_key
-    from bridge.order import fetch_order_by_id, save_orders, save_single_order
-    from models.order import OrderSummary
-    from bridge.order_summary import fetch_order_summaries
-    from bridge.product import fetch_orders_for_month, fetch_products
+    from bridge.certificate import CertificateBridge
+    from bridge.expense import ExpenseBridge
+    from bridge.nfe import NfeBridge
+    from bridge.order import OrderBridge
+    from bridge.order_summary import OrderSummaryBridge
+    from bridge.product import ProductBridge
 
 __all__ = [
     "CertificateInfo",
@@ -40,14 +38,10 @@ __all__ = [
     "XmlImportResult",
     "Validation",
     "PageResponse",
-    "fetch_products",
-    "fetch_orders_for_month",
-    "fetch_order_summaries",
-    "fetch_order_by_id",
-    "save_single_order",
-    "save_expenses",
-    "fetch_expenses_for_month",
-    "fetch_certificate_info",
-    "save_certificate_from_pfx",
-    "search_nfe_key",
+    "ProductBridge",
+    "OrderBridge",
+    "ExpenseBridge",
+    "NfeBridge",
+    "CertificateBridge",
+    "OrderSummaryBridge",
 ]

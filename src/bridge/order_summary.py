@@ -3,41 +3,51 @@ from __future__ import annotations
 import logging
 
 from models.order import Order, OrderSummary
-
+from bridge.product import ProductBridge
 
 logger = logging.getLogger(__name__)
 
 
-def fetch_order_summaries(month: str) -> list[OrderSummary]:
-    """
-    Fetch order summaries for a given month.
+class OrderSummaryBridge:
+    """Bridge for order summary operations."""
 
-    Args:
-        month: Month in MM/yyyy format (e.g., "07/2026").
+    def __init__(self, product_bridge: ProductBridge) -> None:
+        self._product_bridge = product_bridge
 
-    Returns:
-        List of OrderSummary dataclass instances. On error, returns [].
-    """
-    from bridge.product import fetch_orders_for_month
-
-    try:
-        orders: list[Order] = fetch_orders_for_month(month)
-        summaries: list[OrderSummary] = []
-        for order in orders:
-            products_total: int = sum(p.total for p in order.products)
-            order_total: int = products_total + order.freight + order.unloading
-            summaries.append(
-                OrderSummary(
-                    id=order.id,
-                    date=order.date,
-                    supplier=order.supplier,
-                    product_count=len(order.products),
-                    products_total=products_total,
-                    order_total=order_total,
+    def fetch_order_summaries(self, month: str) -> list[OrderSummary]:
+        """Fetch order summaries for a given month."""
+        try:
+            orders: list[Order] = self._product_bridge.fetch_orders_for_month(month)
+            summaries: list[OrderSummary] = []
+            for order in orders:
+                products_total: int = sum(p.total for p in order.products)
+                order_total: int = products_total + order.freight + order.unloading
+                summaries.append(
+                    OrderSummary(
+                        id=order.id,
+                        date=order.date,
+                        supplier=order.supplier,
+                        product_count=len(order.products),
+                        products_total=products_total,
+                        order_total=order_total,
+                    )
                 )
-            )
-        return summaries
-    except Exception as exc:
-        logger.error("Error in fetch_order_summaries: %s", exc)
-        logger.debug("Traceback", exc_info=True)
-        return []
+            return summaries
+        except Exception as exc:
+            logger.error("Error in fetch_order_summaries: %s", exc)
+            logger.debug("Traceback", exc_info=True)
+            return []
+
+
+# ── Backward-compatible re-exports ──────────────────────────────
+
+
+def _get_order_summary_bridge() -> OrderSummaryBridge:
+    """Lazy-access the DI-registered OrderSummaryBridge singleton."""
+    from injector_module import get_injector
+    return get_injector().get(OrderSummaryBridge)
+
+
+def fetch_order_summaries(month: str) -> list[OrderSummary]:
+    """Backward-compatible: delegates to OrderSummaryBridge.fetch_order_summaries()."""
+    return _get_order_summary_bridge().fetch_order_summaries(month)

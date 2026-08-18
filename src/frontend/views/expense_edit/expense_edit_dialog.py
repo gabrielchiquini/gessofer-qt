@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from models import ExpenseInput
-from bridge.expense import fetch_expenses_for_month, save_expenses
+from bridge.expense import ExpenseBridge, fetch_expenses_for_month, save_expenses
 from frontend.views.expense_edit.expense_items_card import ExpenseItemsCard
 
 
@@ -25,6 +25,7 @@ class ExpenseEditDialog(QDialog):
             self,
             parent: QWidget,
             month: str,
+            expense_bridge: ExpenseBridge | None = None,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
@@ -33,11 +34,17 @@ class ExpenseEditDialog(QDialog):
         # Use current month if none provided
         self._month: str = month
 
+        # ── DI Bridge ─────────────────────────────────────────────────
+        self._expense_bridge: ExpenseBridge | None = expense_bridge
+
         # ── Items Card ────────────────────────────────────────────────
         self.items_card: ExpenseItemsCard = ExpenseItemsCard(self, month)
 
         # Load existing expenses
-        expenses_data = fetch_expenses_for_month(self._month)
+        if self._expense_bridge is not None:
+            expenses_data = self._expense_bridge.fetch_expenses_for_month(self._month)
+        else:
+            expenses_data = fetch_expenses_for_month(self._month)
         self.items_card.set_expenses_data(expenses_data.expenses)
 
         # ── Footer Buttons ────────────────────────────────────────────
@@ -80,7 +87,10 @@ class ExpenseEditDialog(QDialog):
             return
 
         expenses_list: list[ExpenseInput] = self.items_card.get_expenses_list()
-        success: bool = save_expenses(expenses_list, self._month)
+        if self._expense_bridge is not None:
+            success: bool = self._expense_bridge.save_expenses(expenses_list, self._month)
+        else:
+            success: bool = save_expenses(expenses_list, self._month)
         if success:
             self._show_message("Salvo com sucesso!", "success")
             self.expenses_saved.emit(self._month)

@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QTableView, QScrollArea, QHBoxLayout, QSizePolicy, QLabel, QPushButton,
 )
 
-from bridge.expense import fetch_expenses_for_month
+from bridge.expense import fetch_expenses_for_month, ExpenseBridge
 from models.output import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
 from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
@@ -23,12 +23,13 @@ logger = logging.getLogger(__name__)
 class ExpenseListView(QWidget):
     """Month filter + expenses table."""
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget | None = None, expense_bridge: ExpenseBridge | None = None) -> None:
         super().__init__(parent)
         self._current_month: str = ""
         self._model: QStandardItemModel = QStandardItemModel(0, 2)
         self.total_label: QLabel = QLabel("Total: R$ 0,00", self)
         self._edit_dialog: ExpenseEditDialog | None = None
+        self._expense_bridge: ExpenseBridge | None = expense_bridge
         self._setup_ui()
         self._connect_signals()
 
@@ -130,7 +131,10 @@ class ExpenseListView(QWidget):
 
         self._current_month = month
         try:
-            result: ExpensesForMonthOutput = fetch_expenses_for_month(month)
+            if self._expense_bridge is not None:
+                result: ExpensesForMonthOutput = self._expense_bridge.fetch_expenses_for_month(month)
+            else:
+                result: ExpensesForMonthOutput = fetch_expenses_for_month(month)
             self._process_expenses(result.expenses)
             self.total_label.setText(f"Total: {cents_to_display(result.total)}")
             self.scroll.setVisible(True)

@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 import pytestqt
-from PySide6.QtWidgets import QWidget
 from pytestqt.qtbot import QtBot
+from sqlalchemy import Engine
 
 from bridge.expense import ExpenseBridge
 from di.injector_module import get_injector
@@ -18,7 +18,6 @@ class TestExpenseListInitialLoad:
 
     def test_initial_load_shows_current_month(
             self,
-            expense_test_env: None,
             qtbot: QtBot,
     ) -> None:
         """Show the widget and verify the month filter is set to current month."""
@@ -27,9 +26,8 @@ class TestExpenseListInitialLoad:
         expense_bridge: ExpenseBridge = injector.get(ExpenseBridge)
         expense_edit_dialog_factory: ExpenseEditDialogFactory = injector.get(ExpenseEditDialogFactory)
 
-        _parent = QWidget()
         widget = ExpenseListView(
-            parent=_parent,
+            parent=None,
             expense_bridge=expense_bridge,
             expense_edit_dialog_factory=expense_edit_dialog_factory,
         )
@@ -54,7 +52,7 @@ class TestExpenseListMonthNavigation:
 
     def test_month_navigation_changes_expenses(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Navigate to July 2024 (3 expenses) then August 2024 (2 expenses)."""
@@ -85,7 +83,7 @@ class TestExpenseListDisplay:
 
     def test_expense_display_correct_data(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Verify descriptions and values for July 2024 expenses (ordered by ID)."""
@@ -125,7 +123,7 @@ class TestExpenseListTotal:
 
     def test_total_label_calculation(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Verify total matches sum of visible expense values."""
@@ -153,7 +151,7 @@ class TestExpenseListEmptyState:
 
     def test_empty_state_no_expenses(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Navigate to a month with no seeded expenses and verify empty state."""
@@ -184,7 +182,7 @@ class TestExpenseListCurrencyFormatting:
 
     def test_currency_formatting(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Verify all displayed values use correct Brazilian currency format."""
@@ -211,7 +209,7 @@ class TestExpenseListClearFilters:
 
     def test_clear_filters_hides_table(
             self,
-            expense_list_widget: "ExpenseListView",
+            expense_list_widget: ExpenseListView,
             qtbot: pytestqt.qtbot.QtBot,
     ) -> None:
         """Clear filters and verify table/card are hidden."""

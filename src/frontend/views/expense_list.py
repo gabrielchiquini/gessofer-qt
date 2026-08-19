@@ -25,7 +25,7 @@ class ExpenseListView(QWidget):
 
     def __init__(
         self,
-        parent: QWidget,
+        parent: QWidget | None,
         expense_bridge: ExpenseBridge,
         expense_edit_dialog_factory: ExpenseEditDialogFactory,
     ) -> None:

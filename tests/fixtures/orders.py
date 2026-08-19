@@ -1,12 +1,10 @@
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date
 
 import pytest
 
-from backend.entities.orm import Order, Product
 from models import PageResponse
-from backend.utils.text import normalize_text
 from bridge.product import FetchHandler
 
 
@@ -42,117 +40,77 @@ from bridge.product import FetchHandler
 #   "tijolo ceramico 8 furos"
 #   "cal hidratada 20kg"
 
+orders_data: list[tuple] = [
+    # Order A: July 2024, Cimento Portland
+    (
+        "order-a",
+        date(2024, 7, 10),
+        "Cimento Portland",
+        "45678901234567",
+        5000,
+        1000,
+        [
+            ("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 1),
+            ("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 2),
+        ],
+    ),
+    # Order B: July 2024, Areia Premium LTDA
+    (
+        "order-b",
+        date(2024, 7, 15),
+        "Areia Premium LTDA",
+        "12345678901234",
+        3000,
+        500,
+        [
+            ("prod-b1", "Areia média", 2, 15000, 30000, 1),
+        ],
+    ),
+    # Order C: August 2024, Cimento Portland
+    (
+        "order-c",
+        date(2024, 8, 5),
+        "Cimento Portland",
+        "98765432109876",
+        4000,
+        800,
+        [
+            ("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 1),
+        ],
+    ),
+    # Order D: August 2024, Tijolo & Cia
+    (
+        "order-d",
+        date(2024, 8, 20),
+        "Tijolo & Cia",
+        "11223344556677",
+        6000,
+        1200,
+        [
+            ("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1),
+        ],
+    ),
+    # Order E: July 2024, Cimento Portland
+    (
+        "order-e",
+        date(2024, 7, 25),
+        "Cimento Portland",
+        "55667788990011",
+        2000,
+        500,
+        [
+            ("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 1),
+        ],
+    ),
+]
 
-@pytest.fixture
-def seeded_fetch_handler(session_factory) -> FetchHandler:
-    """FetchHandler with test data seeded into the database."""
-    handler = FetchHandler(session_factory)
-    now = datetime.now()
 
-    orders_data = [
-        # Order A: July 2024, Cimento Portland
-        (
-            "order-a",
-            date(2024, 7, 10),
-            "Cimento Portland",
-            "45678901234567",
-            5000,
-            1000,
-            [
-                ("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 1),
-                ("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 2),
-            ],
-        ),
-        # Order B: July 2024, Areia Premium LTDA
-        (
-            "order-b",
-            date(2024, 7, 15),
-            "Areia Premium LTDA",
-            "12345678901234",
-            3000,
-            500,
-            [
-                ("prod-b1", "Areia média", 2, 15000, 30000, 1),
-            ],
-        ),
-        # Order C: August 2024, Cimento Portland
-        (
-            "order-c",
-            date(2024, 8, 5),
-            "Cimento Portland",
-            "98765432109876",
-            4000,
-            800,
-            [
-                ("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 1),
-            ],
-        ),
-        # Order D: August 2024, Tijolo & Cia
-        (
-            "order-d",
-            date(2024, 8, 20),
-            "Tijolo & Cia",
-            "11223344556677",
-            6000,
-            1200,
-            [
-                ("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1),
-            ],
-        ),
-        # Order E: July 2024, Cimento Portland
-        (
-            "order-e",
-            date(2024, 7, 25),
-            "Cimento Portland",
-            "55667788990011",
-            2000,
-            500,
-            [
-                ("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 1),
-            ],
-        ),
-    ]
-
-    with handler._session_factory() as session:
-        for order_id, order_date, supplier, nfe_key, freight, unloading, products in orders_data:
-            order = Order(
-                ID=order_id,
-                DATE=order_date,
-                SUPPLIER=supplier,
-                SUPPLIER_NORMALIZED=normalize_text(supplier),
-                NFE_KEY=nfe_key,
-                FREIGHT=freight,
-                UNLOADING=unloading,
-                CREATED_AT=now,
-                UPDATED_AT=now,
-            )
-            session.add(order)
-            for prod_id, prod_name, qty, price, total, ordinal in products:
-                product = Product(
-                    ID=prod_id,
-                    NAME=prod_name,
-                    NAME_NORMALIZED=normalize_text(prod_name),
-                    QUANTITY=qty,
-                    PRICE=price,
-                    TOTAL_PRICE=total,
-                    ORDER_ID=order_id,
-                    ITEM_ORDINAL=ordinal,
-                    CREATED_AT=now,
-                    UPDATED_AT=now,
-                )
-                session.add(product)
-        session.commit()
-
-    return handler
+def seeded_fetch_handler() -> list[tuple]:
+    """Return the raw order test data. No database operations."""
+    return orders_data
 
 
 @pytest.fixture
-def fetch_handler(seeded_fetch_handler: FetchHandler) -> FetchHandler:
-    """FetchHandler with test data seeded (alias for seeded_fetch_handler)."""
-    return seeded_fetch_handler
-
-
-@pytest.fixture
-def sample_page(seeded_fetch_handler: FetchHandler) -> PageResponse:
+def sample_page(fetch_handler: FetchHandler) -> PageResponse:
     """A PageResponse with seeded data for transformer tests."""
-    return seeded_fetch_handler.fetch_products(page=1)
+    return fetch_handler.fetch_products(page=1)

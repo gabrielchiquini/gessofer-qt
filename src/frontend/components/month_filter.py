@@ -37,7 +37,10 @@ class MonthFilter(QWidget):
         self.month_input.setText(month)
 
     def get_month(self) -> str:
-        return self.month_input.text().strip()
+        month_text = self.month_input.text().strip()
+        if len(month_text) != 7:
+            return ""
+        return month_text
 
     def clear(self) -> None:
         self.month_input.clear()

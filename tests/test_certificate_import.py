@@ -7,7 +7,7 @@ from typing import Any
 
 import pytest
 
-from backend.certificate import save_pem_from_pfx
+from backend.certificate.import_pfx import save_pem_from_pfx
 
 # Ensure src/ is on sys.path so backend modules can be imported
 sys.path.insert(0, str(Path(__file__).parent.parent / "src"))

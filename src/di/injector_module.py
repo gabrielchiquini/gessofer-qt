@@ -19,7 +19,7 @@ from backend.services.save_order_service import SaveExpenseService, SaveOrderSer
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 from bridge.certificate import CertificateBridge
-from bridge.certificate import _CertificateHandler
+from backend.certificate import CertificateHandler
 from bridge.expense import ExpenseBridge
 from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
@@ -148,8 +148,8 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_certificate_handler(self) -> _CertificateHandler:
-        return _CertificateHandler()
+    def provide_certificate_handler(self) -> CertificateHandler:
+        return CertificateHandler()
 
     @provider
     @singleton
@@ -218,7 +218,7 @@ class InjectorModule(Module):
     @provider
     @singleton
     def provide_certificate_bridge(
-            self, certificate_handler: _CertificateHandler
+            self, certificate_handler: CertificateHandler
     ) -> CertificateBridge:
         return CertificateBridge(certificate_handler=certificate_handler)
 

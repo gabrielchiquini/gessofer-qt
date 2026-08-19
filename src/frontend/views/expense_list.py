@@ -13,7 +13,7 @@ from bridge.expense import ExpenseBridge
 from models.output import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
 from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
-from frontend.components import Card
+from frontend.components.card import Card
 from frontend.components.month_filter import MonthFilter
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory  # noqa: F401, E402
 

@@ -4,7 +4,7 @@ from datetime import date
 
 import pytest
 
-from models import PageResponse
+from models.output import PageResponse
 from bridge.product import FetchHandler
 
 

@@ -4,8 +4,8 @@ from typing import Any
 
 NAV_GROUPS: list[dict[str, Any]] = [
     {"title": "Notas", "items": [
-        {"label": "Pedidos", "group": "Notas"},
-        {"label": "Cadastrar", "group": "Notas"},
+        {"label": "Lista de Produtos", "group": "Notas"},
+        {"label": "Lista de pedidos por mês", "group": "Notas"},
     ]},
     {"title": "Despesas", "items": [
         {"label": "Lista", "group": "Despesas"},

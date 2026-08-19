@@ -8,7 +8,8 @@ from sqlalchemy import func, select, delete
 from sqlalchemy.orm import Session, selectinload
 
 from backend.entities.orm import Order, Product
-from models import OrderInput, ProductInput, PageResponse
+from models.input import OrderInput, ProductInput
+from models.output import PageResponse
 from backend.utils.text import normalize_text
 
 

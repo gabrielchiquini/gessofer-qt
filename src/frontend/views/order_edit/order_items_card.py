@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend import ProductInput
+from models.input import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from models.order import Order
 from models.output import Product

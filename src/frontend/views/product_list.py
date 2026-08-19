@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QWidget, QVBoxLayout, QHBoxLayout, QFrame,
     QLabel, QLineEdit, QPushButton, QTableView,
     QScrollArea, )
-from frontend.components import Card
+from frontend.components.card import Card
 
 from models.output import PageResponse, ProductListItem
 from bridge.product import ProductBridge

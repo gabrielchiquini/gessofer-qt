@@ -39,10 +39,10 @@ class MainWindow(QMainWindow):
 
     def _on_item_clicked(self, label: str, group_title: str) -> None:
         """Handle navigation item clicks."""
-        if label == "Pedidos" and group_title == "Notas":
+        if label == "Lista de Produtos" and group_title == "Notas":
             view = self._product_list_view_factory(self)
             self.setCentralWidget(view)
-        elif label == "Cadastrar" and group_title == "Notas":
+        elif label == "Lista de pedidos por mês" and group_title == "Notas":
             view = self._order_edit_list_view_factory(self)
             self.setCentralWidget(view)
         elif label == "Status" and group_title == "Certificado":
@@ -51,10 +51,3 @@ class MainWindow(QMainWindow):
         elif label == "Lista" and group_title == "Despesas":
             view = self._expense_list_view_factory(self)
             self.setCentralWidget(view)
-        elif label == "Cadastrar" and group_title == "Despesas":
-            from PySide6.QtWidgets import QMessageBox
-            QMessageBox.information(
-                self,
-                "Em desenvolvimento",
-                "A tela de cadastro de despesas ainda está em desenvolvimento.",
-            )

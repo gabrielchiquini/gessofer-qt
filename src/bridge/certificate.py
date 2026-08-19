@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from backend.certificate import CertificateHandler
+from backend.certificate.handler import CertificateHandler
 from models.certificate import CertificateInfo
 
 logger = logging.getLogger(__name__)

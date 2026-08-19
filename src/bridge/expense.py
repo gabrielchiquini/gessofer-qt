@@ -5,7 +5,7 @@ import logging
 from backend.entities.orm import Expense
 from backend.services.expense_fetch_handler import ExpenseFetchHandler
 from backend.services.expense_save_handler import ExpenseSaveHandler
-from models import ExpenseInput
+from models.input import ExpenseInput
 from models.output import ExpenseOutput, ExpensesForMonthOutput
 
 logger = logging.getLogger(__name__)

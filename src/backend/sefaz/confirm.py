@@ -3,7 +3,7 @@ from datetime import datetime, timezone, timedelta
 
 from lxml import etree
 
-from backend.certificate import get_certificate_pair
+from backend.certificate.read_pem import get_certificate_pair
 from backend.sefaz.config import WSDL_CONFIRM
 from backend.sefaz.sign import sign_element
 from backend.sefaz.util import CNPJ, NS, create_session

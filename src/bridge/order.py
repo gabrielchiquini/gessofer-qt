@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_handler import SaveHandler
-from models import OrderInput
+from models.input import OrderInput
 from models.order import Order
 from bridge.product import orm_product_to_dict
 

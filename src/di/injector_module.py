@@ -19,7 +19,7 @@ from backend.services.save_order_service import SaveExpenseService, SaveOrderSer
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 from bridge.certificate import CertificateBridge
-from backend.certificate import CertificateHandler
+from backend.certificate.handler import CertificateHandler
 from bridge.expense import ExpenseBridge
 from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge

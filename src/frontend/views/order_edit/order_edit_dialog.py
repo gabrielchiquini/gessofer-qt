@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend import OrderInput
+from models.input import OrderInput
 from models.order import Order
 from bridge.order import OrderBridge
 from backend.business import BusinessService

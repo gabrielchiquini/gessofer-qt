@@ -12,7 +12,8 @@ from sqlalchemy.orm import Session
 
 from backend.entities.orm import Base, Expense, Order, Product
 from backend.utils.text import normalize_text
-from di import injector_module
+import di.injector_module
+from di.injector_module import get_engine
 from tests.util.bridge_reset import reset_bridge_singletons
 
 
@@ -199,8 +200,8 @@ def temp_engine() -> Generator[Engine, None, None]:
         # injector_module.py imports get_engine via
         #   "from backend.database.connection import get_engine"
         # so the name "get_engine" lives in di.injector_module's namespace.
-        original_get_engine: Callable[[], Engine] = injector_module.get_engine  # type: ignore[assignment]
-        injector_module.get_engine = lambda: engine  # type: ignore[assignment]
+        original_get_engine: Callable[[], Engine] = di.injector_module.get_engine  # type: ignore[assignment]
+        di.injector_module.get_engine = lambda: engine  # type: ignore[assignment]
 
         # Reset bridge singletons so DI resolves fresh with the patched engine
         reset_bridge_singletons()
@@ -208,7 +209,7 @@ def temp_engine() -> Generator[Engine, None, None]:
         yield engine
     finally:
         # Restore original get_engine and reset DI
-        injector_module.get_engine = original_get_engine  # type: ignore[assignment]
+        di.injector_module.get_engine = original_get_engine  # type: ignore[assignment]
         reset_bridge_singletons()
         # Clean up the temporary file
         try:

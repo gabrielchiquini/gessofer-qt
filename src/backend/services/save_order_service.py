@@ -8,7 +8,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 from backend.errors import DatabaseError, ValidationError
-from models import ExpenseInput, OrderInput
+from models.input import ExpenseInput, OrderInput
 from backend.repositories.expense_repository import ExpenseRepository
 from backend.repositories.order_repository import OrderRepository
 

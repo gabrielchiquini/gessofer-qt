@@ -16,5 +16,5 @@ def reset_bridge_singletons() -> None:
     - bridge.certificate._certificate_handler (old-style handler, if still used)
     """
     # Reset injector singleton — forces fresh injector with fresh bindings
-    from di import injector_module
-    injector_module._app_injector = None
+    import di.injector_module as _injector_module
+    _injector_module._app_injector = None

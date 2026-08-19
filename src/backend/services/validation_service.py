@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-from models import ExpenseInput, OrderInput
+from models.input import ExpenseInput, OrderInput
 from backend.utils.date import br_date_to_iso
 
 

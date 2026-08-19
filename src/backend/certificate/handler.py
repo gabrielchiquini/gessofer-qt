@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from backend.certificate.import_pfx import save_pem_from_pfx
 from backend.certificate.read_pem import get_certificate_info
-from models import CertificateInfo
+from models.certificate import CertificateInfo
 
 
 class CertificateHandler:

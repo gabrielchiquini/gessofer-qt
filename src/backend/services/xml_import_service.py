@@ -8,7 +8,7 @@ from typing import List, Optional
 from xml.etree import ElementTree as ET
 
 from backend.errors import XmlParseError
-from models import OrderInput, ProductInput
+from models.input import OrderInput, ProductInput
 
 logger = logging.getLogger(__name__)
 

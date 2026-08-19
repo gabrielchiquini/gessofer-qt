@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from models import ExpenseInput
+from models.input import ExpenseInput
 from bridge.expense import ExpenseBridge
 from frontend.views.expense_edit.expense_items_card import ExpenseItemsCard
 

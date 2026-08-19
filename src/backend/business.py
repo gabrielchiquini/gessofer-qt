@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 
-from backend import OrderInput
+from models.input import OrderInput
 from backend.services.freight_distribution import (
     FreightDistributionResult,
     FreightDistributionService,

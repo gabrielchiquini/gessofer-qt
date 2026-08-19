@@ -4,7 +4,7 @@ import logging
 
 from injector import inject
 
-from models import ExpenseInput
+from models.input import ExpenseInput
 from backend.services.save_order_service import SaveExpenseService
 
 logger = logging.getLogger(__name__)

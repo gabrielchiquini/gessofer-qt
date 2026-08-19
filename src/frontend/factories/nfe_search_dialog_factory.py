@@ -5,7 +5,7 @@ from typing import Any, Protocol
 from PySide6.QtWidgets import QWidget
 
 from bridge.nfe import NfeBridge
-from frontend.nfe_search_dialog import NfeSearchDialog
+from frontend.views.order_edit.nfe_search_dialog import NfeSearchDialog
 
 
 # ──────────────────────────────────────────────────────────────────────

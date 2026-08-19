@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget, QToolTip,
 )
 
-from backend import ProductInput
+from models.input import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from models.output import Product
 from frontend.util.icons import svg_to_pixmap

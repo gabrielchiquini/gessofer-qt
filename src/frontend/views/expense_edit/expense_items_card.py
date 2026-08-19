@@ -8,7 +8,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from models import ExpenseInput
+from models.input import ExpenseInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from models.output import ExpenseOutput
 from frontend.components.card import Card

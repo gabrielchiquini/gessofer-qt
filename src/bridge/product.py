@@ -2,11 +2,10 @@ from __future__ import annotations
 
 import logging
 
-from backend.injector_module import get_injector
 from backend.entities.orm import Order, Product
+from backend.services.fetch_handler import FetchHandler
 from backend.utils.currency import cents_to_display
 from backend.utils.date import datetime_to_br_date
-from backend.services.fetch_handler import FetchHandler
 from models.order import Order as OrderDataclass
 from models.output import Product as ProductDataclass, ProductListItem, PageResponse as BridgePageResponse
 
@@ -52,59 +51,40 @@ def product_list_item_to_dict(product: Product) -> ProductListItem:
     )
 
 
-def fetch_products(
-    page: int,
-    supplier: str = "",
-    product: str = "",
-    month: str = "",
-) -> BridgePageResponse[ProductListItem]:
-    """
-    Fetch paginated product list with optional filters.
+class ProductBridge:
+    """Bridge for product-related fetch operations."""
 
-    Args:
-        page: Page number (1-based).
-        supplier: Optional supplier name filter.
-        product: Optional product name filter.
-        month: Optional month filter in MM/yyyy format.
+    def __init__(self, fetch_handler: FetchHandler) -> None:
+        self._fetch_handler = fetch_handler
 
-    Returns:
-        BridgePageResponse[ProductListItem] with paginated product data.
-        On error, returns an empty-page response.
-    """
-    try:
-        handler = get_injector().get(FetchHandler)
-        return handler.fetch_products(
-            page,
-            supplier or None,
-            product or None,
-            month or None,
-        )
-    except Exception as exc:
-        logger.error("Error in fetch_products: %s", exc)
-        logger.debug("Traceback", exc_info=True)
-        return BridgePageResponse(
-            items=[],
-            page=page,
-            page_count=0,
-            total=0,
-            page_size=50,
-        )
+    def fetch_products(
+        self,
+        page: int,
+        supplier: str = "",
+        product: str = "",
+        month: str = "",
+    ) -> BridgePageResponse[ProductListItem]:
+        """Fetch paginated product list with optional filters."""
+        try:
+            return self._fetch_handler.fetch_products(
+                page,
+                supplier or None,
+                product or None,
+                month or None,
+            )
+        except Exception as exc:
+            logger.error("Error in fetch_products: %s", exc)
+            logger.debug("Traceback", exc_info=True)
+            return BridgePageResponse(
+                items=[], page=page, page_count=0, total=0, page_size=50,
+            )
 
+    def fetch_orders_for_month(self, month: str) -> list[OrderDataclass]:
+        """Fetch all orders for a given month."""
+        try:
+            return self._fetch_handler.fetch_orders_for_month(month)
+        except Exception as exc:
+            logger.error("Error in fetch_orders_for_month: %s", exc)
+            logger.debug("Traceback", exc_info=True)
+            return []
 
-def fetch_orders_for_month(month: str) -> list[OrderDataclass]:
-    """
-    Fetch all orders for a given month.
-
-    Args:
-        month: Month in MM/yyyy format.
-
-    Returns:
-        List of Order dataclass instances. On error, returns [].
-    """
-    try:
-        handler = get_injector().get(FetchHandler)
-        return handler.fetch_orders_for_month(month)
-    except Exception as exc:
-        logger.error("Error in fetch_orders_for_month: %s", exc)
-        logger.debug("Traceback", exc_info=True)
-        return []

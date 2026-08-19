@@ -12,17 +12,9 @@ def reset_bridge_singletons() -> None:
 
     Must be called between tests to ensure each test starts with a clean state.
     This resets:
-    - bridge.expense._fetch_handler
-    - bridge.expense._save_handler
-    - bridge.expense._session_factory
-    - backend.injector_module._app_injector
+    - backend.injector_module._app_injector (forces re-creation of injector)
+    - bridge.certificate._certificate_handler (old-style handler, if still used)
     """
-    # Reset expense bridge handlers
-    import bridge.expense
-    bridge.expense._fetch_handler = None
-    bridge.expense._save_handler = None
-    bridge.expense._session_factory = None
-
-    # Reset injector singleton
-    import backend.injector_module
-    backend.injector_module._app_injector = None
+    # Reset injector singleton — forces fresh injector with fresh bindings
+    from di import injector_module
+    injector_module._app_injector = None

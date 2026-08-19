@@ -1,5 +1,4 @@
 from .database.connection import get_engine, discover_database_path
-from .injector_module import InjectorModule, get_injector
 from .entities.orm import Order, Product, Expense
 from models.input import OrderInput, ProductInput, ExpenseInput
 from models.output import PageResponse
@@ -39,9 +38,6 @@ __all__ = [
     # Database
     "get_engine",
     "discover_database_path",
-    # Injector
-    "InjectorModule",
-    "get_injector",
     # Entities
     "Order",
     "Product",

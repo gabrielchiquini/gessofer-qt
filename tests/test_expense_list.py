@@ -1,8 +1,12 @@
 from __future__ import annotations
 
 import pytestqt
+from PySide6.QtWidgets import QWidget
 from pytestqt.qtbot import QtBot
 
+from bridge.expense import ExpenseBridge
+from di.injector_module import get_injector
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 from frontend.views.expense_list import ExpenseListView
 
 
@@ -14,10 +18,21 @@ class TestExpenseListInitialLoad:
 
     def test_initial_load_shows_current_month(
             self,
+            expense_test_env: None,
             qtbot: QtBot,
     ) -> None:
         """Show the widget and verify the month filter is set to current month."""
-        widget = ExpenseListView()
+
+        injector = get_injector()
+        expense_bridge: ExpenseBridge = injector.get(ExpenseBridge)
+        expense_edit_dialog_factory: ExpenseEditDialogFactory = injector.get(ExpenseEditDialogFactory)
+
+        _parent = QWidget()
+        widget = ExpenseListView(
+            parent=_parent,
+            expense_bridge=expense_bridge,
+            expense_edit_dialog_factory=expense_edit_dialog_factory,
+        )
         qtbot.addWidget(widget)
         widget.show()
 

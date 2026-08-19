@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 from frontend.components import Card
 
 from models.output import PageResponse, ProductListItem
-from bridge.product import fetch_products
+from bridge.product import ProductBridge
 
 logger = logging.getLogger(__name__)
 
@@ -22,8 +22,9 @@ class ProductListView(QWidget):
     """Filter form + QTableView with pagination for product data."""
     table_view: QTableView
 
-    def __init__(self, parent: QWidget | None = None) -> None:
+    def __init__(self, parent: QWidget, product_bridge: ProductBridge) -> None:
         super().__init__(parent)
+        self._product_bridge: ProductBridge = product_bridge
         self._current_page: int = 1
         self._page_count: int = 1
         self._total: int = 0
@@ -206,7 +207,7 @@ class ProductListView(QWidget):
         month = self.filter_month.text().strip()
 
         try:
-            result = fetch_products(
+            result = self._product_bridge.fetch_products(
                 self._current_page,
                 supplier if supplier else "",
                 product if product else "",

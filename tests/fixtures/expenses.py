@@ -15,6 +15,10 @@ from backend.entities.orm import Base, Expense
 from frontend.views.expense_list import ExpenseListView
 from tests.util.bridge_reset import reset_bridge_singletons
 
+from PySide6.QtWidgets import QWidget
+from bridge.expense import ExpenseBridge
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
+
 
 # ── Seed data ─────────────────────────────────────────────────────
 #
@@ -98,21 +102,22 @@ def expense_test_env(
         # Step 3: Reset bridge singletons
         reset_bridge_singletons()
 
-        # Step 4: Create injector — this calls get_engine() which uses our patched version
-        from injector import Injector
-        from backend.injector_module import InjectorModule
+        # Step 4: Reset the app injector so get_injector() creates a fresh one
+        # with the patched get_engine()
+        from di import injector_module
+        injector_module._app_injector = None
 
-        injector = Injector(InjectorModule)
-
-        # Step 5: Set module-level _app_injector
-        import backend.injector_module
-        backend.injector_module._app_injector = injector
+        # Step 5: Call get_injector() which creates a fresh Injector using the patched get_engine()
+        from di.injector_module import get_injector
+        injector = get_injector()
 
         yield
     finally:
         # Teardown
         import backend.database.connection
         backend.database.connection.get_engine = original_get_engine  # type: ignore[assignment]
+        from di import injector_module
+        injector_module._app_injector = None
         reset_bridge_singletons()
         try:
             os.unlink(db_path)
@@ -126,9 +131,20 @@ def expense_list_widget(
         qtbot: QtBot,
 ) -> Generator["ExpenseListView", None, None]:
     """Create an ExpenseListView wired to the test database."""
+    from di.injector_module import get_injector
 
-    widget = ExpenseListView()
+    injector = get_injector()
+    expense_bridge: ExpenseBridge = injector.get(ExpenseBridge)
+    expense_edit_dialog_factory: ExpenseEditDialogFactory = injector.get(ExpenseEditDialogFactory)
+
+    _parent = QWidget()
+    widget = ExpenseListView(
+        parent=_parent,
+        expense_bridge=expense_bridge,
+        expense_edit_dialog_factory=expense_edit_dialog_factory,
+    )
     qtbot.addWidget(widget)
     widget.show()
     yield widget
     widget.deleteLater()
+    _parent.deleteLater()

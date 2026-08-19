@@ -3,12 +3,10 @@ from __future__ import annotations
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from unittest.mock import patch
 
-import pytest
-
-from bridge.certificate import fetch_certificate_info
-from models.certificate import CertificateInfo
+from bridge.certificate import CertificateBridge
+from bridge.certificate import CertificateInfo
+from di.injector_module import get_injector
 
 
 # Ensure src/ is on sys.path so bridge modules can be imported
@@ -28,19 +26,14 @@ def test_fetch_certificate_info_no_file() -> None:
     original = read_pem_module.CERTIFICATE_FILE
     read_pem_module.CERTIFICATE_FILE = Path("/nonexistent/path/certificate.pem")
     try:
-        # Reset the handler so it re-reads the patched module
-        import bridge.certificate as cert_bridge_module
-        original_handler = cert_bridge_module._handler
-        cert_bridge_module._handler = None
-        try:
-            result = fetch_certificate_info()
-            assert result == CertificateInfo(
-                owner="Nenhum certificado registrado",
-                expiration_date="",
-                is_valid=False,
-            )
-        finally:
-            cert_bridge_module._handler = original_handler
+        injector = get_injector()
+        bridge = injector.get(CertificateBridge)
+        result = bridge.fetch_certificate_info()
+        assert result == CertificateInfo(
+            owner="Nenhum certificado registrado",
+            expiration_date="",
+            is_valid=False,
+        )
     finally:
         read_pem_module.CERTIFICATE_FILE = original
 
@@ -51,23 +44,18 @@ def test_fetch_certificate_info_valid() -> None:
     original = read_pem_module.CERTIFICATE_FILE
     read_pem_module.CERTIFICATE_FILE = TEST_PEM_PATH
     try:
-        # Reset the handler so it re-reads the patched module
-        import bridge.certificate as cert_bridge_module
-        original_handler = cert_bridge_module._handler
-        cert_bridge_module._handler = None
-        try:
-            result = fetch_certificate_info()
-            assert result.is_valid is True
-            assert result.owner == "Teste Certificado Gessofer"
-            assert result.expiration_date != ""
-            # Verify date format is dd/MM/yyyy
-            parts = result.expiration_date.split("/")
-            assert len(parts) == 3
-            assert len(parts[0]) == 2  # day
-            assert len(parts[1]) == 2  # month
-            assert len(parts[2]) == 4  # year
-        finally:
-            cert_bridge_module._handler = original_handler
+        injector = get_injector()
+        bridge = injector.get(CertificateBridge)
+        result = bridge.fetch_certificate_info()
+        assert result.is_valid is True
+        assert result.owner == "Teste Certificado Gessofer"
+        assert result.expiration_date != ""
+        # Verify date format is dd/MM/yyyy
+        parts = result.expiration_date.split("/")
+        assert len(parts) == 3
+        assert len(parts[0]) == 2  # day
+        assert len(parts[1]) == 2  # month
+        assert len(parts[2]) == 4  # year
     finally:
         read_pem_module.CERTIFICATE_FILE = original
 
@@ -82,7 +70,7 @@ def test_fetch_certificate_info_expired() -> None:
     from cryptography.x509.oid import NameOID
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import rsa
-    from cryptography.hazmat.primitives.serialization import Encoding, NoEncryption, PrivateFormat
+    from cryptography.hazmat.primitives.serialization import Encoding
     from datetime import timedelta
 
     # Generate a key pair
@@ -112,17 +100,12 @@ def test_fetch_certificate_info_expired() -> None:
     try:
         original = read_pem_module.CERTIFICATE_FILE
         read_pem_module.CERTIFICATE_FILE = fake_path
-        # Reset the handler
-        import bridge.certificate as cert_bridge_module
-        original_handler = cert_bridge_module._handler
-        cert_bridge_module._handler = None
-        try:
-            result = fetch_certificate_info()
-            assert result.is_valid is False
-            assert result.owner == "Expired Cert"
-            assert result.expiration_date != ""
-        finally:
-            cert_bridge_module._handler = original_handler
+        injector = get_injector()
+        bridge = injector.get(CertificateBridge)
+        result = bridge.fetch_certificate_info()
+        assert result.is_valid is False
+        assert result.owner == "Expired Cert"
+        assert result.expiration_date != ""
     finally:
         read_pem_module.CERTIFICATE_FILE = original
         fake_path.unlink(missing_ok=True)
@@ -141,17 +124,12 @@ def test_fetch_certificate_info_corrupted() -> None:
     try:
         original = read_pem_module.CERTIFICATE_FILE
         read_pem_module.CERTIFICATE_FILE = fake_path
-        # Reset the handler
-        import bridge.certificate as cert_bridge_module
-        original_handler = cert_bridge_module._handler
-        cert_bridge_module._handler = None
-        try:
-            result = fetch_certificate_info()
-            assert result.is_valid is False
-            assert result.owner == "Nenhum certificado registrado"
-            assert result.expiration_date == ""
-        finally:
-            cert_bridge_module._handler = original_handler
+        injector = get_injector()
+        bridge = injector.get(CertificateBridge)
+        result = bridge.fetch_certificate_info()
+        assert result.is_valid is False
+        assert result.owner == "Nenhum certificado registrado"
+        assert result.expiration_date == ""
     finally:
         read_pem_module.CERTIFICATE_FILE = original
         fake_path.unlink(missing_ok=True)

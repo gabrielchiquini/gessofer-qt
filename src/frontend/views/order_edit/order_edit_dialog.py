@@ -14,9 +14,9 @@ from PySide6.QtWidgets import (
 )
 
 from backend import OrderInput
-from backend.utils.currency import cents_to_display
 from models.order import Order
-from bridge.order import fetch_order_by_id, save_single_order
+from bridge.order import OrderBridge
+from backend.business import BusinessService
 from frontend.views.order_edit.order_header_card import OrderHeaderCard
 from frontend.views.order_edit.order_items_card import OrderItemsCard
 
@@ -30,19 +30,23 @@ class OrderEditDialog(QDialog):
 
     def __init__(
             self,
-            parent: QWidget | None = None,
-            order_id: str | None = None,
-            order: Order | None = None,
+            parent: QWidget,
+            order_id: str | None,
+            order: Order | None,
+            order_bridge: OrderBridge,
+            business_service: BusinessService,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setMinimumSize(800, 600)
+        self._order_bridge: OrderBridge = order_bridge
+        self._business_service: BusinessService = business_service
 
         # ── Header Card ───────────────────────────────────────────────
         self.header_card: OrderHeaderCard = OrderHeaderCard(self)
 
         # ── Items Card ────────────────────────────────────────────────
-        self.items_card: OrderItemsCard = OrderItemsCard(self)
+        self.items_card: OrderItemsCard = OrderItemsCard(self, business_service=self._business_service)
 
         # ── State ─────────────────────────────────────────────────────
         if order is not None:
@@ -54,7 +58,7 @@ class OrderEditDialog(QDialog):
             self.items_card.set_order_data(order)
         elif order_id:
             # Existing edit path: fetch from DB
-            order_data: Order | None = fetch_order_by_id(order_id)
+            order_data: Order | None = self._order_bridge.fetch_order_by_id(order_id)
             self._order_id: str = order_data.id if order_data else str(uuid.uuid4())
             self._is_new: bool = order_data is None
             if order_data is not None:
@@ -136,7 +140,7 @@ class OrderEditDialog(QDialog):
         )
 
         # Save
-        success: bool = save_single_order(order_data)
+        success: bool = self._order_bridge.save_single_order(order_data)
         if success:
             self._show_message("Salvo com sucesso!", "success")
             self.order_saved.emit(order_data)

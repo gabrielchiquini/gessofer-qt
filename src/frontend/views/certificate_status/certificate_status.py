@@ -5,18 +5,18 @@ from PySide6.QtWidgets import (
 
 from bridge.certificate import CertificateBridge
 from models.certificate import CertificateInfo
+from frontend.factories.certificate_change_dialog_factory import CertificateChangeDialogFactory
 
 
 class CertificateStatusView(QWidget):
     """Display the current certificate's status."""
 
     def __init__(
-        self,
-        parent: QWidget,
-        certificate_bridge: CertificateBridge,
-        certificate_change_dialog_factory: CertificateChangeDialogFactory,
+            self,
+            parent: QWidget,
+            certificate_bridge: CertificateBridge,
+            certificate_change_dialog_factory: CertificateChangeDialogFactory,
     ) -> None:
-        from frontend.factories import CertificateChangeDialogFactory  # noqa: F401, E402
 
         super().__init__(parent)
         self._certificate_bridge: CertificateBridge = certificate_bridge

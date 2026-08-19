@@ -25,25 +25,37 @@ from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from bridge.product import ProductBridge
-from frontend.factories import ProductListViewFactory, OrderEditDialogFactory, NfeSearchDialogFactory, \
-    ExpenseEditDialogFactory, CertificateChangeDialogFactory, OrderEditListViewFactory, ExpenseListViewFactory, \
-    CertificateStatusViewFactory
+from frontend.factories.product_list_view_factory import ProductListViewFactory
+from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
+from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
+from frontend.factories.certificate_change_dialog_factory import CertificateChangeDialogFactory
+from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
+from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
 
 
 def _register_protocol_types() -> None:
     """Register factory Protocol types and BusinessService in module globals for type hint resolution."""
     import importlib
-    factories = importlib.import_module("frontend.factories", __package__)
+    product_list_view = importlib.import_module("frontend.factories.product_list_view_factory", __package__)
+    order_edit_dialog = importlib.import_module("frontend.factories.order_edit_dialog_factory", __package__)
+    nfe_search_dialog = importlib.import_module("frontend.factories.nfe_search_dialog_factory", __package__)
+    expense_edit_dialog = importlib.import_module("frontend.factories.expense_edit_dialog_factory", __package__)
+    certificate_change_dialog = importlib.import_module("frontend.factories.certificate_change_dialog_factory", __package__)
+    order_edit_list_view = importlib.import_module("frontend.factories.order_edit_list_view_factory", __package__)
+    expense_list_view = importlib.import_module("frontend.factories.expense_list_view_factory", __package__)
+    certificate_status_view = importlib.import_module("frontend.factories.certificate_status_view_factory", __package__)
     business = importlib.import_module("backend.business", __package__)
     globals().update({
-        "ProductListViewFactory": factories.ProductListViewFactory,
-        "OrderEditListViewFactory": factories.OrderEditListViewFactory,
-        "ExpenseListViewFactory": factories.ExpenseListViewFactory,
-        "CertificateStatusViewFactory": factories.CertificateStatusViewFactory,
-        "OrderEditDialogFactory": factories.OrderEditDialogFactory,
-        "ExpenseEditDialogFactory": factories.ExpenseEditDialogFactory,
-        "CertificateChangeDialogFactory": factories.CertificateChangeDialogFactory,
-        "NfeSearchDialogFactory": factories.NfeSearchDialogFactory,
+        "ProductListViewFactory": product_list_view.ProductListViewFactory,
+        "OrderEditListViewFactory": order_edit_list_view.OrderEditListViewFactory,
+        "ExpenseListViewFactory": expense_list_view.ExpenseListViewFactory,
+        "CertificateStatusViewFactory": certificate_status_view.CertificateStatusViewFactory,
+        "OrderEditDialogFactory": order_edit_dialog.OrderEditDialogFactory,
+        "ExpenseEditDialogFactory": expense_edit_dialog.ExpenseEditDialogFactory,
+        "CertificateChangeDialogFactory": certificate_change_dialog.CertificateChangeDialogFactory,
+        "NfeSearchDialogFactory": nfe_search_dialog.NfeSearchDialogFactory,
         "BusinessService": business.BusinessService,
     })
 
@@ -235,7 +247,7 @@ class InjectorModule(Module):
             self,
             product_bridge: ProductBridge,
     ) -> ProductListViewFactory:
-        from frontend.factories import _ProductListViewFactoryImpl
+        from frontend.factories.product_list_view_factory import _ProductListViewFactoryImpl
         return _ProductListViewFactoryImpl(product_bridge=product_bridge)
 
     @provider
@@ -245,7 +257,7 @@ class InjectorModule(Module):
             order_bridge: OrderBridge,
             business_service: BusinessService,
     ) -> OrderEditDialogFactory:
-        from frontend.factories import _OrderEditDialogFactoryImpl
+        from frontend.factories.order_edit_dialog_factory import _OrderEditDialogFactoryImpl
         return _OrderEditDialogFactoryImpl(
             order_bridge=order_bridge,
             business_service=business_service,
@@ -257,7 +269,7 @@ class InjectorModule(Module):
             self,
             nfe_bridge: NfeBridge,
     ) -> NfeSearchDialogFactory:
-        from frontend.factories import _NfeSearchDialogFactoryImpl
+        from frontend.factories.nfe_search_dialog_factory import _NfeSearchDialogFactoryImpl
         return _NfeSearchDialogFactoryImpl(nfe_bridge=nfe_bridge)
 
     @provider
@@ -266,7 +278,7 @@ class InjectorModule(Module):
             self,
             expense_bridge: ExpenseBridge,
     ) -> ExpenseEditDialogFactory:
-        from frontend.factories import _ExpenseEditDialogFactoryImpl
+        from frontend.factories.expense_edit_dialog_factory import _ExpenseEditDialogFactoryImpl
         return _ExpenseEditDialogFactoryImpl(expense_bridge=expense_bridge)
 
     @provider
@@ -275,7 +287,7 @@ class InjectorModule(Module):
             self,
             certificate_bridge: CertificateBridge,
     ) -> CertificateChangeDialogFactory:
-        from frontend.factories import _CertificateChangeDialogFactoryImpl
+        from frontend.factories.certificate_change_dialog_factory import _CertificateChangeDialogFactoryImpl
         return _CertificateChangeDialogFactoryImpl(certificate_bridge=certificate_bridge)
 
     @provider
@@ -289,7 +301,7 @@ class InjectorModule(Module):
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
     ) -> OrderEditListViewFactory:
-        from frontend.factories import _OrderEditListViewFactoryImpl
+        from frontend.factories.order_edit_list_view_factory import _OrderEditListViewFactoryImpl
         return _OrderEditListViewFactoryImpl(
             order_bridge=order_bridge,
             order_summary_bridge=order_summary_bridge,
@@ -306,7 +318,7 @@ class InjectorModule(Module):
             expense_bridge: ExpenseBridge,
             expense_edit_dialog_factory: ExpenseEditDialogFactory,
     ) -> ExpenseListViewFactory:
-        from frontend.factories import _ExpenseListViewFactoryImpl
+        from frontend.factories.expense_list_view_factory import _ExpenseListViewFactoryImpl
         return _ExpenseListViewFactoryImpl(
             expense_bridge=expense_bridge,
             expense_edit_dialog_factory=expense_edit_dialog_factory,
@@ -319,7 +331,7 @@ class InjectorModule(Module):
             certificate_bridge: CertificateBridge,
             certificate_change_dialog_factory: CertificateChangeDialogFactory,
     ) -> CertificateStatusViewFactory:
-        from frontend.factories import _CertificateStatusViewFactoryImpl
+        from frontend.factories.certificate_status_view_factory import _CertificateStatusViewFactoryImpl
         return _CertificateStatusViewFactoryImpl(
             certificate_bridge=certificate_bridge,
             certificate_change_dialog_factory=certificate_change_dialog_factory,

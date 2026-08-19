@@ -15,6 +15,7 @@ from backend.utils.currency import cents_to_display
 from backend.utils.date import current_month_orders
 from frontend.components import Card
 from frontend.components.month_filter import MonthFilter
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory  # noqa: F401, E402
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,6 @@ class ExpenseListView(QWidget):
         expense_bridge: ExpenseBridge,
         expense_edit_dialog_factory: ExpenseEditDialogFactory,
     ) -> None:
-        from frontend.factories import ExpenseEditDialogFactory  # noqa: F401, E402
 
         super().__init__(parent)
         self._current_month: str = ""

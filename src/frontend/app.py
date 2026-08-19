@@ -4,12 +4,10 @@ from PySide6.QtWidgets import QMainWindow, QWidget
 
 from frontend.constants import MIN_WINDOW_WIDTH, MIN_WINDOW_HEIGHT
 from frontend.components.navbar import NavigationBar
-from frontend.factories import (
-    ProductListViewFactory,
-    OrderEditListViewFactory,
-    ExpenseListViewFactory,
-    CertificateStatusViewFactory,
-)
+from frontend.factories.product_list_view_factory import ProductListViewFactory
+from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
+from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
 
 
 class MainWindow(QMainWindow):

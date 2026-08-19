@@ -20,7 +20,8 @@ from backend.utils.date import iso_to_br_date, current_month_orders
 from backend.business import BusinessService
 from bridge.order import OrderBridge
 if TYPE_CHECKING:
-    from frontend.factories import OrderEditDialogFactory, NfeSearchDialogFactory
+    from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
+    from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
 
 logger = logging.getLogger(__name__)
 

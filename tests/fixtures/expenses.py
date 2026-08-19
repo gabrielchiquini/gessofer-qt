@@ -17,7 +17,7 @@ from tests.util.bridge_reset import reset_bridge_singletons
 
 from PySide6.QtWidgets import QWidget
 from bridge.expense import ExpenseBridge
-from frontend.factories import ExpenseEditDialogFactory
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 
 
 # ── Seed data ─────────────────────────────────────────────────────

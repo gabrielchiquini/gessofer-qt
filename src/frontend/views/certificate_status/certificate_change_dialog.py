@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
@@ -21,9 +20,9 @@ class CertificateChangeDialog(QDialog):
     """Modal dialog for selecting a PFX certificate file and importing it."""
 
     def __init__(
-        self,
-        parent: QWidget,
-        certificate_bridge: CertificateBridge,
+            self,
+            parent: QWidget,
+            certificate_bridge: CertificateBridge,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)

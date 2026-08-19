@@ -6,12 +6,10 @@ from PySide6.QtWidgets import QApplication, QWidget
 
 from frontend.app import MainWindow
 from di.injector_module import get_injector
-from frontend.factories import (
-    ProductListViewFactory,
-    OrderEditListViewFactory,
-    ExpenseListViewFactory,
-    CertificateStatusViewFactory,
-)
+from frontend.factories.product_list_view_factory import ProductListViewFactory
+from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
+from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
 
 
 def main() -> None:

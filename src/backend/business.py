@@ -16,25 +16,6 @@ from models.validation import Validation
 logger = logging.getLogger(__name__)
 
 
-def import_xml(file_path: str) -> XmlImportResult:
-    """Module-level convenience function to import orders from an NFe XML file.
-
-    Creates a BusinessService instance using the DI container and delegates
-    to its ``import_xml`` method.
-
-    Args:
-        file_path: Path to the NFe XML file.
-
-    Returns:
-        XmlImportResult with parsed orders and any warnings.
-    """
-    from di.injector_module import get_injector
-
-    injector = get_injector()
-    service = injector.get(BusinessService)
-    return service.import_xml(file_path)
-
-
 def freight_result_to_dict(result: FreightDistributionResult) -> FreightResult:
     """Transform a FreightDistributionResult into a FreightResult dataclass."""
     return FreightResult(
@@ -94,10 +75,10 @@ class BusinessService:
     """Business logic service for order and expense operations."""
 
     def __init__(
-        self,
-        freight_service: FreightDistributionService,
-        xml_service: XmlImportService,
-        validation_service: ValidationService,
+            self,
+            freight_service: FreightDistributionService,
+            xml_service: XmlImportService,
+            validation_service: ValidationService,
     ) -> None:
         self._freight_service = freight_service
         self._xml_service = xml_service

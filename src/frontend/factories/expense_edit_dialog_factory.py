@@ -16,7 +16,7 @@ from frontend.views.expense_edit.expense_edit_dialog import ExpenseEditDialog
 class ExpenseEditDialogFactory(Protocol):
     """Factory protocol for creating ExpenseEditDialog instances."""
 
-    def __call__(self, parent: QWidget, month: str) -> ExpenseEditDialog: ...
+    def __call__(self, parent: QWidget | None, month: str) -> ExpenseEditDialog: ...
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ class _ExpenseEditDialogFactoryImpl:
     def __init__(self, expense_bridge: ExpenseBridge) -> None:
         self._expense_bridge: ExpenseBridge = expense_bridge
 
-    def __call__(self, parent: QWidget, month: str) -> ExpenseEditDialog:
+    def __call__(self, parent: QWidget | None, month: str) -> ExpenseEditDialog:
         return ExpenseEditDialog(
             parent=parent,
             month=month,

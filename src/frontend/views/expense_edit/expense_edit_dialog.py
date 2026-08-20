@@ -23,7 +23,7 @@ class ExpenseEditDialog(QDialog):
 
     def __init__(
             self,
-            parent: QWidget,
+            parent: QWidget | None,
             month: str,
             expense_bridge: ExpenseBridge,
     ) -> None:

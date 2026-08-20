@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import pytestqt
 from pytestqt.qtbot import QtBot
-from sqlalchemy import Engine
 
 from bridge.expense import ExpenseBridge
 from di.injector_module import get_injector
@@ -60,7 +59,6 @@ class TestExpenseListMonthNavigation:
         # Navigate to July 2024
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         july_count = widget._model.rowCount()
         assert july_count == 3  # 3 expenses seeded for 2024-07
@@ -68,7 +66,6 @@ class TestExpenseListMonthNavigation:
         # Navigate to August 2024
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         aug_count = widget._model.rowCount()
         assert aug_count == 2  # 2 expenses seeded for 2024-08
@@ -91,7 +88,6 @@ class TestExpenseListDisplay:
 
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         model = widget._model
         # July 2024 rows (IDs 1→3): insertion order
@@ -107,7 +103,6 @@ class TestExpenseListDisplay:
         # Verify August ordering
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         assert model.item(0, 0).text() == "Manutenção elétrica"  # ID 4
         assert model.item(1, 0).text() == "Água e esgoto"  # ID 5
@@ -132,14 +127,12 @@ class TestExpenseListTotal:
         # July 2024: 15000 + 7500 + 30000 = 52500 cents
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         assert widget.total_label.text() == "Total: 525,00"
 
         # August 2024: 45000 + 12000 = 57000 cents
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         assert widget.total_label.text() == "Total: 570,00"
 
@@ -160,7 +153,6 @@ class TestExpenseListEmptyState:
         # Navigate to a month with no seeded expenses
         widget.month_filter.set_month("01/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         # Table should be empty
         assert widget._model.rowCount() == 0
@@ -190,7 +182,6 @@ class TestExpenseListCurrencyFormatting:
 
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         model = widget._model
         for row in range(model.rowCount()):
@@ -217,7 +208,6 @@ class TestExpenseListClearFilters:
 
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
-        qtbot.wait(500)
 
         # Verify visible
         assert widget.scroll.isVisible() is True

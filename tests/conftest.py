@@ -7,6 +7,7 @@ fixture implementations live in:
 - tests/fixtures/database.py   (temp_engine, session_factory, fetch_handler)
 - tests/fixtures/orders.py     (seeded_fetch_handler, sample_page)
 - tests/fixtures/expenses.py   (expense_list_widget)
+- tests/fixtures/expenses_edit.py (expense_edit_dialog, expense_edit_dialog_august)
 """
 from __future__ import annotations
 
@@ -19,6 +20,9 @@ from tests.fixtures.orders import sample_page, seeded_fetch_handler
 # Expense fixtures
 from tests.fixtures.expenses import expense_list_widget
 
+# Expense edit fixtures
+from tests.fixtures.expenses_edit import expense_edit_dialog, expense_edit_dialog_august
+
 __all__ = [
     # Database
     "temp_engine",
@@ -29,4 +33,7 @@ __all__ = [
     "sample_page",
     # Expenses
     "expense_list_widget",
+    # Expense edit
+    "expense_edit_dialog",
+    "expense_edit_dialog_august",
 ]

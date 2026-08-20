@@ -15,7 +15,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 # ── Fixtures ──────────────────────────────────────────────────────
 
-TEST_PEM_PATH: Path = Path(__file__).parent / "test_cert.pem"
+TEST_PEM_PATH: Path = Path(__file__).parent.parent / "backend" / "certificate" / "test_cert.pem"
 
 
 # ── Tests ─────────────────────────────────────────────────────────

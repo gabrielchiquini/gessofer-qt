@@ -43,7 +43,7 @@ def clean_certificate_output() -> Any:
 
 def test_save_pem_from_pfx_creates_files() -> None:
     """Call save_pem_from_pfx and verify both PEM files are created with valid content."""
-    pfx_path: Path = Path(__file__).parent / "util" / "test.pfx"
+    pfx_path: Path = Path(__file__).parent / "test.pfx"
     pfx_password: str = "test"
 
     test_path, key_path = save_pem_from_pfx(str(pfx_path), pfx_password)
@@ -85,7 +85,7 @@ def test_save_pem_from_pfx_creates_files() -> None:
 
 def test_save_pem_from_pfx_overwrites() -> None:
     """Call save_pem_from_pfx twice and verify the second call overwrites without error."""
-    pfx_path: Path = Path(__file__).parent / "util" / "test.pfx"
+    pfx_path: Path = Path(__file__).parent / "test.pfx"
     pfx_password: str = "test"
 
     # First call
@@ -127,7 +127,7 @@ def test_save_pem_from_pfx_invalid_pfx(tmp_path: Path) -> None:
 
 def test_save_pem_from_pfx_invalid_password() -> None:
     """Pass the correct PFX path but wrong password and verify ValueError is raised."""
-    pfx_path: Path = Path(__file__).parent / "util" / "test.pfx"
+    pfx_path: Path = Path(__file__).parent / "test.pfx"
 
     with pytest.raises(ValueError, match="Failed to extract PEM from PFX file"):
         save_pem_from_pfx(str(pfx_path), "wrong_password")

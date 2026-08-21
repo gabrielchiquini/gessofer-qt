@@ -20,6 +20,9 @@ from tests.fixtures.orders import sample_page, seeded_fetch_handler
 # Expense fixtures
 from tests.fixtures.expenses import expense_list_widget
 
+# Product fixtures
+from tests.fixtures.products import product_list_widget
+
 # Expense edit fixtures
 from tests.fixtures.expenses_edit import expense_edit_dialog, expense_edit_dialog_august
 
@@ -33,6 +36,8 @@ __all__ = [
     "sample_page",
     # Expenses
     "expense_list_widget",
+    # Products
+    "product_list_widget",
     # Expense edit
     "expense_edit_dialog",
     "expense_edit_dialog_august",

@@ -108,10 +108,10 @@ class OrderEditListView(QWidget):
 
     def _setup_table(self) -> QScrollArea:
         """Create the scrollable table view."""
-        scroll = QScrollArea(self)
-        scroll.setWidgetResizable(True)
-        scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.table_view = QTableView(self)
         self.setSizePolicy(
@@ -127,9 +127,9 @@ class OrderEditListView(QWidget):
 
         self._setup_table_size()
 
-        scroll.setWidget(self.table_view)
+        self.scroll.setWidget(self.table_view)
         self.table_view.setModel(self._model)
-        return scroll
+        return self.scroll
 
     def _setup_table_size(self) -> None:
         """Set column widths dynamically based on viewport."""

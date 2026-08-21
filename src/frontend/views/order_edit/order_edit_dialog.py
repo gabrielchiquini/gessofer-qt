@@ -3,22 +3,22 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from PySide6.QtCore import QTimer, Signal, Qt
+from PySide6.QtCore import Signal, Qt
 from PySide6.QtWidgets import (
     QDialog,
     QHBoxLayout,
     QLabel,
     QPushButton,
     QVBoxLayout,
-    QWidget,
+    QWidget, QMessageBox,
 )
 
-from models.input import OrderInput
-from models.order import Order
-from bridge.order import OrderBridge
 from backend.business import BusinessService
+from bridge.order import OrderBridge
 from frontend.views.order_edit.order_header_card import OrderHeaderCard
 from frontend.views.order_edit.order_items_card import OrderItemsCard
+from models.input import OrderInput
+from models.order import Order
 
 
 class OrderEditDialog(QDialog):
@@ -30,7 +30,7 @@ class OrderEditDialog(QDialog):
 
     def __init__(
             self,
-            parent: QWidget,
+            parent: QWidget | None,
             order_id: str | None,
             order: Order | None,
             order_bridge: OrderBridge,
@@ -88,7 +88,7 @@ class OrderEditDialog(QDialog):
         # Header card (no stretch)
         layout.addWidget(self.header_card)
 
-        # Items card (stretch = 1, takes remaining space)
+        # Item card (stretch = 1, takes remaining space)
         layout.addWidget(self.items_card, 1)
 
         # Message label
@@ -107,8 +107,6 @@ class OrderEditDialog(QDialog):
         layout.addWidget(footer_container)
 
         # ── Signal Connections ────────────────────────────────────────
-        self.header_card.order_changed.connect(self.header_card.order_changed)
-        self.items_card.order_changed.connect(self.items_card.order_changed)
         self.btn_save.clicked.connect(self._on_save)
         self.btn_close.clicked.connect(self.reject)
 
@@ -142,19 +140,12 @@ class OrderEditDialog(QDialog):
         # Save
         success: bool = self._order_bridge.save_single_order(order_data)
         if success:
-            self._show_message("Salvo com sucesso!", "success")
             self.order_saved.emit(order_data)
             self.accept()
         else:
-            self._show_message("Erro ao salvar pedido.", "error")
+            QMessageBox.critical(self, "Erro", "Erro ao salvar pedido.")
 
-    def _show_message(self, text: str, level: str) -> None:
-        """Show a styled message in the message label, auto-clear after 5 seconds."""
-        colors: dict[str, str] = {
-            "success": "background-color: #d4edda; color: #155724;",
-            "error": "background-color: #f8d7da; color: #721c24;",
-            "warning": "background-color: #fff3cd; color: #856404;",
-        }
-        self.message_label.setText(text)
-        self.message_label.setStyleSheet(colors.get(level, ""))
-        QTimer.singleShot(5000, self.message_label.clear)
+    def reject(self) -> None:
+        """Override reject to emit the closed signal."""
+        self.closed.emit()
+        super().reject()

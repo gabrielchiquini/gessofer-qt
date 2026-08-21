@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from PySide6.QtWidgets import QDialog
 
-from tests.fixtures.expenses_edit import (
+from tests.fixtures.expenses_edit_fixture import (
     expense_edit_dialog,
     expense_edit_dialog_august,
     expense_edit_dialog_january,

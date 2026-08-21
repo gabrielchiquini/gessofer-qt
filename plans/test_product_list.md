@@ -277,7 +277,7 @@ All test counts in this plan use the verified values.
 ### Fixture Pattern (`tests/fixtures/products.py`)
 
 ```python
-# Exact pattern to follow (mirrors tests/fixtures/expenses.py):
+# Exact pattern to follow (mirrors tests/fixtures/expenses_fixture.py):
 @pytest.fixture
 def product_list_widget(
     temp_engine: Engine,

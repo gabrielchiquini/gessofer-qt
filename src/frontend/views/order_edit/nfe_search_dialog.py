@@ -30,9 +30,9 @@ class NfeSearchDialog(QDialog):
     nfe_result: Signal = Signal(str)
 
     def __init__(
-        self,
-        parent: QWidget,
-        nfe_bridge: NfeBridge,
+            self,
+            parent: QWidget | None,
+            nfe_bridge: NfeBridge,
     ) -> None:
         super().__init__(parent)
         self._nfe_bridge: NfeBridge = nfe_bridge
@@ -50,10 +50,10 @@ class NfeSearchDialog(QDialog):
         # ── Input field ───────────────────────────────────────────────
         self._nfe_key_edit: QLineEdit = QLineEdit(self)
         self._nfe_key_edit.setInputMask(
-            "0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000"
+            "0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000"
         )
         self._nfe_key_edit.setPlaceholderText(
-            "0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000"
+            "0000 0000 0000 0000 0000 0000 0000 0000 0000 0000 0000"
         )
         self._nfe_key_edit.setObjectName("nfe_key_input")
         self._nfe_key_edit.setContentsMargins(0, 0, 0, 0)

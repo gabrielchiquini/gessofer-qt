@@ -20,7 +20,7 @@ class OrderEditDialogFactory(Protocol):
 
     def __call__(
         self,
-        parent: QWidget,
+        parent: QWidget | None,
         order_id: str | None,
         order: Order | None,
     ) -> OrderEditDialog: ...
@@ -44,7 +44,7 @@ class _OrderEditDialogFactoryImpl:
 
     def __call__(
         self,
-        parent: QWidget,
+        parent: QWidget | None,
         order_id: str | None,
         order: Order | None,
     ) -> OrderEditDialog:

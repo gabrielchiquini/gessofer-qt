@@ -91,6 +91,13 @@ class XmlImportService:
 
         # Extract order-level data
         nfe_key = self._extract_text(nfe, "chNFe") or ""
+        if not nfe_key:
+            # Fallback: extract from infNFe Id attribute (format: "NFe{44 digits}")
+            inf_nfe = nfe.find(f".//{{{NFE_NS}}}infNFe")
+            if inf_nfe is not None:
+                id_attr = inf_nfe.get("Id", "")
+                if id_attr.startswith("NFe"):
+                    nfe_key = id_attr[3:]  # Remove "NFe" prefix
         supplier = self._extract_emit_name(nfe) or ""
         date_raw = self._extract_text(nfe, "dhEmi") or ""
         date_iso = self._extract_date(date_raw)

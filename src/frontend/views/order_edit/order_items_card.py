@@ -48,7 +48,7 @@ class OrderItemsCard(QWidget):
 
         # ── Footer ────────────────────────────────────────────────────
         self._products_total_label: QLabel = QLabel(
-            "Total dos produtos: R$ 0,00", self
+            "Total dos produtos: 0,00", self
         )
         self.distribute_button: QPushButton = QPushButton(
             "Distribuir frete", self
@@ -91,7 +91,7 @@ class OrderItemsCard(QWidget):
         last_row = self._product_rows[-1]
         if not last_row.is_empty() and changed_row is last_row:
             new_row = self._add_empty_row()
-            self._order_changed()
+        self._order_changed()
 
     def _update_delete_buttons(self) -> None:
         """Enable delete button only for non-last rows."""

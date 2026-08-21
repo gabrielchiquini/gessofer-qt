@@ -16,7 +16,7 @@ from frontend.views.order_edit.nfe_search_dialog import NfeSearchDialog
 class NfeSearchDialogFactory(Protocol):
     """Factory protocol for creating NfeSearchDialog instances."""
 
-    def __call__(self, parent: QWidget) -> NfeSearchDialog: ...
+    def __call__(self, parent: QWidget | None) -> NfeSearchDialog: ...
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -30,7 +30,7 @@ class _NfeSearchDialogFactoryImpl:
     def __init__(self, nfe_bridge: NfeBridge) -> None:
         self._nfe_bridge: NfeBridge = nfe_bridge
 
-    def __call__(self, parent: QWidget) -> NfeSearchDialog:
+    def __call__(self, parent: QWidget | None) -> NfeSearchDialog:
         return NfeSearchDialog(parent=parent, nfe_bridge=self._nfe_bridge)
 
 

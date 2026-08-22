@@ -16,8 +16,8 @@ class TestExpenseEditDialogInit:
     """TC-01: Dialog loads existing July 2024 expenses into rows on open."""
 
     def test_dialog_initializes_with_july_expenses(
-        self,
-        expense_edit_dialog,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Open dialog for July 2024 and verify 3 seeded rows + trailing empty row."""
         # Row count: 3 seeded + 1 trailing empty = 4
@@ -43,8 +43,8 @@ class TestExpenseEditDialogInit:
         assert expense_edit_dialog.items_card.total_label.text() == "Total: 525,00"
 
     def test_dialog_initializes_with_august_expenses(
-        self,
-        expense_edit_dialog_august,
+            self,
+            expense_edit_dialog_august,
     ) -> None:
         """Open dialog for August 2024 and verify 2 seeded rows + trailing empty row."""
         rows = expense_edit_dialog_august.items_card.get_expense_rows()
@@ -67,9 +67,8 @@ class TestExpenseEditDialogSave:
     """TC-03: Saving valid expenses persists via bridge and accepts dialog."""
 
     def test_save_valid_edited_expenses(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Edit a row, save, verify success message, signal emission, and dialog accept."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -79,7 +78,6 @@ class TestExpenseEditDialogSave:
         saved_month: list[str] = []
         expense_edit_dialog.expenses_saved.connect(saved_month.append)
         expense_edit_dialog.btn_save.click()
-        qtbot.wait(500)
 
         # Success message
         assert "Salvo com sucesso!" in expense_edit_dialog.message_label.text()
@@ -92,16 +90,14 @@ class TestExpenseEditDialogSave:
         assert expense_edit_dialog.result() == QDialog.DialogCode.Accepted
 
     def test_trailing_empty_row_excluded_from_save(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Trailing empty row is not included in the expenses list sent to bridge."""
         # Fill trailing row — triggers auto-add of new trailing row
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[3].name_input.setText("Nova despesa")
         rows[3].value_input.setText("100,00")
-        qtbot.wait(100)
 
         # Now there are 5 rows: 4 filled + 1 new trailing
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -124,9 +120,8 @@ class TestExpenseEditDialogValidationErrors:
     """TC-04: Saving with validation errors does not save or accept."""
 
     def test_save_with_name_only_in_trailing_row(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Fill only name in trailing row — validation fails, no save, no accept."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -135,7 +130,6 @@ class TestExpenseEditDialogValidationErrors:
         saved: list[str] = []
         expense_edit_dialog.expenses_saved.connect(saved.append)
         expense_edit_dialog.btn_save.click()
-        qtbot.wait(500)
 
         # Row-level error visible (dialog has no error message label on validation failure)
         assert rows[3]._error.isVisible() is True
@@ -155,15 +149,13 @@ class TestExpenseEditDialogClose:
     """TC-05: Closing the dialog rejects and emits closed signal."""
 
     def test_close_button_rejects_and_emits_signal(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Click Fechar — dialog rejects and closed signal fires."""
         closed: list[None] = []
         expense_edit_dialog.closed.connect(lambda: closed.append(None))
         expense_edit_dialog.btn_close.click()
-        qtbot.wait(100)
 
         assert expense_edit_dialog.result() == QDialog.DialogCode.Rejected
         assert len(closed) == 1
@@ -176,9 +168,8 @@ class TestExpenseEditDialogAutoRow:
     """TC-06: Filling the trailing row triggers auto-add of a new empty row."""
 
     def test_auto_add_empty_row_on_trailing_fill(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Fill trailing row — a new empty row is added automatically."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -187,7 +178,6 @@ class TestExpenseEditDialogAutoRow:
         # Fill trailing row
         rows[3].name_input.setText("Nova despesa")
         rows[3].value_input.setText("100,00")
-        qtbot.wait(100)
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         assert len(rows) == 5  # new trailing row added
@@ -207,9 +197,8 @@ class TestExpenseEditDialogDeleteRow:
     """TC-07: Deleting a row removes it, recalculates total, updates buttons."""
 
     def test_delete_row_recaldates_total_and_updates_buttons(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Delete a middle row — total recalculates, delete buttons update."""
         initial_total = expense_edit_dialog.items_card.total_label.text()
@@ -217,7 +206,6 @@ class TestExpenseEditDialogDeleteRow:
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[1].delete_button.click()
-        qtbot.wait(100)
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         assert len(rows) == 3  # 2 seeded + 1 trailing
@@ -239,9 +227,8 @@ class TestExpenseEditDialogTotal:
     """TC-08: Total label updates correctly on row changes."""
 
     def test_total_updates_on_value_change(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Change a row value — total recalculates correctly."""
         # Initial total
@@ -250,22 +237,19 @@ class TestExpenseEditDialogTotal:
         # Modify row 0 value to 500,00 (50000 cents)
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[0].value_input.setText("500,00")
-        qtbot.wait(100)
 
         # Total: 50000 + 7500 + 30000 = 87500 → "875,00"
         assert expense_edit_dialog.items_card.total_label.text() == "Total: 875,00"
 
     def test_total_includes_auto_added_row(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Total includes data from a row added via auto-add."""
         # Fill trailing row to trigger auto-add
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[3].name_input.setText("Teste")
         rows[3].value_input.setText("250,00")
-        qtbot.wait(100)
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         assert len(rows) == 5
@@ -281,8 +265,8 @@ class TestExpenseEditDialogEmptyMonth:
     """TC-09: Opening a month with no expenses shows only trailing empty row."""
 
     def test_empty_month_shows_single_trailing_row(
-        self,
-        expense_edit_dialog_january,
+            self,
+            expense_edit_dialog_january,
     ) -> None:
         """Open January 2024 (no seeded expenses) — only trailing empty row, total 0,00."""
         rows = expense_edit_dialog_january.items_card.get_expense_rows()
@@ -299,9 +283,8 @@ class TestExpenseEditDialogValidation:
     """TC-11–14: Per-row validation — name only, value only, both empty, both filled."""
 
     def test_name_only_validation_error(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Name filled, value empty — invalid, error message shown."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -314,9 +297,8 @@ class TestExpenseEditDialogValidation:
         assert rows[3]._error.isVisible() is True
 
     def test_value_only_validation_error(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Value filled, name empty — invalid, error message shown."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -329,9 +311,8 @@ class TestExpenseEditDialogValidation:
         assert rows[3]._error.isVisible() is True
 
     def test_both_empty_is_valid(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Both name and value empty — valid (row will be discarded)."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -344,9 +325,8 @@ class TestExpenseEditDialogValidation:
         assert trailing._error.isVisible() is False
 
     def test_both_filled_is_valid(
-        self,
-        expense_edit_dialog,
-        qtbot,
+            self,
+            expense_edit_dialog,
     ) -> None:
         """Both name and value filled — valid, no error shown."""
         rows = expense_edit_dialog.items_card.get_expense_rows()

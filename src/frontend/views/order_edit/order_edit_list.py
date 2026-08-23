@@ -1,45 +1,50 @@
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 from typing import TYPE_CHECKING
 
-from PySide6.QtCore import Qt
-from PySide6.QtGui import QIcon, QStandardItemModel, QStandardItem
+from PySide6.QtCore import Qt, QSize
+from PySide6.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame,
     QLabel, QLineEdit, QPushButton, QTableView,
-    QScrollArea, QSizePolicy,
+    QSizePolicy, QMessageBox,
 )
 
-from models.order import OrderSummary
-from bridge.order_summary import OrderSummaryBridge
-from bridge.nfe import NfeBridge
+from backend.business import BusinessService
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
-from backend.business import BusinessService
+from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
+from bridge.order_summary import OrderSummaryBridge
+from models.order import OrderSummary
+from util.paths import ASSETS_DIR
+
+_TABLE_BUTTON_SIZE = 28
+_TABLE_ICON_SIZE = 14
+
 if TYPE_CHECKING:
     from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
     from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
 
 logger = logging.getLogger(__name__)
 
-_EDIT_ICON: QIcon = QIcon(str(Path(__file__).parent.parent.parent / "assets" / "edit.svg"))
+_EDIT_ICON_PATH: str = str(ASSETS_DIR / "edit.svg")
+_DELETE_ICON_PATH: str = str(ASSETS_DIR / "trash.svg")
 
 
 class OrderEditListView(QWidget):
     """Month-selection bar + order table for order editing."""
 
     def __init__(
-        self,
-        parent: QWidget,
-        order_bridge: OrderBridge,
-        order_summary_bridge: OrderSummaryBridge,
-        business_service: BusinessService,
-        nfe_bridge: NfeBridge,
-        order_edit_dialog_factory: OrderEditDialogFactory,
-        nfe_search_dialog_factory: NfeSearchDialogFactory,
+            self,
+            parent: QWidget,
+            order_bridge: OrderBridge,
+            order_summary_bridge: OrderSummaryBridge,
+            business_service: BusinessService,
+            nfe_bridge: NfeBridge,
+            order_edit_dialog_factory: OrderEditDialogFactory,
+            nfe_search_dialog_factory: NfeSearchDialogFactory,
     ) -> None:
         super().__init__(parent)
         self._order_bridge: OrderBridge = order_bridge
@@ -76,8 +81,8 @@ class OrderEditListView(QWidget):
         layout.addWidget(filter_frame)
 
         # Table with scroll area
-        scroll = self._setup_table()
-        layout.addWidget(scroll, 1)
+        table = self._setup_table()
+        layout.addWidget(table, 1)
 
     def _setup_filter_bar(self) -> QFrame:
         """Create the month filter bar with Consultar and Add buttons."""
@@ -106,12 +111,8 @@ class OrderEditListView(QWidget):
 
         return filter_frame
 
-    def _setup_table(self) -> QScrollArea:
+    def _setup_table(self) -> QTableView:
         """Create the scrollable table view."""
-        self.scroll = QScrollArea(self)
-        self.scroll.setWidgetResizable(True)
-        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
 
         self.table_view = QTableView(self)
         self.setSizePolicy(
@@ -120,6 +121,7 @@ class OrderEditListView(QWidget):
         self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
         self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
         self.table_view.verticalHeader().setVisible(False)
+        self.table_view.horizontalScrollBar().setVisible(False)
 
         self._model.setHorizontalHeaderLabels([
             "Data", "Fornecedor", "Produtos", "Total Produtos", "Total", "Ação"
@@ -127,18 +129,17 @@ class OrderEditListView(QWidget):
 
         self._setup_table_size()
 
-        self.scroll.setWidget(self.table_view)
         self.table_view.setModel(self._model)
-        return self.scroll
+        return self.table_view
 
     def _setup_table_size(self) -> None:
         """Set column widths dynamically based on viewport."""
         total_width = self.table_view.viewport().width()
-        self.table_view.setColumnWidth(0, 100)   # Data
-        self.table_view.setColumnWidth(2, 60)    # Prod.
-        self.table_view.setColumnWidth(3, 140)   # Total Prod.
-        self.table_view.setColumnWidth(4, 140)   # Total
-        self.table_view.setColumnWidth(5, 100)   # Ação
+        self.table_view.setColumnWidth(0, 100)  # Data
+        self.table_view.setColumnWidth(2, 60)  # Prod.
+        self.table_view.setColumnWidth(3, 140)  # Total Prod.
+        self.table_view.setColumnWidth(4, 140)  # Total
+        self.table_view.setColumnWidth(5, 100)  # Ação
         remaining = total_width - 100 - 60 - 140 - 140 - 100
         if remaining > 0:
             self.table_view.setColumnWidth(1, remaining)  # Fornecedor
@@ -183,33 +184,73 @@ class OrderEditListView(QWidget):
             ]
             self._model.appendRow(row)
 
-        # Place "Editar" buttons in the last column
+        # Place edit + delete buttons in the last column
         for row_index, summary in enumerate(summaries):
-            edit_btn = QPushButton(_EDIT_ICON, "Editar", self)
+            edit_btn = QPushButton("", self)
+            edit_btn.setIcon(QIcon(_EDIT_ICON_PATH))
+            edit_btn.setIconSize(QSize(_TABLE_ICON_SIZE, _TABLE_ICON_SIZE))
+            edit_btn.setFixedSize(_TABLE_BUTTON_SIZE, _TABLE_BUTTON_SIZE)
+            edit_btn.setToolTip("Editar pedido")
             order_id: str = summary.id
             edit_btn.clicked.connect(
                 lambda checked=False, oid=order_id: self._on_edit_clicked(oid)
             )
+            delete_btn = QPushButton("", self)
+            delete_btn.setIcon(QIcon(_DELETE_ICON_PATH))
+            delete_btn.setIconSize(QSize(_TABLE_ICON_SIZE, _TABLE_ICON_SIZE))
+            delete_btn.setFixedSize(_TABLE_BUTTON_SIZE, _TABLE_BUTTON_SIZE)
+            delete_btn.setToolTip("Excluir pedido")
+            delete_btn.clicked.connect(
+                lambda checked=False, oid=order_id: self._on_delete_clicked(oid)
+            )
+            container_widget = QWidget()
+            container_widget.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+            container_layout = QHBoxLayout(container_widget)
+            container_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            container_layout.setContentsMargins(0, 0, 0, 0)
+            container_layout.setSpacing(2)
+            container_layout.addWidget(edit_btn)
+            container_layout.addWidget(delete_btn)
             self.table_view.setIndexWidget(
-                self._model.index(row_index, 5), edit_btn
+                self._model.index(row_index, 5), container_widget
             )
 
     def _on_edit_clicked(self, order_id: str) -> None:
         """Handle Edit button click — open the order edit dialog."""
         dialog = self._order_edit_dialog_factory(self, order_id, None)
         dialog.order_saved.connect(self._on_order_saved)
-        dialog.exec()
+        dialog.show()
+
+    def _on_delete_clicked(self, order_id: str) -> None:
+        """Handle Delete button click — confirm and remove the order."""
+        reply = QMessageBox.warning(
+            self,
+            "Confirmar Exclusão",
+            "Tem certeza que deseja excluir este pedido? Esta ação não pode ser desfeita.",
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+            QMessageBox.StandardButton.No,
+        )
+        if reply == QMessageBox.StandardButton.Yes:
+            success = self._order_bridge.delete_order(order_id)
+            if success:
+                self.fetch_orders()
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Erro",
+                    "Erro ao excluir o pedido. Tente novamente.",
+                )
 
     def _on_add_clicked(self) -> None:
         """Handle Add button click — open a blank order edit dialog."""
         dialog = self._order_edit_dialog_factory(self, None, None)
         dialog.order_saved.connect(self._on_order_saved)
-        dialog.exec()
+        dialog.show()
 
     def _on_import_xml_clicked(self) -> None:
         """Handle Importar XML button click — open file dialog, parse XML, show dialog."""
         from pathlib import Path as PathLib
-        from PySide6.QtWidgets import QFileDialog, QMessageBox
+        from PySide6.QtWidgets import QFileDialog
 
         # 1. Open file dialog
         file_path: str = ""
@@ -248,7 +289,6 @@ class OrderEditListView(QWidget):
 
     def _on_nfe_result(self, xml_path: str) -> None:
         """Handle successful NFe search — import XML and open edit dialog."""
-        from PySide6.QtWidgets import QMessageBox
 
         result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
         result = self._business_service.import_xml(result_path)
@@ -269,5 +309,3 @@ class OrderEditListView(QWidget):
     def _on_order_saved(self, order_data: object) -> None:
         """Handle successful order save — refresh the order table."""
         self.fetch_orders()
-
-

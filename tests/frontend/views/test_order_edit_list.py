@@ -1,4 +1,4 @@
-from PySide6.QtWidgets import QPushButton
+from PySide6.QtWidgets import QPushButton, QWidget
 from pytestqt.qtbot import QtBot
 
 from frontend.views.order_edit.order_edit_list import OrderEditListView
@@ -27,7 +27,6 @@ class TestOrderEditListInitialLoad:
         assert widget.filter_month.placeholderText() == "MM/AAAA"
 
         # Scroll and table should be visible
-        assert widget.scroll.isVisible() is True
         assert widget.table_view.isVisible() is True
 
         # Model should have 6 columns
@@ -143,7 +142,6 @@ class TestOrderEditListEmptyState:
         widget.btn_search.click()
 
         assert widget._model.rowCount() == 0
-        assert widget.scroll.isVisible() is True
         assert widget.table_view.isVisible() is True
 
 
@@ -151,13 +149,13 @@ class TestOrderEditListEmptyState:
 
 
 class TestOrderEditListEditButton:
-    """TC-14: Edit buttons are placed in the Ação column for each row."""
+    """TC-14: Each row in the Ação column has a container widget with edit and delete icon-only buttons."""
 
-    def test_edit_buttons_present(
+    def test_edit_delete_buttons_in_container(
             self,
             order_list_widget: OrderEditListView,
     ) -> None:
-        """Verify Edit buttons are placed in column 5 for each row."""
+        """Verify column 5 contains a QWidget container with 2 icon-only QPushButton children."""
         widget = order_list_widget
 
         widget.filter_month.setText("07/2024")
@@ -167,10 +165,27 @@ class TestOrderEditListEditButton:
 
         for row in range(3):
             index = widget._model.index(row, 5)
-            button = widget.table_view.indexWidget(index)
-            assert button is not None
-            assert isinstance(button, QPushButton)
-            assert button.text() == "Editar"
+            container = widget.table_view.indexWidget(index)
+
+            # Column 5 should hold a QWidget container, not a direct button
+            assert container is not None
+            assert isinstance(container, QWidget)
+
+            # The container should have exactly 2 child widgets (edit + delete)
+            children = container.findChildren(QPushButton)
+            assert len(children) == 2
+
+            # First button: edit icon
+            edit_btn = children[0]
+            assert not edit_btn.icon().isNull(), "Edit button should have an icon"
+
+            # Second button: delete icon
+            delete_btn = children[1]
+            assert not delete_btn.icon().isNull(), "Delete button should have an icon"
+
+            # Both buttons should be icon-only (no text)
+            assert edit_btn.text() == ""
+            assert delete_btn.text() == ""
 
 
 # ── TC-15: Return Key Triggers Search ─────────────────────────────

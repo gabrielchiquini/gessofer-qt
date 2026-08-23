@@ -15,12 +15,13 @@ from PySide6.QtWidgets import (
     QWidget, QToolTip,
 )
 
-from models.input import ProductInput
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from models.output import Product
 from frontend.util.icons import svg_to_pixmap
+from models.input import ProductInput
+from models.output import Product
+from util.paths import ASSETS_DIR
 
-_EXCLAMATION_ICON_PATH = str(Path(__file__).parent.parent.parent / "assets" / "circle-exclamation.svg")
+_EXCLAMATION_ICON_PATH = str(ASSETS_DIR / "circle-exclamation.svg")
 _EXCLAMATION_ICON: QIcon = QIcon(_EXCLAMATION_ICON_PATH)
 
 
@@ -218,17 +219,17 @@ class ProductRowWidget(QWidget):
         else:
             self.warning_icon.setToolTip("")
 
+
 class MouseHoverFilter(QObject):
     def __init__(self, tooltip: str):
         super().__init__()
         self.tooltip = tooltip
 
-
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.Enter:
-            event: QMouseEvent = event # type: ignore[union-attr]
+            event: QMouseEvent = event  # type: ignore[union-attr]
             QToolTip.showText(event.globalPos(), self.tooltip)
         elif event.type() == QEvent.Type.Leave:
-            event: QMouseEvent = event # type: ignore[union-attr]
+            event: QMouseEvent = event  # type: ignore[union-attr]
 
         return super().eventFilter(obj, event)

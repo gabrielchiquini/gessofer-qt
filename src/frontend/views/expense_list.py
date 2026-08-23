@@ -123,7 +123,7 @@ class ExpenseListView(QWidget):
             return
         edit_dialog = self._expense_edit_dialog_factory(self, month)
         edit_dialog.expenses_saved.connect(self._on_expenses_saved)
-        edit_dialog.exec()
+        edit_dialog.show()
         self._edit_dialog = edit_dialog
 
     def _on_expenses_saved(self, month: str) -> None:

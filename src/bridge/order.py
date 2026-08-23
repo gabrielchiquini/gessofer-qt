@@ -47,6 +47,22 @@ class OrderBridge:
         finally:
             session.close()
 
+    def delete_order(self, order_id: str) -> bool:
+        """Delete an order and its associated products."""
+        try:
+            session: Session = self._session_factory()
+            try:
+                repo = OrderRepository(session)
+                repo.delete_order_products([order_id])
+                repo.delete_orders([order_id])
+                session.commit()
+                return True
+            finally:
+                session.close()
+        except Exception as exc:
+            logger.error("Error in delete_order: %s", exc)
+            return False
+
     def orm_order_to_dict(self, order: Order) -> Order:
         """Transform an ORM Order entity into an Order dataclass."""
         return Order(

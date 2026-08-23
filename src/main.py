@@ -2,14 +2,15 @@ import logging
 import sys
 from pathlib import Path
 
-from PySide6.QtWidgets import QApplication, QWidget
+from PySide6 import QtCore
+from PySide6.QtWidgets import QApplication
 
-from frontend.app import MainWindow
 from di.injector_module import get_injector
-from frontend.factories.product_list_view_factory import ProductListViewFactory
-from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
-from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.app import MainWindow
 from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
+from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
+from frontend.factories.product_list_view_factory import ProductListViewFactory
 
 
 def main() -> None:
@@ -19,7 +20,25 @@ def main() -> None:
         format='{asctime} | {levelname:<8} | {name:<12} | {message}'
     )
     logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+
+    # 2. Map Qt message types to Python log levels
+    def qt_message_handler(mode, context, message):
+        logger = logging.getLogger("QT")
+        if mode == QtCore.QtMsgType.QtDebugMsg:
+            logger.debug(message)
+        elif mode == QtCore.QtMsgType.QtInfoMsg:
+            logger.info(message)
+        elif mode == QtCore.QtMsgType.QtWarningMsg:
+            logger.warning(message)
+        elif mode == QtCore.QtMsgType.QtCriticalMsg:
+            logger.error(message)
+        elif mode == QtCore.QtMsgType.QtFatalMsg:
+            logger.critical(message)
+
+    # 3. Register the handler before creating the QApplication
+    QtCore.qInstallMessageHandler(qt_message_handler)
     app = QApplication(sys.argv)
+
     app.setStyle("FluentUI3")
     app.setApplicationName("Gessofer")
     app.setOrganizationName("Gessofer")

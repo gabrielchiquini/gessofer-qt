@@ -5,7 +5,8 @@ import logging
 from injector import inject
 
 from models.input import OrderInput
-from backend.services.save_order_service import SaveOrderService, SaveExpenseService
+from backend.services.save_order_service import SaveOrderService
+from backend.services.save_expense_service import SaveExpenseService
 
 logger = logging.getLogger(__name__)
 
@@ -21,14 +22,6 @@ class SaveHandler:
     ) -> None:
         self._save_order_service = save_order_service
         self._save_expense_service = save_expense_service
-
-    def save_orders(
-        self,
-        orders: list[OrderInput],
-        deleted_order_ids: list[str],
-    ) -> None:
-        """Save orders in a single transaction."""
-        self._save_order_service.save_orders(orders, deleted_order_ids)
 
     def save_single_order(self, order: OrderInput) -> None:
         """Save a single order (with its products) as an upsert."""

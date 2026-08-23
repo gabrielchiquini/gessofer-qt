@@ -59,7 +59,6 @@ def _get_dialog_by_type[T](class_type: type[T]) -> T:
 
 # ── TC-01: Edit Expenses and Verify List Updates ────────────────────
 
-@pytest.mark.skip(reason="expense list not working")
 class TestExpenseListEdit:
     """TC-01: Edit an existing expense and add a new one, verify list updates."""
 
@@ -116,7 +115,6 @@ class TestExpenseListEdit:
 
 # ── TC-02: Delete Expense and Verify List Updates ───────────────────
 
-@pytest.mark.skip(reason="expense list not working")
 class TestExpenseListDelete:
     """TC-02: Delete an expense row and verify the list updates."""
 

@@ -5,6 +5,7 @@ import os
 import shutil
 from datetime import date
 
+from backend.database.connection import discover_database_path
 from backend.errors import BackupError
 from backend.utils.backup import (
     compute_retention_decision,
@@ -36,7 +37,7 @@ class BackupService:
         self._backup_dir: str = backup_dir
         os.makedirs(self._backup_dir, exist_ok=True)
 
-    def create_backup(self, db_path: str) -> str:
+    def create_backup(self) -> str:
         """
         Copy the SQLite database file to the backup directory with today's date.
 
@@ -52,6 +53,7 @@ class BackupService:
         Raises:
             BackupError: If ``db_path`` does not exist or is not a file.
         """
+        db_path = discover_database_path()
         if not os.path.isfile(db_path):
             raise BackupError(f"Arquivo de banco de dados não encontrado: {db_path}")
 

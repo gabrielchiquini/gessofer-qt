@@ -214,20 +214,32 @@ class TestDiscoverBackupDir:
 # ── BackupService.create_backup ─────────────────────────────────────────────
 
 
+@pytest.fixture()
+def mock_discover_db(
+    sample_db: str,
+) -> None:
+    """Patch discover_database_path to return the sample_db path."""
+    with patch(
+        "backend.services.backup_service.discover_database_path",
+        return_value=sample_db,
+    ):
+        yield
+
+
 class TestBackupServiceCreateBackup:
     def test_creates_backup_file(
-        self, tmp_backup_dir: str, sample_db: str
+        self, tmp_backup_dir: str, mock_discover_db: None
     ) -> None:
         service = BackupService(backup_dir=tmp_backup_dir)
-        result = service.create_backup(sample_db)
+        result = service.create_backup()
         assert os.path.isfile(result)
         assert result.endswith(".db")
 
     def test_backup_content_matches_source(
-        self, tmp_backup_dir: str, sample_db: str
+        self, tmp_backup_dir: str, mock_discover_db: None, sample_db: str
     ) -> None:
         service = BackupService(backup_dir=tmp_backup_dir)
-        service.create_backup(sample_db)
+        service.create_backup()
         backup_file = os.path.join(tmp_backup_dir, os.path.basename(
             [f for f in os.listdir(tmp_backup_dir) if f.endswith(".db")][0]
         ))
@@ -238,17 +250,17 @@ class TestBackupServiceCreateBackup:
         assert original == backed_up
 
     def test_overwrites_today_backup(
-        self, tmp_backup_dir: str, sample_db: str
+        self, tmp_backup_dir: str, mock_discover_db: None
     ) -> None:
         service = BackupService(backup_dir=tmp_backup_dir)
         # First backup
-        path1 = service.create_backup(sample_db)
+        path1 = service.create_backup()
         mtime1 = os.path.getmtime(path1)
 
         # Wait a moment and backup again
         import time
         time.sleep(0.1)
-        path2 = service.create_backup(sample_db)
+        path2 = service.create_backup()
         mtime2 = os.path.getmtime(path2)
 
         assert path1 == path2
@@ -258,8 +270,12 @@ class TestBackupServiceCreateBackup:
         self, tmp_backup_dir: str
     ) -> None:
         service = BackupService(backup_dir=tmp_backup_dir)
-        with pytest.raises(BackupError, match="Arquivo de banco de dados não encontrado"):
-            service.create_backup("/nonexistent/path/main.db")
+        with patch(
+            "backend.services.backup_service.discover_database_path",
+            return_value="/nonexistent/path/main.db",
+        ):
+            with pytest.raises(BackupError, match="Arquivo de banco de dados não encontrado"):
+                service.create_backup()
 
 
 # ── BackupService.prune_backups ─────────────────────────────────────────────

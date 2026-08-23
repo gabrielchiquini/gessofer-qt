@@ -4,8 +4,8 @@ from math import floor
 def cents_to_display(cents: int) -> str:
     """
     Convert integer cents to Brazilian currency display string.
-    Example: 123456 -> "1.234,56"
-    Example: -123456 -> "-1.234,56"
+    Example: 123456 -> "1234,56"
+    Example: -123456 -> "-1234,56"
     Example: 0 -> "0,00"
     Example: 99 -> "0,99"
     """
@@ -20,15 +20,7 @@ def cents_to_display(cents: int) -> str:
     integer_part = abs_cents // 100
     decimal_part = abs_cents % 100
 
-    # Format integer part with dots as thousand separators
-    int_str = str(integer_part)
-    formatted = ""
-    while len(int_str) > 3:
-        formatted = "." + int_str[-3:] + formatted
-        int_str = int_str[:-3]
-    formatted = int_str + formatted
-
-    return f"{sign}{formatted},{decimal_part:02d}"
+    return f"{sign}{integer_part},{decimal_part:02d}"
 
 
 def parse_currency_to_cents(value: str) -> int:

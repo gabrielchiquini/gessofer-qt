@@ -5,6 +5,7 @@ from pathlib import Path
 from PySide6 import QtCore
 from PySide6.QtWidgets import QApplication
 
+from backend.services.backup_service import BackupService
 from di.injector_module import get_injector
 from frontend.app import MainWindow
 from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
@@ -63,14 +64,10 @@ def main() -> None:
 
     # ── Backup check (non-blocking, silent failure) ──────────────────
     try:
-        from backend.services.backup_service import BackupService
-        from backend.database.connection import discover_database_path
-        from backend.utils.backup import discover_backup_dir
 
         injector = get_injector()
         backup_service = injector.get(BackupService)
-        db_path = discover_database_path()
-        backup_service.create_backup(db_path)
+        backup_service.create_backup()
         backup_service.prune_backups()
     except Exception as exc:
         # Backup failure must NOT prevent the app from launching.

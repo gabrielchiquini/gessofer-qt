@@ -5,13 +5,12 @@ from math import ceil
 from typing import List, Optional, Sequence, cast
 
 from sqlalchemy import func, select, delete
-from sqlalchemy.orm import Session, selectinload
+from sqlalchemy.orm import Session, selectinload, SessionTransaction
 
 from backend.entities.orm import Order, Product
+from backend.utils.text import normalize_text
 from models.input import OrderInput, ProductInput
 from models.output import PageResponse
-from backend.utils.text import normalize_text
-
 
 PAGE_SIZE: int = 50
 
@@ -19,8 +18,11 @@ PAGE_SIZE: int = 50
 class OrderRepository:
     """Repository for ORDER and PRODUCT tables using SQLAlchemy 2.0."""
 
-    def __init__(self, session: Session) -> None:
-        self.session = session
+    def __init__(self, db_session: Session | SessionTransaction) -> None:
+        if isinstance(db_session, SessionTransaction):
+            self.session = db_session.session
+        elif isinstance(db_session, Session):
+            self.session = db_session
 
     # ── Query: fetch_orders_for_month ───────────────────────────────
 
@@ -66,11 +68,11 @@ class OrderRepository:
     # ── Query: search_products (paginated search) ───────────────────
 
     def search_products(
-        self,
-        page: int,
-        supplier: Optional[str] = None,
-        product: Optional[str] = None,
-        month: Optional[str] = None,
+            self,
+            page: int,
+            supplier: Optional[str] = None,
+            product: Optional[str] = None,
+            month: Optional[str] = None,
     ) -> PageResponse[Product]:
         """
         Paginated product search with optional filters.

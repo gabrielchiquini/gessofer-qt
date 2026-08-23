@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import List
 
 from sqlalchemy import select, delete
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, SessionTransaction
 
 from backend.entities.orm import Expense
 from models.input import ExpenseInput
@@ -12,9 +12,13 @@ from models.input import ExpenseInput
 
 class ExpenseRepository:
     """Repository for the EXPENSE table using SQLAlchemy 2.0."""
+    session: Session
 
-    def __init__(self, session: Session) -> None:
-        self.session = session
+    def __init__(self, db_session: Session | SessionTransaction) -> None:
+        if isinstance(db_session, SessionTransaction):
+            self.session = db_session.session
+        elif isinstance(db_session, Session):
+            self.session = db_session
 
     def fetch_expenses_for_month(self, month: str) -> List[Expense]:
         """

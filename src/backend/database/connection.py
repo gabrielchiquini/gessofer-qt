@@ -1,13 +1,14 @@
+import logging
 import os
-from pathlib import Path
 from typing import Any
-from sqlalchemy import create_engine, event
-from sqlalchemy.pool import StaticPool
-from sqlalchemy.engine import Engine
 
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
+from sqlalchemy.pool import StaticPool
 
 DEFAULT_DB_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "gessofer-tauri")
 DEFAULT_DB_FILE = "main.db"
+_logger = logging.getLogger(__name__)
 
 
 def discover_database_path() -> str:
@@ -25,7 +26,7 @@ def discover_database_path() -> str:
     db_url = os.environ.get("DATABASE_URL")
     if db_url:
         path = db_url.replace("sqlite:///", "").replace("sqlite://", "")
-        print("Using DATABASE_URL DB")
+        _logger.info("Using DATABASE_URL DB")
         return os.path.abspath(path)
 
     # Step 2: Check CWD
@@ -33,13 +34,13 @@ def discover_database_path() -> str:
     if cwd:
         test_path = os.path.join(cwd, "main.db")
         if os.path.isfile(test_path):
-            print("Using CWD DB")
+            _logger.info("Using CWD DB")
             return os.path.abspath(test_path)
 
     # Step 3: Check production path
     prod_path = os.path.join(DEFAULT_DB_DIR, DEFAULT_DB_FILE)
     if os.path.isfile(prod_path):
-        print("Using PROD DB")
+        _logger.info("Using PROD DB")
         return os.path.abspath(prod_path)
 
     raise FileNotFoundError(

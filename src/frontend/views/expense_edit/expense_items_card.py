@@ -2,8 +2,10 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
@@ -35,7 +37,21 @@ class ExpenseItemsCard(QWidget):
 
         self._expense_rows: list[ExpenseRowWidget] = []
 
-        self._card.set_content(self.expenses_layout)
+        # ── Scroll Area for Expense Rows ────────────────────────────────
+        self._scroll_container: QWidget = QWidget()
+        self._scroll_container.setContentsMargins(0, 0, 0, 0)
+        self._scroll_container.setObjectName("scroll_container")
+        self._scroll_container.setStyleSheet(
+            "#scroll_container { background-color: white; border: 0px; border-radius: 0px; }")
+        self._scroll_container.setLayout(self.expenses_layout)
+
+        self._scroll_area: QScrollArea = QScrollArea(self)
+        self._scroll_area.setWidget(self._scroll_container)
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self._scroll_area.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
+
+        self._card.set_content(self._scroll_area)
 
         # ── Footer ────────────────────────────────────────────────────
         self.total_label: QLabel = QLabel(

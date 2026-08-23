@@ -171,12 +171,12 @@ class TestProductListDisplayCorrectness:
         assert widget._model.item(2, 3).text() == "80,00"
         assert widget._model.item(2, 4).text() == "160,00"
 
-        # Row 3: 15/07/2024 | Areia Premium LTDA | Areia média | 150,00 | 300,00
+        # Row 3: 15/07/2024 | Areia Premium LTDA | Areia média | 1200,00 | 2400,00
         assert widget._model.item(3, 0).text() == "15/07/2024"
         assert widget._model.item(3, 1).text() == "Areia Premium LTDA"
         assert widget._model.item(3, 2).text() == "Areia média"
-        assert widget._model.item(3, 3).text() == "150,00"
-        assert widget._model.item(3, 4).text() == "300,00"
+        assert widget._model.item(3, 3).text() == "1200,00"
+        assert widget._model.item(3, 4).text() == "2400,00"
 
         # Row 4: 10/07/2024 | Cimento Portland | Cimento CP-II 50kg | 250,00 | 250,00
         assert widget._model.item(4, 0).text() == "10/07/2024"

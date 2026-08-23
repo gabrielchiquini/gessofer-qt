@@ -66,9 +66,9 @@ class TestOrderItemsCardDataLoading:
                 f"{tc_id}: row 0 name mismatch"
             assert rows[0].quantity_input.text() == "2", \
                 f"{tc_id}: row 0 qty mismatch"
-            assert rows[0].price_input.text() == "150,00", \
+            assert rows[0].price_input.text() == "1200,00", \
                 f"{tc_id}: row 0 price mismatch"
-            assert rows[0].total_input.text() == "300,00", \
+            assert rows[0].total_input.text() == "2400,00", \
                 f"{tc_id}: row 0 total mismatch"
         finally:
             dialog.deleteLater()

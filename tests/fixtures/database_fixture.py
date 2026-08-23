@@ -31,7 +31,7 @@ def _seed_expenses(engine: Engine) -> None:
     expenses_data = [
         ("2024-07", "Material de escritório", 15000),
         ("2024-07", "Taxa bancária", 7500),
-        ("2024-07", "Limpeza", 30000),
+        ("2024-07", "Limpeza", 150000),
         ("2024-08", "Manutenção elétrica", 45000),
         ("2024-08", "Água e esgoto", 12000),
     ]
@@ -80,7 +80,7 @@ def _seed_orders(engine: Engine) -> None:
             3000,
             500,
             [
-                ("prod-b1", "Areia média", 2, 15000, 30000, 1),
+                ("prod-b1", "Areia média", 2, 120000, 240000, 1),
             ],
         ),
         # Order C: August 2024, Cimento Portland

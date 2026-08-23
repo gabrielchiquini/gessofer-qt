@@ -98,7 +98,7 @@ class TestExpenseListDisplay:
         # Values formatted as Brazilian currency (no "R$", just the number)
         assert model.item(0, 1).text() == "150,00"  # 15000 cents
         assert model.item(1, 1).text() == "75,00"  # 7500 cents
-        assert model.item(2, 1).text() == "300,00"  # 30000 cents
+        assert model.item(2, 1).text() == "1500,00"  # 150000 cents
 
         # Verify August ordering
         widget.month_filter.set_month("08/2024")
@@ -124,11 +124,11 @@ class TestExpenseListTotal:
         """Verify total matches sum of visible expense values."""
         widget = expense_list_widget
 
-        # July 2024: 15000 + 7500 + 30000 = 52500 cents
+        # July 2024: 15000 + 7500 + 150000 = 172500 cents
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
 
-        assert widget.total_label.text() == "Total: 525,00"
+        assert widget.total_label.text() == "Total: 1725,00"
 
         # August 2024: 45000 + 12000 = 57000 cents
         widget.month_filter.set_month("08/2024")

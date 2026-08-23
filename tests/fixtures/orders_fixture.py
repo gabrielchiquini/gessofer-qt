@@ -15,7 +15,7 @@ from bridge.product import FetchHandler
 #   Product 2: "Cimento CP-II 1kg",  price=500,  total=500,  qty=1
 #
 # Order B: 2024-07-15, "Areia Premium LTDA"
-#   Product 3: "Areia média", price=15000, total=30000, qty=2
+#   Product 3: "Areia média", price=120000, total=240000, qty=2
 #
 # Order C: 2024-08-05, "Cimento Portland"
 #   Product 4: "Cimento CP-I 50kg", price=22000, total=22000, qty=1
@@ -63,7 +63,7 @@ orders_data: list[tuple] = [
         3000,
         500,
         [
-            ("prod-b1", "Areia média", 2, 15000, 30000, 1),
+            ("prod-b1", "Areia média", 2, 120000, 240000, 1),
         ],
     ),
     # Order C: August 2024, Cimento Portland

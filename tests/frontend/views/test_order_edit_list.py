@@ -1,4 +1,7 @@
-from PySide6.QtWidgets import QPushButton, QWidget
+from unittest.mock import MagicMock, patch
+
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QPushButton, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
 from frontend.views.order_edit.order_edit_list import OrderEditListView
@@ -207,3 +210,205 @@ class TestOrderEditListEnterKeySearch:
         assert widget._model.rowCount() == 2
         assert widget._model.item(0, 1).text() == "Cimento Portland"
         assert widget._model.item(1, 1).text() == "Tijolo & Cia"
+
+
+# ── TC-16: Delete Button Present ──────────────────────────────────
+
+
+class TestOrderEditListDeleteButtonPresent:
+    """TC-16: Each row in the Ação column has a delete button alongside the edit button."""
+
+    def test_delete_button_exists_in_each_row(
+            self,
+            order_list_widget: OrderEditListView,
+    ) -> None:
+        """Verify every row has a delete button (index 1) with icon and tooltip."""
+        widget = order_list_widget
+
+        widget.filter_month.setText("07/2024")
+        widget.btn_search.click()
+
+        assert widget._model.rowCount() == 3
+
+        for row in range(3):
+            index = widget._model.index(row, 5)
+            container = widget.table_view.indexWidget(index)
+
+            assert container is not None
+            assert isinstance(container, QWidget)
+
+            buttons = container.findChildren(QPushButton)
+            assert len(buttons) >= 2
+
+            delete_btn = buttons[1]
+            assert isinstance(delete_btn, QPushButton)
+            assert delete_btn.icon() is not None
+            assert delete_btn.text() == ""
+            assert delete_btn.toolTip() == "Excluir pedido"
+
+
+# ── TC-17: Delete Confirmation Dialog ─────────────────────────────
+
+
+class TestOrderEditListDeleteConfirmation:
+    """TC-17: Clicking delete shows a confirmation dialog with Yes/No buttons."""
+
+    def test_delete_shows_confirmation_dialog(
+            self,
+            order_list_widget: OrderEditListView,
+            qtbot: QtBot,
+    ) -> None:
+        """Clicking delete opens QMessageBox.warning with Yes/No buttons."""
+        widget = order_list_widget
+
+        widget.filter_month.setText("07/2024")
+        widget.btn_search.click()
+
+        # Get the delete button from row 0
+        index = widget._model.index(0, 5)
+        container = widget.table_view.indexWidget(index)
+        buttons = container.findChildren(QPushButton)
+        delete_btn = buttons[1]
+
+        with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
+            mock_warning.return_value = QMessageBox.StandardButton.Yes
+            qtbot.addWidget(delete_btn)
+            qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
+
+        mock_warning.assert_called_once()
+        call_args = mock_warning.call_args
+
+        # First positional arg after self is the parent (widget)
+        # Second positional arg is the title
+        # Third positional arg is the message
+        # Fourth positional arg is the buttons
+        title = call_args[0][1]
+        message = call_args[0][2]
+        buttons_arg = call_args[0][3]
+
+        assert "Confirmar" in title
+        assert "excluir" in message.lower()
+        assert QMessageBox.StandardButton.Yes in buttons_arg
+        assert QMessageBox.StandardButton.No in buttons_arg
+
+
+# ── TC-18: Delete Cancel Path ─────────────────────────────────────
+
+
+class TestOrderEditListDeleteCancel:
+    """TC-18: Cancelling the delete dialog does not call delete_order or refresh."""
+
+    def test_delete_cancel_does_not_call_bridge(
+            self,
+            order_list_widget: OrderEditListView,
+            qtbot: QtBot,
+    ) -> None:
+        """Clicking No in the confirmation dialog skips delete and refresh."""
+        widget = order_list_widget
+
+        widget.filter_month.setText("07/2024")
+        widget.btn_search.click()
+
+        initial_row_count = widget._model.rowCount()
+        assert initial_row_count == 3
+
+        # Get the delete button from row 0
+        index = widget._model.index(0, 5)
+        container = widget.table_view.indexWidget(index)
+        buttons = container.findChildren(QPushButton)
+        delete_btn = buttons[1]
+
+        with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
+            mock_warning.return_value = QMessageBox.StandardButton.No
+            with patch.object(widget._order_bridge, "delete_order") as mock_delete:
+                qtbot.addWidget(delete_btn)
+                qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
+
+                mock_delete.assert_not_called()
+
+        # Table should NOT have been refreshed
+        assert widget._model.rowCount() == initial_row_count
+
+
+# ── TC-19: Delete Success Path ────────────────────────────────────
+
+
+class TestOrderEditListDeleteSuccess:
+    """TC-19: Confirming delete calls bridge.delete_order and refreshes the table."""
+
+    def test_delete_confirmed_calls_bridge_and_refreshes(
+            self,
+            order_list_widget: OrderEditListView,
+            qtbot: QtBot,
+    ) -> None:
+        """Clicking Yes calls delete_order then refreshes the table."""
+        widget = order_list_widget
+
+        widget.filter_month.setText("07/2024")
+        widget.btn_search.click()
+
+        # Get the delete button from row 0
+        index = widget._model.index(0, 5)
+        container = widget.table_view.indexWidget(index)
+        buttons = container.findChildren(QPushButton)
+        delete_btn = buttons[1]
+
+        with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
+            mock_warning.return_value = QMessageBox.StandardButton.Yes
+            with patch.object(widget._order_bridge, "delete_order", return_value=True) as mock_delete:
+                with patch.object(widget, "fetch_orders") as mock_fetch:
+                    qtbot.addWidget(delete_btn)
+                    qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
+
+                    mock_delete.assert_called_once()
+                    # Verify delete_order was called with a string order ID
+                    call_args = mock_delete.call_args
+                    assert len(call_args[0]) == 1
+                    assert isinstance(call_args[0][0], str)
+
+                    mock_fetch.assert_called_once()
+
+
+# ── TC-20: Delete Error Path ──────────────────────────────────────
+
+
+class TestOrderEditListDeleteError:
+    """TC-20: When delete_order returns False, a critical error dialog is shown."""
+
+    def test_delete_failure_shows_error_dialog(
+            self,
+            order_list_widget: OrderEditListView,
+            qtbot: QtBot,
+    ) -> None:
+        """Delete failure shows QMessageBox.critical and does not refresh the table."""
+        widget = order_list_widget
+
+        widget.filter_month.setText("07/2024")
+        widget.btn_search.click()
+
+        # Get the delete button from row 0
+        index = widget._model.index(0, 5)
+        container = widget.table_view.indexWidget(index)
+        buttons = container.findChildren(QPushButton)
+        delete_btn = buttons[1]
+
+        with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
+            mock_warning.return_value = QMessageBox.StandardButton.Yes
+            with patch.object(widget._order_bridge, "delete_order", return_value=False) as mock_delete:
+                with patch("PySide6.QtWidgets.QMessageBox.critical") as mock_critical:
+                    with patch.object(widget, "fetch_orders") as mock_fetch:
+                        qtbot.addWidget(delete_btn)
+                        qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
+
+                        mock_delete.assert_called_once()
+                        mock_critical.assert_called_once()
+
+                        # Verify critical dialog title and message
+                        critical_args = mock_critical.call_args
+                        title = critical_args[0][1]
+                        message = critical_args[0][2]
+                        assert title == "Erro"
+                        assert "Erro ao excluir" in message
+
+                        # Table should NOT have been refreshed on error
+                        mock_fetch.assert_not_called()

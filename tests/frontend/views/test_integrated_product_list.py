@@ -3,7 +3,8 @@ from __future__ import annotations
 from typing import Generator
 
 import pytest
-from PySide6.QtWidgets import QApplication, QPushButton
+from PySide6.QtWidgets import QApplication, QMessageBox, QPushButton
+from unittest.mock import patch
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
@@ -209,9 +210,9 @@ class TestProductListAddOrder:
 
 # ── TC-03: Delete Order and Verify Products Are Removed ─────────────
 
-@pytest.mark.skip(reason="cant delete order yet")
+
 class TestProductListDeleteOrder:
-    """TC-03: Delete an order (save with no products) and verify products are removed."""
+    """TC-03: Delete an order via the delete button and verify products are removed."""
 
     def test_delete_order_removes_products(
         self,
@@ -219,7 +220,7 @@ class TestProductListDeleteOrder:
         qtbot: QtBot,
     ) -> None:
         """Navigate to product list, verify 4 products in July 2024,
-        delete order-b (1 product), navigate back, verify 3 products."""
+        delete order-b (1 product) via delete button, navigate back, verify 3 products."""
         mw = main_window_with_factories
 
         # Step 1: Verify initial product count
@@ -227,7 +228,7 @@ class TestProductListDeleteOrder:
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
@@ -238,29 +239,20 @@ class TestProductListDeleteOrder:
         # Step 3: Verify order list shows 3 orders in July 2024
         order_view.filter_month.setText("07/2024")
         order_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert order_view._model.rowCount() == 3
 
-        # Step 4: Delete order-b (row 1 — "Areia Premium LTDA")
-        edit_btn = order_view.table_view.indexWidget(
+        # Step 4: Delete order-b (row 1 — "Areia Premium LTDA") using delete button
+        container = order_view.table_view.indexWidget(
             order_view._model.index(1, 5)
         )
-        assert edit_btn is not None
-        edit_btn.click()
+        assert container is not None
+        delete_btn = container.findChildren(QPushButton)[1]
+        assert delete_btn is not None
+
+        with patch('PySide6.QtWidgets.QMessageBox.warning', return_value=QMessageBox.StandardButton.Yes):
+            delete_btn.click()
         qtbot.wait(100)
-
-        dialog = _get_dialog_by_type(OrderEditDialog)
-        qtbot.addWidget(dialog)
-        qtbot.waitExposed(dialog)
-
-        # Delete all product rows
-        rows = dialog.items_card.get_product_rows()
-        # rows[0] is the data row, rows[1] is trailing empty
-        rows[0].delete_button.click()
-        qtbot.wait(100)
-
-        dialog.btn_save.click()
-        qtbot.wait(200)
 
         # Step 5: Verify order list updated to 2 orders
         assert order_view._model.rowCount() == 2
@@ -273,7 +265,7 @@ class TestProductListDeleteOrder:
         # Step 7: Verify product count decreased to 3
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 3
 
 

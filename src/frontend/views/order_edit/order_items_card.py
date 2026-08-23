@@ -2,20 +2,22 @@ from __future__ import annotations
 
 from PySide6.QtCore import Qt, Signal
 from PySide6.QtWidgets import (
+    QFrame,
     QHBoxLayout,
     QLabel,
     QPushButton,
+    QScrollArea,
     QVBoxLayout,
     QWidget,
 )
 
-from models.input import ProductInput
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
-from models.order import Order
-from models.output import Product
 from backend.business import BusinessService
+from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
+from models.input import ProductInput
+from models.order import Order
+from models.output import Product
 
 
 class OrderItemsCard(QWidget):
@@ -25,9 +27,9 @@ class OrderItemsCard(QWidget):
     row_added: Signal = Signal(ProductRowWidget)
 
     def __init__(
-        self,
-        parent: QWidget,
-        business_service: BusinessService,
+            self,
+            parent: QWidget,
+            business_service: BusinessService,
     ) -> None:
         super().__init__(parent)
         self._business_service: BusinessService = business_service
@@ -44,7 +46,20 @@ class OrderItemsCard(QWidget):
 
         self._product_rows: list[ProductRowWidget] = []
 
-        self._card.set_content(self.products_layout)
+        # ── Scroll Area for Product Rows ────────────────────────────────
+        self._scroll_container: QWidget = QWidget()
+        self._scroll_container.setContentsMargins(0, 0, 0, 0)
+        self._scroll_container.setObjectName("scroll_container")
+        self._scroll_container.setStyleSheet(
+            "#scroll_container { background-color: white; border: 0px; border-radius: 0px; }")
+        self._scroll_container.setLayout(self.products_layout)
+
+        self._scroll_area: QScrollArea = QScrollArea(self)
+        self._scroll_area.setWidget(self._scroll_container)
+        self._scroll_area.setWidgetResizable(True)
+        self._scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+
+        self._card.set_content(self._scroll_area)
 
         # ── Footer ────────────────────────────────────────────────────
         self._products_total_label: QLabel = QLabel(
@@ -127,7 +142,7 @@ class OrderItemsCard(QWidget):
     def get_products_list(self, order_id: str = "") -> list[ProductInput]:
         """Return a list of ProductInput from all product rows."""
         return [
-            row.get_product_data(order_id, i) for i, row in enumerate(self._product_rows[:-1]) # ignores last empty row
+            row.get_product_data(order_id, i) for i, row in enumerate(self._product_rows[:-1])  # ignores last empty row
         ]
 
     def validate(self, *, show_errors: bool = False) -> tuple[bool, list[str]]:

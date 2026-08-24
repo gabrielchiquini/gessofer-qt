@@ -156,14 +156,7 @@ class OrderEditDialog(QDialog):
             products_list
         )
         if result and result.new_products:
-            new_products: list[ProductInput] = result.new_products
-            self.items_card.set_order_data(new_products)
-            for i, new_product in enumerate(new_products):
-                if i < len(self._product_rows):
-                    self._product_rows[i].price_input.setText(
-                        cents_to_display(new_product.price)
-                    )
-            self._order_changed()
+            self.items_card.set_order_data(result.new_products)
 
     def reject(self) -> None:
         """Override reject to emit the closed signal."""

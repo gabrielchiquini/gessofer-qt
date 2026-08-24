@@ -8,6 +8,9 @@ from models.order import Order
 from di.injector_module import get_injector
 from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
 from tests.fixtures.order_edit_dialog_fixture import order_edit_dialog_existing  # noqa: F401
+from tests.fixtures.seed_data import ORDERS_DATA
+from backend.utils.currency import cents_to_display
+from backend.utils.date import datetime_to_br_date
 
 
 class TestOrderHeaderCardFieldDisplay:
@@ -20,7 +23,7 @@ class TestOrderHeaderCardFieldDisplay:
         tc_id: str = "TC-16"
         dialog = order_edit_dialog_existing
         actual: str = dialog.header_card._supplier_input.get_text()
-        assert actual == "Cimento Portland", f"{tc_id}: expected 'Cimento Portland', got {actual!r}"
+        assert actual == ORDERS_DATA[0].supplier, f"{tc_id}: expected '{ORDERS_DATA[0].supplier}', got {actual!r}"
 
     def test_date_field_displays_in_br_format(
         self,
@@ -29,7 +32,7 @@ class TestOrderHeaderCardFieldDisplay:
         tc_id: str = "TC-17"
         dialog = order_edit_dialog_existing
         actual: str = dialog.header_card._date_input.get_text()
-        assert actual == "10/07/2024", f"{tc_id}: expected '10/07/2024', got {actual!r}"
+        assert actual == datetime_to_br_date(ORDERS_DATA[0].date), f"{tc_id}: expected '{datetime_to_br_date(ORDERS_DATA[0].date)}', got {actual!r}"
 
     def test_freight_field_displays_currency(
         self,
@@ -38,7 +41,7 @@ class TestOrderHeaderCardFieldDisplay:
         tc_id: str = "TC-18"
         dialog = order_edit_dialog_existing
         actual: str = dialog.header_card._freight_input.get_text()
-        assert actual == "50,00", f"{tc_id}: expected '50,00', got {actual!r}"
+        assert actual == cents_to_display(ORDERS_DATA[0].freight), f"{tc_id}: expected '{cents_to_display(ORDERS_DATA[0].freight)}', got {actual!r}"
 
     def test_unloading_field_displays_currency(
         self,
@@ -47,7 +50,7 @@ class TestOrderHeaderCardFieldDisplay:
         tc_id: str = "TC-19"
         dialog = order_edit_dialog_existing
         actual: str = dialog.header_card._unloading_input.get_text()
-        assert actual == "10,00", f"{tc_id}: expected '10,00', got {actual!r}"
+        assert actual == cents_to_display(ORDERS_DATA[0].unloading), f"{tc_id}: expected '{cents_to_display(ORDERS_DATA[0].unloading)}', got {actual!r}"
 
 
 class TestOrderHeaderCardDataLoading:
@@ -66,13 +69,13 @@ class TestOrderHeaderCardDataLoading:
         dialog.show()
 
         try:
-            assert dialog.header_card._supplier_input.get_text() == "Areia Premium LTDA", \
+            assert dialog.header_card._supplier_input.get_text() == ORDERS_DATA[1].supplier, \
                 f"{tc_id}: supplier mismatch"
-            assert dialog.header_card._date_input.get_text() == "15/07/2024", \
+            assert dialog.header_card._date_input.get_text() == datetime_to_br_date(ORDERS_DATA[1].date), \
                 f"{tc_id}: date mismatch"
-            assert dialog.header_card._freight_input.get_text() == "30,00", \
+            assert dialog.header_card._freight_input.get_text() == cents_to_display(ORDERS_DATA[1].freight), \
                 f"{tc_id}: freight mismatch"
-            assert dialog.header_card._unloading_input.get_text() == "5,00", \
+            assert dialog.header_card._unloading_input.get_text() == cents_to_display(ORDERS_DATA[1].unloading), \
                 f"{tc_id}: unloading mismatch"
         finally:
             dialog.deleteLater()

@@ -6,6 +6,8 @@ from di.injector_module import get_injector
 from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
 from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 from tests.fixtures.order_edit_dialog_fixture import order_edit_dialog_existing  # noqa: F401
+from tests.fixtures.seed_data import ORDERS_DATA
+from backend.utils.currency import cents_to_display
 
 
 class TestOrderItemsCardDataLoading:
@@ -23,23 +25,23 @@ class TestOrderItemsCardDataLoading:
         assert len(rows) == 3, f"{tc_id}: expected 3 rows, got {len(rows)}"
 
         # Row 0: Cimento CP-II 50kg
-        assert rows[0].name_input.text() == "Cimento CP-II 50kg", \
+        assert rows[0].name_input.text() == ORDERS_DATA[0].products[0].name, \
             f"{tc_id}: row 0 name mismatch"
-        assert rows[0].quantity_input.text() == "1", \
+        assert rows[0].quantity_input.text() == str(ORDERS_DATA[0].products[0].quantity), \
             f"{tc_id}: row 0 qty mismatch"
-        assert rows[0].price_input.text() == "250,00", \
+        assert rows[0].price_input.text() == cents_to_display(ORDERS_DATA[0].products[0].price), \
             f"{tc_id}: row 0 price mismatch"
-        assert rows[0].total_input.text() == "250,00", \
+        assert rows[0].total_input.text() == cents_to_display(ORDERS_DATA[0].products[0].total), \
             f"{tc_id}: row 0 total mismatch"
 
         # Row 1: Cimento CP-II 1kg
-        assert rows[1].name_input.text() == "Cimento CP-II 1kg", \
+        assert rows[1].name_input.text() == ORDERS_DATA[0].products[1].name, \
             f"{tc_id}: row 1 name mismatch"
-        assert rows[1].quantity_input.text() == "1", \
+        assert rows[1].quantity_input.text() == str(ORDERS_DATA[0].products[1].quantity), \
             f"{tc_id}: row 1 qty mismatch"
-        assert rows[1].price_input.text() == "5,00", \
+        assert rows[1].price_input.text() == cents_to_display(ORDERS_DATA[0].products[1].price), \
             f"{tc_id}: row 1 price mismatch"
-        assert rows[1].total_input.text() == "5,00", \
+        assert rows[1].total_input.text() == cents_to_display(ORDERS_DATA[0].products[1].total), \
             f"{tc_id}: row 1 total mismatch"
 
         # Row 2: trailing empty row
@@ -62,13 +64,13 @@ class TestOrderItemsCardDataLoading:
             # Order B: 1 product + 1 trailing = 2 rows
             assert len(rows) == 2, f"{tc_id}: expected 2 rows, got {len(rows)}"
 
-            assert rows[0].name_input.text() == "Areia média", \
+            assert rows[0].name_input.text() == ORDERS_DATA[1].products[0].name, \
                 f"{tc_id}: row 0 name mismatch"
-            assert rows[0].quantity_input.text() == "2", \
+            assert rows[0].quantity_input.text() == str(ORDERS_DATA[1].products[0].quantity), \
                 f"{tc_id}: row 0 qty mismatch"
-            assert rows[0].price_input.text() == "1200,00", \
+            assert rows[0].price_input.text() == cents_to_display(ORDERS_DATA[1].products[0].price), \
                 f"{tc_id}: row 0 price mismatch"
-            assert rows[0].total_input.text() == "2400,00", \
+            assert rows[0].total_input.text() == cents_to_display(ORDERS_DATA[1].products[0].total), \
                 f"{tc_id}: row 0 total mismatch"
         finally:
             dialog.deleteLater()
@@ -79,8 +81,8 @@ class TestOrderItemsCardDataLoading:
     ) -> None:
         tc_id: str = "TC-32"
         dialog = order_edit_dialog_existing
-        # Order A: 25000 + 500 = 25500 cents → "255,00"
-        expected: str = "Total dos produtos: 255,00"
+        expected_products_total: int = sum(p.total for p in ORDERS_DATA[0].products)
+        expected: str = f"Total dos produtos: {cents_to_display(expected_products_total)}"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -274,11 +276,10 @@ class TestOrderItemsCardTotalCalculation:
         rows = dialog.items_card.get_product_rows()
 
         # Change row 0 price from 250,00 to 300,00
-        # Old total: 25000 + 500 = 25500
-        # New total: 30000 + 500 = 30500 → "305,00"
+        new_total: int = 30000 + ORDERS_DATA[0].products[1].total
         rows[0].price_input.setText("300,00")
 
-        expected: str = "Total dos produtos: 305,00"
+        expected: str = f"Total dos produtos: {cents_to_display(new_total)}"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -291,11 +292,10 @@ class TestOrderItemsCardTotalCalculation:
         rows = dialog.items_card.get_product_rows()
 
         # Change row 0 qty from 1 to 2
-        # Old total: 25000 + 500 = 25500
-        # New total: 50000 + 500 = 50500 → "505,00"
+        new_total: int = ORDERS_DATA[0].products[0].price * 2 + ORDERS_DATA[0].products[1].total
         rows[0].quantity_input.setText("2")
 
-        expected: str = "Total dos produtos: 505,00"
+        expected: str = f"Total dos produtos: {cents_to_display(new_total)}"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -317,8 +317,9 @@ class TestOrderItemsCardTotalCalculation:
         rows = dialog.items_card.get_product_rows()
         assert len(rows) == 4
 
-        # Total should include the filled row: 25000 + 500 + 10000 = 35500 → "355,00"
-        expected: str = "Total dos produtos: 355,00"
+        existing_total: int = sum(p.total for p in ORDERS_DATA[0].products)
+        new_total: int = existing_total + 10000
+        expected: str = f"Total dos produtos: {cents_to_display(new_total)}"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 

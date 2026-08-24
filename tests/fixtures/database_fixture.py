@@ -13,6 +13,7 @@ from sqlalchemy.orm import Session
 from backend.entities.orm import Base, Expense, Order, Product
 from backend.utils.text import normalize_text
 import di.injector_module
+from tests.fixtures.seed_data import EXPENSES_DATA, ORDERS_DATA
 from di.injector_module import get_engine
 from tests.util.bridge_reset import reset_bridge_singletons
 
@@ -27,25 +28,16 @@ def _seed_expenses(engine: Engine) -> None:
         engine: The SQLAlchemy engine to use for seeding.
     """
     now = datetime.now()
-
-    expenses_data = [
-        ("2024-07", "Material de escritório", 15000),
-        ("2024-07", "Taxa bancária", 7500),
-        ("2024-07", "Limpeza", 150000),
-        ("2024-08", "Manutenção elétrica", 45000),
-        ("2024-08", "Água e esgoto", 12000),
-    ]
-
     with Session(engine) as session:
-        for month, description, value in expenses_data:
-            expense = Expense(
-                MONTH=month,
-                DESCRIPTION=description,
-                VALUE=value,
+        for expense in EXPENSES_DATA:
+            expense_obj = Expense(
+                MONTH=expense.month,
+                DESCRIPTION=expense.description,
+                VALUE=expense.value,
                 CREATED_AT=now,
                 UPDATED_AT=now,
             )
-            session.add(expense)
+            session.add(expense_obj)
         session.commit()
 
 
@@ -56,99 +48,34 @@ def _seed_orders(engine: Engine) -> None:
         engine: The SQLAlchemy engine to use for seeding.
     """
     now = datetime.now()
-
-    orders_data = [
-        # Order A: July 2024, Cimento Portland
-        (
-            "order-a",
-            date_type(2024, 7, 10),
-            "Cimento Portland",
-            "45678901234567",
-            5000,
-            1000,
-            [
-                ("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 1),
-                ("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 2),
-            ],
-        ),
-        # Order B: July 2024, Areia Premium LTDA
-        (
-            "order-b",
-            date_type(2024, 7, 15),
-            "Areia Premium LTDA",
-            "12345678901234",
-            3000,
-            500,
-            [
-                ("prod-b1", "Areia média", 2, 120000, 240000, 1),
-            ],
-        ),
-        # Order C: August 2024, Cimento Portland
-        (
-            "order-c",
-            date_type(2024, 8, 5),
-            "Cimento Portland",
-            "98765432109876",
-            4000,
-            800,
-            [
-                ("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 1),
-            ],
-        ),
-        # Order D: August 2024, Tijolo & Cia
-        (
-            "order-d",
-            date_type(2024, 8, 20),
-            "Tijolo & Cia",
-            "11223344556677",
-            6000,
-            1200,
-            [
-                ("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1),
-            ],
-        ),
-        # Order E: July 2024, Cimento Portland
-        (
-            "order-e",
-            date_type(2024, 7, 25),
-            "Cimento Portland",
-            "55667788990011",
-            2000,
-            500,
-            [
-                ("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 1),
-            ],
-        ),
-    ]
-
     with Session(engine) as session:
-        for order_id, order_date, supplier, nfe_key, freight, unloading, products in orders_data:
-            order = Order(
-                ID=order_id,
-                DATE=order_date,
-                SUPPLIER=supplier,
-                SUPPLIER_NORMALIZED=normalize_text(supplier),
-                NFE_KEY=nfe_key,
-                FREIGHT=freight,
-                UNLOADING=unloading,
+        for order in ORDERS_DATA:
+            order_obj = Order(
+                ID=order.id,
+                DATE=order.date,
+                SUPPLIER=order.supplier,
+                SUPPLIER_NORMALIZED=normalize_text(order.supplier),
+                NFE_KEY=order.nfe_key,
+                FREIGHT=order.freight,
+                UNLOADING=order.unloading,
                 CREATED_AT=now,
                 UPDATED_AT=now,
             )
-            session.add(order)
-            for prod_id, prod_name, qty, price, total, ordinal in products:
-                product = Product(
-                    ID=prod_id,
-                    NAME=prod_name,
-                    NAME_NORMALIZED=normalize_text(prod_name),
-                    QUANTITY=qty,
-                    PRICE=price,
-                    TOTAL_PRICE=total,
-                    ORDER_ID=order_id,
-                    ITEM_ORDINAL=ordinal,
+            session.add(order_obj)
+            for prod in order.products:
+                product_obj = Product(
+                    ID=prod.id,
+                    NAME=prod.name,
+                    NAME_NORMALIZED=normalize_text(prod.name),
+                    QUANTITY=prod.quantity,
+                    PRICE=prod.price,
+                    TOTAL_PRICE=prod.total,
+                    ORDER_ID=order.id,
+                    ITEM_ORDINAL=prod.ordinal,
                     CREATED_AT=now,
                     UPDATED_AT=now,
                 )
-                session.add(product)
+                session.add(product_obj)
         session.commit()
 
 

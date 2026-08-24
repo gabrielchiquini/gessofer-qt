@@ -4,7 +4,10 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
+from backend.utils.currency import cents_to_display
+from backend.utils.date import datetime_to_br_date
 from frontend.views.order_edit.order_edit_list import OrderEditListView
+from tests.fixtures.seed_data import ORDERS_DATA
 
 
 # ── TC-10: Initial Load ───────────────────────────────────────────
@@ -84,23 +87,27 @@ class TestOrderEditListDisplay:
         model = widget._model
         assert model.rowCount() == 3
 
-        # Row 0: 10/07/2024 | Cimento Portland | 2 | 255,00 | 315,00
-        assert model.item(0, 0).text() == "10/07/2024"
-        assert model.item(0, 1).text() == "Cimento Portland"
-        assert model.item(0, 2).text() == "2"
-        assert model.item(0, 3).text() == "255,00"
-        assert model.item(0, 4).text() == "315,00"
+        # Row 0: Order A (ORDERS_DATA[0])
+        assert model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
+        assert model.item(0, 1).text() == ORDERS_DATA[0].supplier
+        assert model.item(0, 2).text() == str(len(ORDERS_DATA[0].products))
+        assert model.item(0, 3).text() == cents_to_display(sum(p.total for p in ORDERS_DATA[0].products))
+        assert model.item(0, 4).text() == cents_to_display(
+            sum(p.total for p in ORDERS_DATA[0].products) + ORDERS_DATA[0].freight + ORDERS_DATA[0].unloading
+        )
 
-        # Row 1: 15/07/2024 | Areia Premium LTDA | 1 | 300,00 | 335,00
-        assert model.item(1, 0).text() == "15/07/2024"
-        assert model.item(1, 1).text() == "Areia Premium LTDA"
+        # Row 1: Order B (ORDERS_DATA[1])
+        assert model.item(1, 0).text() == datetime_to_br_date(ORDERS_DATA[1].date)
+        assert model.item(1, 1).text() == ORDERS_DATA[1].supplier
 
-        # Row 2: 25/07/2024 | Cimento Portland | 1 | 160,00 | 185,00
-        assert model.item(2, 0).text() == "25/07/2024"
-        assert model.item(2, 1).text() == "Cimento Portland"
-        assert model.item(2, 2).text() == "1"
-        assert model.item(2, 3).text() == "160,00"
-        assert model.item(2, 4).text() == "185,00"
+        # Row 2: Order E (ORDERS_DATA[4])
+        assert model.item(2, 0).text() == datetime_to_br_date(ORDERS_DATA[4].date)
+        assert model.item(2, 1).text() == ORDERS_DATA[4].supplier
+        assert model.item(2, 2).text() == str(len(ORDERS_DATA[4].products))
+        assert model.item(2, 3).text() == cents_to_display(sum(p.total for p in ORDERS_DATA[4].products))
+        assert model.item(2, 4).text() == cents_to_display(
+            sum(p.total for p in ORDERS_DATA[4].products) + ORDERS_DATA[4].freight + ORDERS_DATA[4].unloading
+        )
 
     def test_august_2024_display(
             self,
@@ -115,17 +122,21 @@ class TestOrderEditListDisplay:
         model = widget._model
         assert model.rowCount() == 2
 
-        # Row 0: 05/08/2024 | Cimento Portland | 1 | 220,00 | 268,00
-        assert model.item(0, 0).text() == "05/08/2024"
-        assert model.item(0, 1).text() == "Cimento Portland"
-        assert model.item(0, 3).text() == "220,00"
-        assert model.item(0, 4).text() == "268,00"
+        # Row 0: Order C (ORDERS_DATA[2])
+        assert model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[2].date)
+        assert model.item(0, 1).text() == ORDERS_DATA[2].supplier
+        assert model.item(0, 3).text() == cents_to_display(sum(p.total for p in ORDERS_DATA[2].products))
+        assert model.item(0, 4).text() == cents_to_display(
+            sum(p.total for p in ORDERS_DATA[2].products) + ORDERS_DATA[2].freight + ORDERS_DATA[2].unloading
+        )
 
-        # Row 1: 20/08/2024 | Tijolo & Cia | 1 | 240,00 | 312,00
-        assert model.item(1, 0).text() == "20/08/2024"
-        assert model.item(1, 1).text() == "Tijolo & Cia"
-        assert model.item(1, 3).text() == "240,00"
-        assert model.item(1, 4).text() == "312,00"
+        # Row 1: Order D (ORDERS_DATA[3])
+        assert model.item(1, 0).text() == datetime_to_br_date(ORDERS_DATA[3].date)
+        assert model.item(1, 1).text() == ORDERS_DATA[3].supplier
+        assert model.item(1, 3).text() == cents_to_display(sum(p.total for p in ORDERS_DATA[3].products))
+        assert model.item(1, 4).text() == cents_to_display(
+            sum(p.total for p in ORDERS_DATA[3].products) + ORDERS_DATA[3].freight + ORDERS_DATA[3].unloading
+        )
 
 
 # ── TC-13: Empty State ────────────────────────────────────────────
@@ -208,8 +219,8 @@ class TestOrderEditListEnterKeySearch:
         widget.filter_month.returnPressed.emit()
 
         assert widget._model.rowCount() == 2
-        assert widget._model.item(0, 1).text() == "Cimento Portland"
-        assert widget._model.item(1, 1).text() == "Tijolo & Cia"
+        assert widget._model.item(0, 1).text() == ORDERS_DATA[2].supplier
+        assert widget._model.item(1, 1).text() == ORDERS_DATA[3].supplier
 
 
 # ── TC-16: Delete Button Present ──────────────────────────────────

@@ -79,7 +79,7 @@ class TestProductListEditOrder:
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
@@ -90,7 +90,7 @@ class TestProductListEditOrder:
         # Step 3: Verify order list shows 3 orders in July 2024
         order_view.filter_month.setText("07/2024")
         order_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert order_view._model.rowCount() == 3
 
         # Step 4: Edit order-a (row 0) to add a product
@@ -115,7 +115,7 @@ class TestProductListEditOrder:
         rows[2].price_input.setText("10,00")
 
         dialog.btn_save.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
 
         # Step 5: Verify order list still shows 3 orders
         assert order_view._model.rowCount() == 3
@@ -128,7 +128,7 @@ class TestProductListEditOrder:
         # Step 7: Verify product count increased to 5
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 5
 
 
@@ -152,7 +152,7 @@ class TestProductListAddOrder:
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
@@ -163,7 +163,7 @@ class TestProductListAddOrder:
         # Step 3: Verify order list shows 3 orders in July 2024
         order_view.filter_month.setText("07/2024")
         order_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert order_view._model.rowCount() == 3
 
         # Step 4: Add a new order with 2 products
@@ -191,7 +191,7 @@ class TestProductListAddOrder:
         rows[1].price_input.setText("30,00")
 
         dialog.btn_save.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
 
         # Step 5: Verify order list updated to 4 orders
         assert order_view._model.rowCount() == 4
@@ -204,7 +204,7 @@ class TestProductListAddOrder:
         # Step 7: Verify product count increased to 6
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 6
 
 
@@ -288,7 +288,7 @@ class TestProductListAddOrderEmptyMonth:
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("10/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 0
 
         # Step 2: Navigate to order list
@@ -299,7 +299,7 @@ class TestProductListAddOrderEmptyMonth:
         # Step 3: Verify order list is empty for October
         order_view.filter_month.setText("10/2024")
         order_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert order_view._model.rowCount() == 0
 
         # Step 4: Add a new order with 1 product
@@ -321,7 +321,7 @@ class TestProductListAddOrderEmptyMonth:
         rows[0].price_input.setText("100,00")
 
         dialog.btn_save.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
 
         # Step 5: Verify order list shows 1 order
         assert order_view._model.rowCount() == 1
@@ -334,7 +334,7 @@ class TestProductListAddOrderEmptyMonth:
         # Step 7: Verify product appears with correct data
         product_view.filter_month.setText("10/2024")
         product_view.btn_search.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert product_view._model.rowCount() == 1
         assert product_view._model.item(0, 0).text() == "15/10/2024"
         assert product_view._model.item(0, 1).text() == "Fornecedor Outubro"

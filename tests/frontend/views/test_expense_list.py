@@ -8,6 +8,9 @@ from di.injector_module import get_injector
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 from frontend.views.expense_list import ExpenseListView
 
+from tests.fixtures.seed_data import EXPENSES_DATA
+from backend.utils.currency import cents_to_display
+
 
 # ── TC-01: Initial Load ───────────────────────────────────────────
 
@@ -91,23 +94,23 @@ class TestExpenseListDisplay:
 
         model = widget._model
         # July 2024 rows (IDs 1→3): insertion order
-        assert model.item(0, 0).text() == "Material de escritório"  # ID 1
-        assert model.item(1, 0).text() == "Taxa bancária"  # ID 2
-        assert model.item(2, 0).text() == "Limpeza"  # ID 3
+        assert model.item(0, 0).text() == EXPENSES_DATA[0].description
+        assert model.item(1, 0).text() == EXPENSES_DATA[1].description
+        assert model.item(2, 0).text() == EXPENSES_DATA[2].description
 
         # Values formatted as Brazilian currency (no "R$", just the number)
-        assert model.item(0, 1).text() == "150,00"  # 15000 cents
-        assert model.item(1, 1).text() == "75,00"  # 7500 cents
-        assert model.item(2, 1).text() == "1500,00"  # 150000 cents
+        assert model.item(0, 1).text() == cents_to_display(EXPENSES_DATA[0].value)
+        assert model.item(1, 1).text() == cents_to_display(EXPENSES_DATA[1].value)
+        assert model.item(2, 1).text() == cents_to_display(EXPENSES_DATA[2].value)
 
         # Verify August ordering
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
 
-        assert model.item(0, 0).text() == "Manutenção elétrica"  # ID 4
-        assert model.item(1, 0).text() == "Água e esgoto"  # ID 5
-        assert model.item(0, 1).text() == "450,00"  # 45000 cents
-        assert model.item(1, 1).text() == "120,00"  # 12000 cents
+        assert model.item(0, 0).text() == EXPENSES_DATA[3].description
+        assert model.item(1, 0).text() == EXPENSES_DATA[4].description
+        assert model.item(0, 1).text() == cents_to_display(EXPENSES_DATA[3].value)
+        assert model.item(1, 1).text() == cents_to_display(EXPENSES_DATA[4].value)
 
 
 # ── TC-04: Total Calculation ──────────────────────────────────────
@@ -124,17 +127,17 @@ class TestExpenseListTotal:
         """Verify total matches sum of visible expense values."""
         widget = expense_list_widget
 
-        # July 2024: 15000 + 7500 + 150000 = 172500 cents
+        # July 2024 total
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
 
-        assert widget.total_label.text() == "Total: 1725,00"
+        assert widget.total_label.text() == f"Total: {cents_to_display(sum(e.value for e in EXPENSES_DATA[0:3]))}"
 
-        # August 2024: 45000 + 12000 = 57000 cents
+        # August 2024 total
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
 
-        assert widget.total_label.text() == "Total: 570,00"
+        assert widget.total_label.text() == f"Total: {cents_to_display(sum(e.value for e in EXPENSES_DATA[3:5]))}"
 
 
 # ── TC-07: Empty State ────────────────────────────────────────────

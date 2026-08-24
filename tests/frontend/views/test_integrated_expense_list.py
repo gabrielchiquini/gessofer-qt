@@ -79,7 +79,7 @@ class TestExpenseListEdit:
         # Step 2: Verify initial state — 3 expenses in July 2024
         expense_view.month_filter.set_month("07/2024")
         expense_view.month_filter.search_button.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert expense_view._model.rowCount() == 3
 
         # Step 3: Open expense edit dialog
@@ -103,7 +103,7 @@ class TestExpenseListEdit:
         rows[-2].value_input.setText("50,00")
 
         dialog.btn_save.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
 
         # Step 6: Verify expense list updated to 4 expenses
         assert expense_view._model.rowCount() == 4
@@ -135,7 +135,7 @@ class TestExpenseListDelete:
         # Step 2: Verify initial state — 3 expenses in July 2024
         expense_view.month_filter.set_month("07/2024")
         expense_view.month_filter.search_button.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
         assert expense_view._model.rowCount() == 3
 
         # Step 3: Open expense edit dialog
@@ -154,7 +154,7 @@ class TestExpenseListDelete:
 
         # Step 5: Save — remaining rows (excluding trailing empty) are saved
         dialog.btn_save.click()
-        qtbot.wait(200)
+        qtbot.wait(100)
 
 
         # Step 6: Verify expense list updated to 2 expenses

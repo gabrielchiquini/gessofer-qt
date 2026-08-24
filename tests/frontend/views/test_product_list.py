@@ -8,6 +8,10 @@ from bridge.product import ProductBridge
 from di.injector_module import get_injector
 from frontend.views.product_list import ProductListView
 
+from tests.fixtures.seed_data import ORDERS_DATA
+from backend.utils.currency import cents_to_display
+from backend.utils.date import datetime_to_br_date
+
 
 # ── TC-01: Initial Load ───────────────────────────────────────────
 
@@ -60,9 +64,9 @@ class TestProductListSupplierFilter:
 
         assert widget._model.rowCount() == 4
         assert widget.page_label.text() == "Página 1 de 1"
-        assert widget._model.item(0, 1).text() == "Cimento Portland"
-        assert widget._model.item(0, 2).text() == "Cimento CP-I 50kg"
-        assert widget._model.item(3, 2).text() == "Cimento CP-II 1kg"
+        assert widget._model.item(0, 1).text() == ORDERS_DATA[2].supplier
+        assert widget._model.item(0, 2).text() == ORDERS_DATA[2].products[0].name
+        assert widget._model.item(3, 2).text() == ORDERS_DATA[0].products[1].name
 
 
 # ── TC-03: Product Name Filter ────────────────────────────────────
@@ -83,8 +87,8 @@ class TestProductListProductNameFilter:
         widget.btn_search.click()
 
         assert widget._model.rowCount() == 1
-        assert widget._model.item(0, 1).text() == "Areia Premium LTDA"
-        assert widget._model.item(0, 2).text() == "Areia média"
+        assert widget._model.item(0, 1).text() == ORDERS_DATA[1].supplier
+        assert widget._model.item(0, 2).text() == ORDERS_DATA[1].products[0].name
 
 
 # ── TC-04: Month Filter ───────────────────────────────────────────
@@ -105,8 +109,9 @@ class TestProductListMonthFilter:
         widget.btn_search.click()
 
         assert widget._model.rowCount() == 4
-        assert widget._model.item(0, 0).text() == "25/07/2024"
-        assert widget._model.item(3, 0).text() == "10/07/2024"
+        assert widget._model.item(0, 0).text().endswith("/07/2024")
+        assert widget._model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[4].date)
+        assert widget._model.item(3, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
 
 
 # ── TC-05: Combined Filters ───────────────────────────────────────
@@ -150,47 +155,47 @@ class TestProductListDisplayCorrectness:
 
         assert widget._model.rowCount() == 6
 
-        # Row 0: 20/08/2024 | Tijolo & Cia | Tijolo cerâmico 8 furos | 12,00 | 240,00
-        assert widget._model.item(0, 0).text() == "20/08/2024"
-        assert widget._model.item(0, 1).text() == "Tijolo & Cia"
-        assert widget._model.item(0, 2).text() == "Tijolo cerâmico 8 furos"
-        assert widget._model.item(0, 3).text() == "12,00"
-        assert widget._model.item(0, 4).text() == "240,00"
+        # Row 0: Order D (2024-08-20) → Tijolo cerâmico 8 furos (Tijolo & Cia)
+        assert widget._model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[3].date)
+        assert widget._model.item(0, 1).text() == ORDERS_DATA[3].supplier
+        assert widget._model.item(0, 2).text() == ORDERS_DATA[3].products[0].name
+        assert widget._model.item(0, 3).text() == cents_to_display(ORDERS_DATA[3].products[0].price)
+        assert widget._model.item(0, 4).text() == cents_to_display(ORDERS_DATA[3].products[0].total)
 
-        # Row 1: 05/08/2024 | Cimento Portland | Cimento CP-I 50kg | 220,00 | 220,00
-        assert widget._model.item(1, 0).text() == "05/08/2024"
-        assert widget._model.item(1, 1).text() == "Cimento Portland"
-        assert widget._model.item(1, 2).text() == "Cimento CP-I 50kg"
-        assert widget._model.item(1, 3).text() == "220,00"
-        assert widget._model.item(1, 4).text() == "220,00"
+        # Row 1: Order C (2024-08-05) → Cimento CP-I 50kg (Cimento Portland)
+        assert widget._model.item(1, 0).text() == datetime_to_br_date(ORDERS_DATA[2].date)
+        assert widget._model.item(1, 1).text() == ORDERS_DATA[2].supplier
+        assert widget._model.item(1, 2).text() == ORDERS_DATA[2].products[0].name
+        assert widget._model.item(1, 3).text() == cents_to_display(ORDERS_DATA[2].products[0].price)
+        assert widget._model.item(1, 4).text() == cents_to_display(ORDERS_DATA[2].products[0].total)
 
-        # Row 2: 25/07/2024 | Cimento Portland | Cal hidratada 20kg | 80,00 | 160,00
-        assert widget._model.item(2, 0).text() == "25/07/2024"
-        assert widget._model.item(2, 1).text() == "Cimento Portland"
-        assert widget._model.item(2, 2).text() == "Cal hidratada 20kg"
-        assert widget._model.item(2, 3).text() == "80,00"
-        assert widget._model.item(2, 4).text() == "160,00"
+        # Row 2: Order E (2024-07-25) → Cal hidratada 20kg (Cimento Portland)
+        assert widget._model.item(2, 0).text() == datetime_to_br_date(ORDERS_DATA[4].date)
+        assert widget._model.item(2, 1).text() == ORDERS_DATA[4].supplier
+        assert widget._model.item(2, 2).text() == ORDERS_DATA[4].products[0].name
+        assert widget._model.item(2, 3).text() == cents_to_display(ORDERS_DATA[4].products[0].price)
+        assert widget._model.item(2, 4).text() == cents_to_display(ORDERS_DATA[4].products[0].total)
 
-        # Row 3: 15/07/2024 | Areia Premium LTDA | Areia média | 1200,00 | 2400,00
-        assert widget._model.item(3, 0).text() == "15/07/2024"
-        assert widget._model.item(3, 1).text() == "Areia Premium LTDA"
-        assert widget._model.item(3, 2).text() == "Areia média"
-        assert widget._model.item(3, 3).text() == "1200,00"
-        assert widget._model.item(3, 4).text() == "2400,00"
+        # Row 3: Order B (2024-07-15) → Areia média (Areia Premium LTDA)
+        assert widget._model.item(3, 0).text() == datetime_to_br_date(ORDERS_DATA[1].date)
+        assert widget._model.item(3, 1).text() == ORDERS_DATA[1].supplier
+        assert widget._model.item(3, 2).text() == ORDERS_DATA[1].products[0].name
+        assert widget._model.item(3, 3).text() == cents_to_display(ORDERS_DATA[1].products[0].price)
+        assert widget._model.item(3, 4).text() == cents_to_display(ORDERS_DATA[1].products[0].total)
 
-        # Row 4: 10/07/2024 | Cimento Portland | Cimento CP-II 50kg | 250,00 | 250,00
-        assert widget._model.item(4, 0).text() == "10/07/2024"
-        assert widget._model.item(4, 1).text() == "Cimento Portland"
-        assert widget._model.item(4, 2).text() == "Cimento CP-II 50kg"
-        assert widget._model.item(4, 3).text() == "250,00"
-        assert widget._model.item(4, 4).text() == "250,00"
+        # Row 4: Order A product 1 (2024-07-10) → Cimento CP-II 50kg (Cimento Portland)
+        assert widget._model.item(4, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
+        assert widget._model.item(4, 1).text() == ORDERS_DATA[0].supplier
+        assert widget._model.item(4, 2).text() == ORDERS_DATA[0].products[0].name
+        assert widget._model.item(4, 3).text() == cents_to_display(ORDERS_DATA[0].products[0].price)
+        assert widget._model.item(4, 4).text() == cents_to_display(ORDERS_DATA[0].products[0].total)
 
-        # Row 5: 10/07/2024 | Cimento Portland | Cimento CP-II 1kg | 5,00 | 5,00
-        assert widget._model.item(5, 0).text() == "10/07/2024"
-        assert widget._model.item(5, 1).text() == "Cimento Portland"
-        assert widget._model.item(5, 2).text() == "Cimento CP-II 1kg"
-        assert widget._model.item(5, 3).text() == "5,00"
-        assert widget._model.item(5, 4).text() == "5,00"
+        # Row 5: Order A product 2 (2024-07-10) → Cimento CP-II 1kg (Cimento Portland)
+        assert widget._model.item(5, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
+        assert widget._model.item(5, 1).text() == ORDERS_DATA[0].supplier
+        assert widget._model.item(5, 2).text() == ORDERS_DATA[0].products[1].name
+        assert widget._model.item(5, 3).text() == cents_to_display(ORDERS_DATA[0].products[1].price)
+        assert widget._model.item(5, 4).text() == cents_to_display(ORDERS_DATA[0].products[1].total)
 
 
 # ── TC-07: Empty State ────────────────────────────────────────────

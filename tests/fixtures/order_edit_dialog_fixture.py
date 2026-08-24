@@ -7,7 +7,7 @@ import pytest
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
-from backend.business import BusinessService
+from backend.services.xml_import_service import XmlImportService
 from di.injector_module import get_injector
 from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
 from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
@@ -61,9 +61,9 @@ def order_edit_dialog_xml_import(
     """
     injector = get_injector()
     factory: OrderEditDialogFactory = injector.get(OrderEditDialogFactory)
-    business_service: BusinessService = injector.get(BusinessService)
+    business_service: XmlImportService = injector.get(XmlImportService)
 
-    result = business_service.import_xml(str(_NFE_XML_PATH))
+    result = business_service.parse_file(str(_NFE_XML_PATH))
     # The nfe.xml contains a single order
     order = result.orders[0]
 

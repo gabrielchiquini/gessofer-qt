@@ -4,7 +4,8 @@ import logging
 from dataclasses import dataclass
 from typing import List
 
-from models.input import OrderInput, ProductInput
+from models.input import OrderInput
+from models.output import Product
 
 logger = logging.getLogger(__name__)
 
@@ -15,7 +16,7 @@ class FreightDistributionResult:
     order_id: str
     old_freight: int
     old_unloading: int
-    new_products: List[ProductInput]
+    new_products: List[Product]
     ratio: float
     products_total_before: int
     products_total_after: int
@@ -34,8 +35,8 @@ class FreightDistributionService:
     """
 
     def distribute(
-        self,
-        order: OrderInput,
+            self,
+            order: OrderInput,
     ) -> FreightDistributionResult:
         """
         Distribute freight and unloading costs across all products in an order.
@@ -62,7 +63,7 @@ class FreightDistributionService:
         freight_total = order.freight + order.unloading
         ratio = (freight_total + products_total) / products_total
 
-        new_products: list[ProductInput] = []
+        new_products: list[Product] = []
         for product in order.products:
             if product.quantity == 0:
                 # Avoid division by zero — keep original price
@@ -71,7 +72,7 @@ class FreightDistributionService:
                 new_price = round((product.total * ratio) / product.quantity)
 
             new_products.append(
-                ProductInput(
+                Product(
                     id=product.id,
                     name=product.name,
                     quantity=product.quantity,
@@ -92,31 +93,4 @@ class FreightDistributionService:
             ratio=ratio,
             products_total_before=products_total,
             products_total_after=products_total_after,
-        )
-
-    def apply_to_order(
-        self,
-        order: OrderInput,
-    ) -> OrderInput:
-        """
-        Apply freight distribution to an order and return a new OrderInput.
-
-        This is a convenience method that calls distribute() and returns
-        a new OrderInput with the updated products.
-
-        Args:
-            order: OrderInput with freight, unloading, and products.
-
-        Returns:
-            A new OrderInput with updated product prices.
-        """
-        result = self.distribute(order)
-        return OrderInput(
-            id=result.order_id,
-            date="",
-            supplier="",
-            nfe_key="",
-            freight=result.old_freight,
-            unloading=result.old_unloading,
-            products=result.new_products,
         )

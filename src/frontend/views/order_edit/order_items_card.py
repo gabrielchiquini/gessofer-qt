@@ -11,12 +11,10 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend.business import BusinessService
 from backend.utils.currency import cents_to_display, parse_currency_to_cents
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
 from models.input import ProductInput
-from models.order import Order
 from models.output import Product
 
 
@@ -25,15 +23,13 @@ class OrderItemsCard(QWidget):
 
     order_changed: Signal = Signal()
     row_added: Signal = Signal(ProductRowWidget)
+    distribute_freight: Signal = Signal()
 
     def __init__(
             self,
             parent: QWidget,
-            business_service: BusinessService,
     ) -> None:
         super().__init__(parent)
-        self._business_service: BusinessService = business_service
-
         # ── Card Container ────────────────────────────────────────────
         self._card: Card = Card(self)
         self._card.set_title("Itens")
@@ -115,18 +111,7 @@ class OrderItemsCard(QWidget):
 
     def _on_distribute_freight(self) -> None:
         """Distribute freight/unloading costs across product prices."""
-        products_list: list[ProductInput] = self.get_products_list()
-        result = self._business_service.distribute_freight(
-            products_list  # type: ignore[arg-type]
-        )
-        if result and result.new_products:
-            new_products: list[Product] = result.new_products
-            for i, new_product in enumerate(new_products):
-                if i < len(self._product_rows):
-                    self._product_rows[i].price_input.setText(
-                        cents_to_display(new_product.price)
-                    )
-            self._order_changed()
+        self.distribute_freight.emit()
 
     # ── Freight Distribution ────────────────────────────────────────
 
@@ -158,7 +143,7 @@ class OrderItemsCard(QWidget):
                     errors.append(f"Produto {i + 1}: {err}")
         return len(errors) == 0, errors
 
-    def set_order_data(self, order_data: Order) -> None:
+    def set_order_data(self, products: list[Product]) -> None:
         """Replace product rows with those from order_data."""
         # Remove all existing rows
         for row in self._product_rows:
@@ -167,7 +152,7 @@ class OrderItemsCard(QWidget):
         self._product_rows.clear()
 
         # Add rows from order data
-        for product in order_data.products:
+        for product in products:
             row = self.setup_row(product=product)
             if hasattr(product, "warnings") and product.warnings:
                 row.set_warnings(product.warnings)

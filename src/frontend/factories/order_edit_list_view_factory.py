@@ -1,15 +1,16 @@
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol
+from typing import Protocol
 
 from PySide6.QtWidgets import QWidget
 
+from backend.services.xml_import_service import XmlImportService
+from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
-from bridge.nfe import NfeBridge
-from frontend.views.order_edit.order_edit_list import OrderEditListView
-from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
 from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
+from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
+from frontend.views.order_edit.order_edit_list import OrderEditListView
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -32,19 +33,17 @@ class _OrderEditListViewFactoryImpl:
     """Implementation of OrderEditListViewFactory backed by DI-resolved dependencies."""
 
     def __init__(
-        self,
-        order_bridge: OrderBridge,
-        order_summary_bridge: OrderSummaryBridge,
-        business_service: "BusinessService",
-        nfe_bridge: NfeBridge,
-        order_edit_dialog_factory: OrderEditDialogFactory,
-        nfe_search_dialog_factory: NfeSearchDialogFactory,
+            self,
+            order_bridge: OrderBridge,
+            order_summary_bridge: OrderSummaryBridge,
+            nfe_bridge: NfeBridge,
+            order_edit_dialog_factory: OrderEditDialogFactory,
+            nfe_search_dialog_factory: NfeSearchDialogFactory,
+            xml_import_service: XmlImportService,
     ) -> None:
-        from backend.business import BusinessService  # noqa: F401
-
         self._order_bridge: OrderBridge = order_bridge
         self._order_summary_bridge: OrderSummaryBridge = order_summary_bridge
-        self._business_service: BusinessService = business_service  # type: ignore[assignment]
+        self._xml_import_service: XmlImportService = xml_import_service
         self._nfe_bridge: NfeBridge = nfe_bridge
         self._order_edit_dialog_factory: OrderEditDialogFactory = order_edit_dialog_factory
         self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
@@ -54,7 +53,7 @@ class _OrderEditListViewFactoryImpl:
             parent=parent,
             order_bridge=self._order_bridge,
             order_summary_bridge=self._order_summary_bridge,
-            business_service=self._business_service,
+            xml_import_service=self._xml_import_service,
             nfe_bridge=self._nfe_bridge,
             order_edit_dialog_factory=self._order_edit_dialog_factory,
             nfe_search_dialog_factory=self._nfe_search_dialog_factory,

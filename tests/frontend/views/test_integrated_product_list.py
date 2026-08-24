@@ -1,10 +1,10 @@
 from __future__ import annotations
 
 from typing import Generator
+from unittest.mock import patch
 
 import pytest
 from PySide6.QtWidgets import QApplication, QMessageBox, QPushButton
-from unittest.mock import patch
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
@@ -24,7 +24,7 @@ from frontend.views.product_list import ProductListView
 
 @pytest.fixture
 def main_window_with_factories(
-    temp_engine: Engine, qtbot: QtBot,
+        temp_engine: Engine, qtbot: QtBot,
 ) -> Generator[MainWindow, None, None]:
     """Create a MainWindow with all factories wired to the test database."""
     injector = get_injector()
@@ -66,16 +66,16 @@ class TestProductListEditOrder:
     """TC-01: Edit an existing order to add a product and verify product count increases."""
 
     def test_edit_order_adds_product(
-        self,
-        main_window_with_factories: MainWindow,
-        qtbot: QtBot,
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
     ) -> None:
         """Navigate to product list, verify 4 products in July 2024,
         edit order-a to add a product, navigate back, verify 5 products."""
         mw = main_window_with_factories
 
         # Step 1: Verify initial product count in July 2024
-        product_view: ProductListView = mw.centralWidget() # type: ignore[union-attr]
+        product_view: ProductListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
@@ -84,7 +84,7 @@ class TestProductListEditOrder:
 
         # Step 2: Navigate to order list
         mw._on_item_clicked("Lista de pedidos por mês", "Notas")
-        order_view: OrderEditListView = mw.centralWidget() # type: ignore[union-attr]
+        order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
         # Step 3: Verify order list shows 3 orders in July 2024
@@ -122,7 +122,7 @@ class TestProductListEditOrder:
 
         # Step 6: Navigate back to product list
         mw._on_item_clicked("Lista de Produtos", "Notas")
-        product_view = mw.centralWidget() # type: ignore[union-attr]
+        product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
         # Step 7: Verify product count increased to 5
@@ -139,16 +139,16 @@ class TestProductListAddOrder:
     """TC-02: Add a new order with 2 products and verify product count increases."""
 
     def test_add_order_with_products(
-        self,
-        main_window_with_factories: MainWindow,
-        qtbot: QtBot,
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
     ) -> None:
         """Navigate to product list, verify 4 products in July 2024,
         add a new order with 2 products, navigate back, verify 6 products."""
         mw = main_window_with_factories
 
         # Step 1: Verify initial product count
-        product_view: ProductListView = mw.centralWidget() # type: ignore[union-attr]
+        product_view: ProductListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
@@ -157,7 +157,7 @@ class TestProductListAddOrder:
 
         # Step 2: Navigate to order list
         mw._on_item_clicked("Lista de pedidos por mês", "Notas")
-        order_view: OrderEditListView = mw.centralWidget() # type: ignore[union-attr]
+        order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
         # Step 3: Verify order list shows 3 orders in July 2024
@@ -198,7 +198,7 @@ class TestProductListAddOrder:
 
         # Step 6: Navigate back to product list
         mw._on_item_clicked("Lista de Produtos", "Notas")
-        product_view = mw.centralWidget() # type: ignore[union-attr]
+        product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
         # Step 7: Verify product count increased to 6
@@ -215,16 +215,16 @@ class TestProductListDeleteOrder:
     """TC-03: Delete an order via the delete button and verify products are removed."""
 
     def test_delete_order_removes_products(
-        self,
-        main_window_with_factories: MainWindow,
-        qtbot: QtBot,
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
     ) -> None:
         """Navigate to product list, verify 4 products in July 2024,
         delete order-b (1 product) via delete button, navigate back, verify 3 products."""
         mw = main_window_with_factories
 
         # Step 1: Verify initial product count
-        product_view: ProductListView = mw.centralWidget() # type: ignore[union-attr]
+        product_view: ProductListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
         product_view.btn_search.click()
@@ -233,7 +233,7 @@ class TestProductListDeleteOrder:
 
         # Step 2: Navigate to order list
         mw._on_item_clicked("Lista de pedidos por mês", "Notas")
-        order_view: OrderEditListView = mw.centralWidget() # type: ignore[union-attr]
+        order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
         # Step 3: Verify order list shows 3 orders in July 2024
@@ -259,7 +259,7 @@ class TestProductListDeleteOrder:
 
         # Step 6: Navigate back to product list
         mw._on_item_clicked("Lista de Produtos", "Notas")
-        product_view = mw.centralWidget() # type: ignore[union-attr]
+        product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
         # Step 7: Verify product count decreased to 3
@@ -276,15 +276,15 @@ class TestProductListAddOrderEmptyMonth:
     """TC-04: Add an order in a month with no existing products."""
 
     def test_add_order_in_empty_month(
-        self,
-        main_window_with_factories: MainWindow,
-        qtbot: QtBot,
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
     ) -> None:
         """Verify October 2024 is empty, add an order, verify product appears."""
         mw = main_window_with_factories
 
         # Step 1: Verify initial empty state for October 2024
-        product_view: ProductListView = mw.centralWidget() # type: ignore[union-attr]
+        product_view: ProductListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("10/2024")
         product_view.btn_search.click()
@@ -293,7 +293,7 @@ class TestProductListAddOrderEmptyMonth:
 
         # Step 2: Navigate to order list
         mw._on_item_clicked("Lista de pedidos por mês", "Notas")
-        order_view: OrderEditListView = mw.centralWidget() # type: ignore[union-attr]
+        order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
         # Step 3: Verify order list is empty for October
@@ -328,7 +328,7 @@ class TestProductListAddOrderEmptyMonth:
 
         # Step 6: Navigate back to product list
         mw._on_item_clicked("Lista de Produtos", "Notas")
-        product_view = mw.centralWidget() # type: ignore[union-attr]
+        product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
         # Step 7: Verify product appears with correct data
@@ -339,3 +339,87 @@ class TestProductListAddOrderEmptyMonth:
         assert product_view._model.item(0, 0).text() == "15/10/2024"
         assert product_view._model.item(0, 1).text() == "Fornecedor Outubro"
         assert product_view._model.item(0, 2).text() == "Produto Outubro"
+
+
+# ── TC-05: Import NFe XML and Verify Order + Products Created ─────────
+
+
+class TestProductListXmlImport:
+    """TC-05: Import an NFe XML file and verify order and products appear."""
+
+    def test_import_xml_creates_order_and_products(
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
+    ) -> None:
+        """Navigate to product list, verify 4 products in July 2024,
+        import nfe.xml (patch QFileDialog and import_xml), verify order
+        appears in order edit view, save it, navigate back, verify products."""
+        mw = main_window_with_factories
+
+        # Step 1: Verify initial product count in July 2024
+        product_view: ProductListView = mw.centralWidget()  # type: ignore[union-attr]
+        assert isinstance(product_view, ProductListView)
+        product_view.filter_month.setText("07/2026")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 0
+
+        # Step 2: Navigate to order list
+        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
+        assert isinstance(order_view, OrderEditListView)
+
+        # Step 3: Verify order list shows 3 orders in July 2024
+        order_view.filter_month.setText("07/2026")
+        order_view.btn_search.click()
+        qtbot.wait(100)
+        assert order_view._model.rowCount() == 0
+
+        # Step 4: Import XML — patch QFileDialog, let service parse the real file
+        from pathlib import Path
+
+        xml_path: str = str(
+            Path(__file__).parent.parent.parent / "fixtures" / "nfe.xml"
+        )
+
+        with patch(
+                "PySide6.QtWidgets.QFileDialog.getOpenFileName",
+                return_value=(xml_path, ""),
+        ):
+            order_view.btn_import_xml.click()
+            qtbot.wait(200)
+
+        # Step 5: Verify OrderEditDialog opened with imported data
+        dialog = _get_dialog_by_type(OrderEditDialog)
+        qtbot.addWidget(dialog)
+        qtbot.waitExposed(dialog)
+
+        # Verify header fields
+        assert (
+                "O.V.D. IMPORTADORA E DISTRIBUIDORA LTDA"
+                in dialog.header_card._supplier_input.get_text()
+        )
+        assert dialog.header_card._date_input.get_text() == "02/07/2026"
+
+        # Verify products were loaded (11 products + 1 trailing empty row = 12)
+        rows = dialog.items_card.get_product_rows()
+        assert len(rows) == 12
+
+        # Step 6: Save the order
+        dialog.btn_save.click()
+        qtbot.wait(100)
+
+        # Step 7: Verify order list now shows 4 orders (3 + 1 imported)
+        assert order_view._model.rowCount() == 1
+
+        # Step 8: Navigate back to product list
+        mw._on_item_clicked("Lista de Produtos", "Notas")
+        product_view = mw.centralWidget()  # type: ignore[union-attr]
+        assert isinstance(product_view, ProductListView)
+
+        # Step 9: Verify products from XML appear (4 existing + 11 from XML = 15)
+        product_view.filter_month.setText("07/2026")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 11

@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
     QSizePolicy, QMessageBox,
 )
 
-from backend.business import BusinessService
+from backend.services.xml_import_service import XmlImportService
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
 from bridge.nfe import NfeBridge
@@ -41,7 +41,7 @@ class OrderEditListView(QWidget):
             parent: QWidget,
             order_bridge: OrderBridge,
             order_summary_bridge: OrderSummaryBridge,
-            business_service: BusinessService,
+            xml_import_service: XmlImportService,
             nfe_bridge: NfeBridge,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
@@ -49,7 +49,7 @@ class OrderEditListView(QWidget):
         super().__init__(parent)
         self._order_bridge: OrderBridge = order_bridge
         self._order_summary_bridge: OrderSummaryBridge = order_summary_bridge
-        self._business_service: BusinessService = business_service
+        self._xml_import_service: XmlImportService = xml_import_service
         self._nfe_bridge: NfeBridge = nfe_bridge
         self._order_edit_dialog_factory: OrderEditDialogFactory = order_edit_dialog_factory
         self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
@@ -264,7 +264,7 @@ class OrderEditListView(QWidget):
             return  # User cancelled
 
         # 2. Parse XML
-        result = self._business_service.import_xml(str(PathLib(file_path).resolve()))
+        result = self._xml_import_service.parse_file(str(PathLib(file_path).resolve()))
 
         # 3. Handle result
         if not result.orders:
@@ -279,19 +279,19 @@ class OrderEditListView(QWidget):
         order = result.orders[0]  # Single NFe → single order
         dialog = self._order_edit_dialog_factory(self, None, order)
         dialog.order_saved.connect(self._on_order_saved)
-        dialog.exec()
+        dialog.show()
 
     def _on_consultar_xml_clicked(self) -> None:
         """Handle Consultar XML button click — open NFe search dialog."""
         dialog = self._nfe_search_dialog_factory(self)
         dialog.nfe_result.connect(self._on_nfe_result)
-        dialog.exec()
+        dialog.show()
 
     def _on_nfe_result(self, xml_path: str) -> None:
         """Handle successful NFe search — import XML and open edit dialog."""
 
         result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
-        result = self._business_service.import_xml(result_path)
+        result = self._xml_import_service.parse_file(result_path)
 
         if not result.orders:
             QMessageBox.critical(
@@ -304,7 +304,7 @@ class OrderEditListView(QWidget):
         order = result.orders[0]
         edit_dialog = self._order_edit_dialog_factory(self, None, order)
         edit_dialog.order_saved.connect(self._on_order_saved)
-        edit_dialog.exec()
+        edit_dialog.show()
 
     def _on_order_saved(self, order_data: object) -> None:
         """Handle successful order save — refresh the order table."""

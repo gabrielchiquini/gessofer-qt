@@ -28,19 +28,6 @@ class OrderSummary:
     products_total: int  # cents
     order_total: int  # cents (products + freight + unloading)
 
-
-@dataclass
-class FreightResult:
-    """Result of a freight distribution calculation."""
-    order_id: str
-    old_freight: int
-    old_unloading: int
-    ratio: float
-    products_total_before: int
-    products_total_after: int
-    new_products: List[Product] = field(default_factory=list)
-
-
 @dataclass
 class XmlImportResult:
     """Result of an XML import operation."""

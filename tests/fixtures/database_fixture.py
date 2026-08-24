@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import os
 import tempfile
-from datetime import date as date_type, datetime
+from datetime import datetime
 from typing import Any, Callable, Generator
 
 import pytest
@@ -10,11 +10,10 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
+import di.injector_module
 from backend.entities.orm import Base, Expense, Order, Product
 from backend.utils.text import normalize_text
-import di.injector_module
 from tests.fixtures.seed_data import EXPENSES_DATA, ORDERS_DATA
-from di.injector_module import get_engine
 from tests.util.bridge_reset import reset_bridge_singletons
 
 

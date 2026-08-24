@@ -6,7 +6,7 @@ from injector import Injector, Module, provider, singleton
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
-from backend.business import BusinessService
+from backend.certificate.handler import CertificateHandler
 from backend.database.connection import get_engine
 from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.backup_service import BackupService
@@ -14,26 +14,25 @@ from backend.services.expense_fetch_handler import ExpenseFetchHandler
 from backend.services.expense_save_handler import ExpenseSaveHandler
 from backend.services.fetch_handler import FetchHandler
 from backend.services.freight_distribution import FreightDistributionService
+from backend.services.save_expense_service import SaveExpenseService
 from backend.services.save_handler import SaveHandler
 from backend.services.save_order_service import SaveOrderService
-from backend.services.save_expense_service import SaveExpenseService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 from bridge.certificate import CertificateBridge
-from backend.certificate.handler import CertificateHandler
 from bridge.expense import ExpenseBridge
 from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from bridge.product import ProductBridge
-from frontend.factories.product_list_view_factory import ProductListViewFactory
-from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
-from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
-from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 from frontend.factories.certificate_change_dialog_factory import CertificateChangeDialogFactory
-from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
-from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
 from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
+from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
+from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
+from frontend.factories.nfe_search_dialog_factory import NfeSearchDialogFactory
+from frontend.factories.order_edit_dialog_factory import OrderEditDialogFactory
+from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
+from frontend.factories.product_list_view_factory import ProductListViewFactory
 
 
 def _register_protocol_types() -> None:
@@ -43,11 +42,11 @@ def _register_protocol_types() -> None:
     order_edit_dialog = importlib.import_module("frontend.factories.order_edit_dialog_factory", __package__)
     nfe_search_dialog = importlib.import_module("frontend.factories.nfe_search_dialog_factory", __package__)
     expense_edit_dialog = importlib.import_module("frontend.factories.expense_edit_dialog_factory", __package__)
-    certificate_change_dialog = importlib.import_module("frontend.factories.certificate_change_dialog_factory", __package__)
+    certificate_change_dialog = importlib.import_module("frontend.factories.certificate_change_dialog_factory",
+                                                        __package__)
     order_edit_list_view = importlib.import_module("frontend.factories.order_edit_list_view_factory", __package__)
     expense_list_view = importlib.import_module("frontend.factories.expense_list_view_factory", __package__)
     certificate_status_view = importlib.import_module("frontend.factories.certificate_status_view_factory", __package__)
-    business = importlib.import_module("backend.business", __package__)
     globals().update({
         "ProductListViewFactory": product_list_view.ProductListViewFactory,
         "OrderEditListViewFactory": order_edit_list_view.OrderEditListViewFactory,
@@ -57,8 +56,8 @@ def _register_protocol_types() -> None:
         "ExpenseEditDialogFactory": expense_edit_dialog.ExpenseEditDialogFactory,
         "CertificateChangeDialogFactory": certificate_change_dialog.CertificateChangeDialogFactory,
         "NfeSearchDialogFactory": nfe_search_dialog.NfeSearchDialogFactory,
-        "BusinessService": business.BusinessService,
     })
+
 
 T = TypeVar("T")
 
@@ -184,21 +183,6 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_business_service(
-            self,
-            freight_service: FreightDistributionService,
-            xml_service: XmlImportService,
-            validation_service: ValidationService,
-    ) -> "BusinessService":
-        from backend.business import BusinessService
-        return BusinessService(
-            freight_service=freight_service,
-            xml_service=xml_service,
-            validation_service=validation_service,
-        )
-
-    @provider
-    @singleton
     def provide_product_bridge(self, fetch_handler: FetchHandler) -> ProductBridge:
         return ProductBridge(fetch_handler=fetch_handler)
 
@@ -256,12 +240,12 @@ class InjectorModule(Module):
     def provide_order_edit_dialog_factory(
             self,
             order_bridge: OrderBridge,
-            business_service: BusinessService,
+            freight_distribution_service: FreightDistributionService,
     ) -> OrderEditDialogFactory:
         from frontend.factories.order_edit_dialog_factory import _OrderEditDialogFactoryImpl
         return _OrderEditDialogFactoryImpl(
             order_bridge=order_bridge,
-            business_service=business_service,
+            freight_distribution_service=freight_distribution_service,
         )
 
     @provider
@@ -297,19 +281,19 @@ class InjectorModule(Module):
             self,
             order_bridge: OrderBridge,
             order_summary_bridge: OrderSummaryBridge,
-            business_service: BusinessService,
             nfe_bridge: NfeBridge,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
+            xml_import_service: XmlImportService,
     ) -> OrderEditListViewFactory:
         from frontend.factories.order_edit_list_view_factory import _OrderEditListViewFactoryImpl
         return _OrderEditListViewFactoryImpl(
             order_bridge=order_bridge,
             order_summary_bridge=order_summary_bridge,
-            business_service=business_service,
             nfe_bridge=nfe_bridge,
             order_edit_dialog_factory=order_edit_dialog_factory,
             nfe_search_dialog_factory=nfe_search_dialog_factory,
+            xml_import_service=xml_import_service,
         )
 
     @provider

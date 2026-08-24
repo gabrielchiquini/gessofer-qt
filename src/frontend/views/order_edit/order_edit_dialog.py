@@ -13,11 +13,12 @@ from PySide6.QtWidgets import (
     QWidget, QMessageBox,
 )
 
-from backend.business import BusinessService
+from backend.services.freight_distribution import FreightDistributionService
+from backend.services.xml_import_service import XmlImportService
 from bridge.order import OrderBridge
 from frontend.views.order_edit.order_header_card import OrderHeaderCard
 from frontend.views.order_edit.order_items_card import OrderItemsCard
-from models.input import OrderInput
+from models.input import OrderInput, ProductInput
 from models.order import Order
 
 
@@ -34,19 +35,19 @@ class OrderEditDialog(QDialog):
             order_id: str | None,
             order: Order | None,
             order_bridge: OrderBridge,
-            business_service: BusinessService,
+            freight_service: FreightDistributionService,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setMinimumSize(800, 600)
         self._order_bridge: OrderBridge = order_bridge
-        self._business_service: BusinessService = business_service
+        self._freight_service: FreightDistributionService = freight_service
 
         # ── Header Card ───────────────────────────────────────────────
         self.header_card: OrderHeaderCard = OrderHeaderCard(self)
 
         # ── Items Card ────────────────────────────────────────────────
-        self.items_card: OrderItemsCard = OrderItemsCard(self, business_service=self._business_service)
+        self.items_card: OrderItemsCard = OrderItemsCard(self)
 
         # ── State ─────────────────────────────────────────────────────
         if order is not None:
@@ -55,7 +56,7 @@ class OrderEditDialog(QDialog):
             self._order_id: str = order.id
             self._is_new: bool = True
             self.header_card.set_order_data(order)
-            self.items_card.set_order_data(order)
+            self.items_card.set_order_data(order.products)
         elif order_id:
             # Existing edit path: fetch from DB
             order_data: Order | None = self._order_bridge.fetch_order_by_id(order_id)
@@ -63,7 +64,7 @@ class OrderEditDialog(QDialog):
             self._is_new: bool = order_data is None
             if order_data is not None:
                 self.header_card.set_order_data(order_data)
-                self.items_card.set_order_data(order_data)
+                self.items_card.set_order_data(order_data.products)
             else:
                 self.items_card.add_row()
         else:
@@ -121,12 +122,22 @@ class OrderEditDialog(QDialog):
         if not (header_valid and items_valid):
             return
 
-        # Preserve nfe_key from XML-imported orders
+        # Assemble full order data from both cards
+        order_data = self.get_order_input()
+
+        # Save
+        success: bool = self._order_bridge.save_single_order(order_data)
+        if success:
+            self.order_saved.emit(order_data)
+            self.accept()
+        else:
+            QMessageBox.critical(self, "Erro", "Erro ao salvar pedido.")
+
+    def get_order_input(self) -> OrderInput:
         nfe_key: str = ""
         if hasattr(self, "_imported_order") and self._imported_order is not None:
             nfe_key = self._imported_order.nfe_key
 
-        # Assemble full order data from both cards
         order_data = OrderInput(
             id=self._order_id,
             date=date.strptime(self.header_card.get_date(), "%d/%m/%Y"),
@@ -136,14 +147,23 @@ class OrderEditDialog(QDialog):
             unloading=self.header_card.get_unloading_cents(),
             products=self.items_card.get_products_list(self._order_id),
         )
+        return order_data
 
-        # Save
-        success: bool = self._order_bridge.save_single_order(order_data)
-        if success:
-            self.order_saved.emit(order_data)
-            self.accept()
-        else:
-            QMessageBox.critical(self, "Erro", "Erro ao salvar pedido.")
+    def _on_distribute_freight(self) -> None:
+        """Distribute freight/unloading costs across product prices."""
+        products_list: OrderInput = self.get_order_input()
+        result = self._freight_service.distribute(
+            products_list
+        )
+        if result and result.new_products:
+            new_products: list[ProductInput] = result.new_products
+            self.items_card.set_order_data(new_products)
+            for i, new_product in enumerate(new_products):
+                if i < len(self._product_rows):
+                    self._product_rows[i].price_input.setText(
+                        cents_to_display(new_product.price)
+                    )
+            self._order_changed()
 
     def reject(self) -> None:
         """Override reject to emit the closed signal."""

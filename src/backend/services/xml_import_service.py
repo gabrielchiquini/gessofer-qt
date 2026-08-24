@@ -8,7 +8,8 @@ from typing import List, Optional
 from xml.etree import ElementTree as ET
 
 from backend.errors import XmlParseError
-from models.input import OrderInput, ProductInput
+from models.order import Order
+from models.output import Product
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +20,7 @@ NFE_NS = "http://www.portalfiscal.inf.br/nfe"
 @dataclass
 class XmlImportResult:
     """Result of an XML import operation."""
-    orders: List[OrderInput]
+    orders: List[Order]
     warnings: List[str]
 
 
@@ -107,7 +108,7 @@ class XmlImportService:
 
         # Create a single order from the NFe
         order_id = str(uuid.uuid4())
-        order = OrderInput(
+        order = Order(
             id=order_id,
             date=date_iso,
             supplier=supplier,
@@ -129,7 +130,7 @@ class XmlImportService:
         Returns:
             XmlImportResult with all parsed orders and combined warnings.
         """
-        all_orders: list[OrderInput] = []
+        all_orders: list[Order] = []
         all_warnings: list[str] = []
 
         for file_path in file_paths:
@@ -184,9 +185,9 @@ class XmlImportService:
         except ValueError:
             return ""
 
-    def _extract_products(self, nfe: ET.Element, warnings: list[str]) -> List[ProductInput]:
+    def _extract_products(self, nfe: ET.Element, warnings: list[str]) -> List[Product]:
         """Extract product data from det elements."""
-        products: list[ProductInput] = []
+        products: list[Product] = []
 
         # Find all det elements
         det_elements = nfe.findall(f".//{{{NFE_NS}}}det")
@@ -262,7 +263,7 @@ class XmlImportService:
 
             product_id = str(uuid.uuid4())
 
-            product = ProductInput(
+            product = Product(
                 id=product_id,
                 name=x_prod,
                 quantity=quantity_int,

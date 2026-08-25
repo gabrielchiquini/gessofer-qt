@@ -38,6 +38,7 @@ class Product(Base):
     NAME_NORMALIZED: Mapped[str] = mapped_column("NAME_NORMALIZED", String)
     QUANTITY: Mapped[int] = mapped_column("QUANTITY", Integer)
     PRICE: Mapped[int] = mapped_column("PRICE", Integer)
+    PRICE_WITH_FREIGHT: Mapped[int] = mapped_column("PRICE_WITH_FREIGHT", Integer)
     TOTAL_PRICE: Mapped[int] = mapped_column("TOTAL_PRICE", Integer)
     ORDER_ID: Mapped[str] = mapped_column("ORDER_ID", ForeignKey("ORDER.ID"))
     ITEM_ORDINAL: Mapped[Optional[int]] = mapped_column("ITEM_ORDINAL", Integer, nullable=True)

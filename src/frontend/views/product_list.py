@@ -144,7 +144,7 @@ class ProductListView(QWidget):
 
         """Configure the QStandardItemModel."""
         self._model.setHorizontalHeaderLabels([
-            "Data", "Fornecedor", "Produto", "Preço", "Total"
+            "Data", "Fornecedor", "Produto", "Preço", "Preço com frete"
         ])
 
         self._setup_table_size()
@@ -233,7 +233,7 @@ class ProductListView(QWidget):
                 QStandardItem(item.supplier),
                 QStandardItem(item.name),
                 QStandardItem(item.price),
-                QStandardItem(item.total_price),
+                QStandardItem(item.price_with_freight),
             ]
             self._model.appendRow(row)
         self.table_view.verticalScrollBar().setValue(0)

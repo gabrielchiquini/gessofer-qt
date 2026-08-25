@@ -23,6 +23,7 @@ class ProductListItem:
     supplier: str
     name: str
     price: str  # formatted string like "R$ 1.234,56"
+    price_with_freight: str  # formatted string
     total_price: str  # formatted string
     order_id: str
 
@@ -34,6 +35,7 @@ class Product:
     name: str
     quantity: int
     price: int
+    price_with_freight: int
     total: int
     order_id: str
     item_ordinal: int | None = None

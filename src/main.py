@@ -60,7 +60,7 @@ def main() -> None:
         expense_list_view_factory=expense_list_view_factory,
         certificate_status_view_factory=certificate_status_view_factory,
     )
-    window.show()
+    window.showMaximized()
 
     # ── Backup check (non-blocking, silent failure) ──────────────────
     try:

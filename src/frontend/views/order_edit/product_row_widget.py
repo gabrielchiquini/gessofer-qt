@@ -60,7 +60,15 @@ class ProductRowWidget(QWidget):
             r"^\d*([.,]\d{1,2})?$"
         )
         self.price_input.setValidator(price_validator)
-        self.price_input.setMaximumWidth(120)
+        self.price_input.setMaximumWidth(80)
+
+        # Price with freight input — read-only, gray, auto-calculated
+        self.price_with_freight_input: QLineEdit = QLineEdit(self)
+        self.price_with_freight_input.setPlaceholderText("0,00")
+        self.price_with_freight_input.setReadOnly(True)
+        self.price_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.price_with_freight_input.setStyleSheet("color: gray;")
+        self.price_with_freight_input.setMaximumWidth(80)
 
         # Total input — read-only, gray
         self.total_input: QLineEdit = QLineEdit(self)
@@ -68,7 +76,7 @@ class ProductRowWidget(QWidget):
         self.total_input.setReadOnly(True)
         self.total_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.total_input.setStyleSheet("color: gray;")
-        self.total_input.setMaximumWidth(120)
+        self.total_input.setMaximumWidth(80)
 
         # Delete button
         self.delete_button: QPushButton = QPushButton("✕", self)
@@ -99,6 +107,7 @@ class ProductRowWidget(QWidget):
         row_layout.addWidget(self.name_input, stretch=1)
         row_layout.addWidget(self.quantity_input)
         row_layout.addWidget(self.price_input)
+        row_layout.addWidget(self.price_with_freight_input)
         row_layout.addWidget(self.total_input)
         row_layout.addWidget(self.warning_icon)
         row_layout.addWidget(self.delete_button)
@@ -117,6 +126,9 @@ class ProductRowWidget(QWidget):
             self.name_input.setText(product_data.name)
             self.quantity_input.setText(str(product_data.quantity))
             self.price_input.setText(cents_to_display(getattr(product_data, "price", 0)))
+            self.price_with_freight_input.setText(
+                cents_to_display(getattr(product_data, "price_with_freight", product_data.price))
+            )
             self.total_input.setText(cents_to_display(getattr(product_data, "total", 0)))
 
         # Initial total calculation
@@ -139,6 +151,10 @@ class ProductRowWidget(QWidget):
         """Handle delete button click."""
         self.delete_pressed.emit()
 
+    def set_price_with_freight(self, value_cents: int) -> None:
+        """Set the read-only price_with_freight display value."""
+        self.price_with_freight_input.setText(cents_to_display(value_cents))
+
     def is_empty(self) -> bool:
         """Return True if name is empty AND quantity is 0 AND price is 0."""
         return (
@@ -158,6 +174,7 @@ class ProductRowWidget(QWidget):
             if self.quantity_input.text().strip()
             else 0,
             price=parse_currency_to_cents(self.price_input.text()),
+            price_with_freight=parse_currency_to_cents(self.price_with_freight_input.text()),
             total=parse_currency_to_cents(self.total_input.text()),
             order_id=order_id,
             item_ordinal=ordinal,

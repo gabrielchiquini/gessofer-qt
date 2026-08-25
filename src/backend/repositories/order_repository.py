@@ -195,6 +195,7 @@ class OrderRepository:
             NAME_NORMALIZED=normalize_text(product.name),
             QUANTITY=product.quantity,
             PRICE=product.price,
+            PRICE_WITH_FREIGHT=product.price_with_freight,
             TOTAL_PRICE=product.total,
             ORDER_ID=product.order_id,
             ITEM_ORDINAL=product.item_ordinal,

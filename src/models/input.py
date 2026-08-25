@@ -24,6 +24,7 @@ class ProductInput:
     name: str
     quantity: int
     price: int  # unit price in cents
+    price_with_freight: int   # unit price including freight allocation
     total: int  # total_price in cents
     order_id: str
     item_ordinal: int

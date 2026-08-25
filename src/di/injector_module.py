@@ -13,7 +13,6 @@ from backend.services.backup_service import BackupService
 from backend.services.expense_fetch_handler import ExpenseFetchHandler
 from backend.services.expense_save_handler import ExpenseSaveHandler
 from backend.services.fetch_handler import FetchHandler
-from backend.services.freight_distribution import FreightDistributionService
 from backend.services.save_expense_service import SaveExpenseService
 from backend.services.save_handler import SaveHandler
 from backend.services.save_order_service import SaveOrderService
@@ -165,12 +164,6 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_freight_distribution_service(self) -> FreightDistributionService:
-        """Provide a singleton FreightDistributionService."""
-        return FreightDistributionService()
-
-    @provider
-    @singleton
     def provide_xml_import_service(self) -> XmlImportService:
         """Provide a singleton XmlImportService."""
         return XmlImportService()
@@ -240,12 +233,10 @@ class InjectorModule(Module):
     def provide_order_edit_dialog_factory(
             self,
             order_bridge: OrderBridge,
-            freight_distribution_service: FreightDistributionService,
     ) -> OrderEditDialogFactory:
         from frontend.factories.order_edit_dialog_factory import _OrderEditDialogFactoryImpl
         return _OrderEditDialogFactoryImpl(
             order_bridge=order_bridge,
-            freight_distribution_service=freight_distribution_service,
         )
 
     @provider

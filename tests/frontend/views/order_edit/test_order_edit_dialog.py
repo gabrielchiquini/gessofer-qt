@@ -12,7 +12,8 @@ from frontend.views.order_edit.product_row_widget import ProductRowWidget
 from models.input import OrderInput
 from models.output import Product
 from tests.fixtures.order_edit_dialog_fixture import (order_edit_dialog_existing, order_edit_dialog_blank,
-                                                      order_edit_dialog_xml_import, nfe_search_dialog, product_row_widget, )
+                                                      order_edit_dialog_xml_import, nfe_search_dialog,
+                                                      product_row_widget, )
 
 
 class TestOrderEditDialogInit:
@@ -424,7 +425,7 @@ class TestProductRowWidgetPreFilled:
         row = product_row_widget
 
         product: Product = Product(id="pre-filled-prod", name="Cimento CP-II 50kg", quantity=3, price=25000,
-                                   total=75000, order_id="test-order", item_ordinal=1, )
+                                   price_with_freight=25000, total=75000, order_id="test-order", item_ordinal=1, )
 
         # Create a new row with pre-filled data
         from PySide6.QtWidgets import QApplication
@@ -434,6 +435,7 @@ class TestProductRowWidgetPreFilled:
         assert new_row.quantity_input.text() == "3", f"{tc_id}: quantity mismatch"
         assert new_row.price_input.text() == "250,00", f"{tc_id}: price mismatch"
         assert new_row.total_input.text() == "750,00", f"{tc_id}: total mismatch"
+        assert new_row.price_with_freight_input.text() == "250,00", f"{tc_id}: price_with_freight mismatch"
 
         new_row.deleteLater()
 

@@ -268,6 +268,7 @@ class XmlImportService:
                 name=x_prod,
                 quantity=quantity_int,
                 price=unit_price,
+                price_with_freight=unit_price,
                 total=total_price,
                 order_id="",  # Will be set when order is created
                 item_ordinal=None,

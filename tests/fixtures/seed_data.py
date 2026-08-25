@@ -18,6 +18,7 @@ class ProductSeed:
     quantity: int
     price: int
     total: int
+    price_with_freight: int
     ordinal: int
 
 
@@ -49,8 +50,8 @@ ORDERS_DATA: tuple[OrderSeed, ...] = (
         freight=5000,
         unloading=1000,
         products=(
-            ProductSeed("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 1),
-            ProductSeed("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 2),
+            ProductSeed("prod-a1", "Cimento CP-II 50kg", 1, 25000, 25000, 25000, 1),
+            ProductSeed("prod-a2", "Cimento CP-II 1kg", 1, 500, 500, 500, 2),
         ),
     ),
     OrderSeed(
@@ -61,7 +62,7 @@ ORDERS_DATA: tuple[OrderSeed, ...] = (
         freight=3000,
         unloading=500,
         products=(
-            ProductSeed("prod-b1", "Areia média", 2, 120000, 240000, 1),
+            ProductSeed("prod-b1", "Areia média", 2, 120000, 240000, 120000, 1),
         ),
     ),
     OrderSeed(
@@ -72,7 +73,7 @@ ORDERS_DATA: tuple[OrderSeed, ...] = (
         freight=4000,
         unloading=800,
         products=(
-            ProductSeed("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 1),
+            ProductSeed("prod-c1", "Cimento CP-I 50kg", 1, 22000, 22000, 22000, 1),
         ),
     ),
     OrderSeed(
@@ -83,7 +84,7 @@ ORDERS_DATA: tuple[OrderSeed, ...] = (
         freight=6000,
         unloading=1200,
         products=(
-            ProductSeed("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1),
+            ProductSeed("prod-d1", "Tijolo cerâmico 8 furos", 20, 1200, 24000, 1200, 1),
         ),
     ),
     OrderSeed(
@@ -94,7 +95,7 @@ ORDERS_DATA: tuple[OrderSeed, ...] = (
         freight=2000,
         unloading=500,
         products=(
-            ProductSeed("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 1),
+            ProductSeed("prod-e1", "Cal hidratada 20kg", 2, 8000, 16000, 8000, 1),
         ),
     ),
 )

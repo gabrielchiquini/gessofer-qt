@@ -13,7 +13,6 @@ from PySide6.QtWidgets import (
     QWidget, QMessageBox,
 )
 
-from backend.services.freight_distribution import FreightDistributionService
 from backend.services.xml_import_service import XmlImportService
 from bridge.order import OrderBridge
 from frontend.views.order_edit.order_header_card import OrderHeaderCard
@@ -35,19 +34,20 @@ class OrderEditDialog(QDialog):
             order_id: str | None,
             order: Order | None,
             order_bridge: OrderBridge,
-            freight_service: FreightDistributionService,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setMinimumSize(800, 600)
         self._order_bridge: OrderBridge = order_bridge
-        self._freight_service: FreightDistributionService = freight_service
 
         # ── Header Card ───────────────────────────────────────────────
         self.header_card: OrderHeaderCard = OrderHeaderCard(self)
 
         # ── Items Card ────────────────────────────────────────────────
         self.items_card: OrderItemsCard = OrderItemsCard(self)
+
+        # Wire header changes to items card freight recalculation
+        self.header_card.order_changed.connect(self._on_header_freight_changed)
 
         # ── State ─────────────────────────────────────────────────────
         if order is not None:
@@ -149,14 +149,11 @@ class OrderEditDialog(QDialog):
         )
         return order_data
 
-    def _on_distribute_freight(self) -> None:
-        """Distribute freight/unloading costs across product prices."""
-        products_list: OrderInput = self.get_order_input()
-        result = self._freight_service.distribute(
-            products_list
-        )
-        if result and result.new_products:
-            self.items_card.set_order_data(result.new_products)
+    def _on_header_freight_changed(self) -> None:
+        """Recompute price_with_freight for all rows when header freight/unloading changes."""
+        freight_cents: int = self.header_card.get_freight_cents()
+        unloading_cents: int = self.header_card.get_unloading_cents()
+        self.items_card.set_freight_data(freight_cents, unloading_cents)
 
     def reject(self) -> None:
         """Override reject to emit the closed signal."""

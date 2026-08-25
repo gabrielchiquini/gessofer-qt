@@ -23,7 +23,6 @@ class OrderItemsCard(QWidget):
 
     order_changed: Signal = Signal()
     row_added: Signal = Signal(ProductRowWidget)
-    distribute_freight: Signal = Signal()
 
     def __init__(
             self,
@@ -61,22 +60,15 @@ class OrderItemsCard(QWidget):
         self._products_total_label: QLabel = QLabel(
             "Total dos produtos: 0,00", self
         )
-        self.distribute_button: QPushButton = QPushButton(
-            "Distribuir frete", self
-        )
-        self.distribute_button.setDisabled(True)
-        self.distribute_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         footer_layout: QHBoxLayout = QHBoxLayout()
         footer_layout.addWidget(self._products_total_label)
         footer_layout.addStretch()
-        footer_layout.addWidget(self.distribute_button)
 
         self._card.build_footer()
         self._card.set_footer(footer_layout)
 
         # ── Signal Connections ────────────────────────────────────────
-        self.distribute_button.clicked.connect(self._on_distribute_freight)
 
         # ── Main Layout ───────────────────────────────────────────────
         main_layout: QVBoxLayout = QVBoxLayout(self)
@@ -109,11 +101,40 @@ class OrderItemsCard(QWidget):
         for i, row in enumerate(self._product_rows):
             row.delete_button.setEnabled(i < len(self._product_rows) - 1)
 
-    def _on_distribute_freight(self) -> None:
-        """Distribute freight/unloading costs across product prices."""
-        self.distribute_freight.emit()
-
     # ── Freight Distribution ────────────────────────────────────────
+
+    def set_freight_data(self, freight_cents: int, unloading_cents: int) -> None:
+        """Update freight/unloading and recalculate price_with_freight for all rows."""
+        if not self._product_rows:
+            return
+
+        products_total: int = sum(
+            parse_currency_to_cents(row.total_input.text())
+            for row in self._product_rows
+        )
+        if products_total == 0:
+            # No products — reset all to just the base price
+            for row in self._product_rows:
+                base_price: int = parse_currency_to_cents(row.price_input.text())
+                row.set_price_with_freight(base_price)
+            return
+
+        freight_total: int = freight_cents + unloading_cents
+        ratio: float = (freight_total + products_total) / products_total
+
+        for row in self._product_rows:
+            base_price: int = parse_currency_to_cents(row.price_input.text())
+            quantity: int = int(row.quantity_input.text()) if row.quantity_input.text().strip() else 0
+            if quantity == 0:
+                # Avoid division by zero — keep original price
+                pwf: int = base_price
+            else:
+                # Same algorithm as FreightDistributionService:
+                # new_price = round((total * ratio) / quantity)
+                # where total = base_price * quantity
+                product_total: int = base_price * quantity
+                pwf = round((product_total * ratio) / quantity)
+            row.set_price_with_freight(pwf)
 
     def get_products_total(self) -> int:
         """Sum of all product totals in cents."""
@@ -193,9 +214,4 @@ class OrderItemsCard(QWidget):
         self._products_total_label.setText(
             f"Total dos produtos: {cents_to_display(total_cents)}"
         )
-
-        # Enable/disable distribute button
-        items_valid, _ = self.validate()
-        can_distribute: bool = items_valid and total_cents > 0
-        self.distribute_button.setEnabled(can_distribute)
         self.order_changed.emit()

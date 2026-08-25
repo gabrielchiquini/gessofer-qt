@@ -68,6 +68,7 @@ def _seed_orders(engine: Engine) -> None:
                     NAME_NORMALIZED=normalize_text(prod.name),
                     QUANTITY=prod.quantity,
                     PRICE=prod.price,
+                    PRICE_WITH_FREIGHT=prod.price_with_freight,
                     TOTAL_PRICE=prod.total,
                     ORDER_ID=order.id,
                     ITEM_ORDINAL=prod.ordinal,

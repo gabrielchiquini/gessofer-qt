@@ -19,6 +19,7 @@ def orm_product_to_dict(product: Product) -> ProductDataclass:
         name=product.NAME,
         quantity=product.QUANTITY,
         price=product.PRICE,
+        price_with_freight=product.PRICE_WITH_FREIGHT,
         total=product.TOTAL_PRICE,
         order_id=product.ORDER_ID,
         item_ordinal=product.ITEM_ORDINAL,
@@ -46,6 +47,7 @@ def product_list_item_to_dict(product: Product) -> ProductListItem:
         supplier=product.order.SUPPLIER if product.order else "",
         name=product.NAME,
         price=cents_to_display(product.PRICE),
+        price_with_freight=cents_to_display(product.PRICE_WITH_FREIGHT),
         total_price=cents_to_display(product.TOTAL_PRICE),
         order_id=product.ORDER_ID,
     )

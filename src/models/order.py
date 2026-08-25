@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import List
 
-from src.models.output import Product
+from models.output import Product
 
 
 @dataclass

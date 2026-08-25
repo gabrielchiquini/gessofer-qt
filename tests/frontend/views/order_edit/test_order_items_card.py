@@ -33,7 +33,7 @@ class TestOrderItemsCardDataLoading:
             f"{tc_id}: row 0 price mismatch"
         assert rows[0].total_input.text() == cents_to_display(ORDERS_DATA[0].products[0].total), \
             f"{tc_id}: row 0 total mismatch"
-        assert rows[0].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[0].products[0].price), \
+        assert rows[0].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[0].products[0].price_with_freight), \
             f"{tc_id}: row 0 price_with_freight mismatch"
 
         # Row 1: Cimento CP-II 1kg
@@ -45,7 +45,7 @@ class TestOrderItemsCardDataLoading:
             f"{tc_id}: row 1 price mismatch"
         assert rows[1].total_input.text() == cents_to_display(ORDERS_DATA[0].products[1].total), \
             f"{tc_id}: row 1 total mismatch"
-        assert rows[1].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[0].products[1].price), \
+        assert rows[1].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[0].products[1].price_with_freight), \
             f"{tc_id}: row 1 price_with_freight mismatch"
 
         # Row 2: trailing empty row
@@ -76,7 +76,7 @@ class TestOrderItemsCardDataLoading:
                 f"{tc_id}: row 0 price mismatch"
             assert rows[0].total_input.text() == cents_to_display(ORDERS_DATA[1].products[0].total), \
                 f"{tc_id}: row 0 total mismatch"
-            assert rows[0].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[1].products[0].price), \
+            assert rows[0].price_with_freight_input.text() == cents_to_display(ORDERS_DATA[1].products[0].price_with_freight), \
                 f"{tc_id}: row 0 price_with_freight mismatch"
         finally:
             dialog.deleteLater()

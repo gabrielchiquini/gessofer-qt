@@ -5,7 +5,6 @@ from PySide6.QtWidgets import (
     QFrame,
     QHBoxLayout,
     QLabel,
-    QPushButton,
     QScrollArea,
     QVBoxLayout,
     QWidget,
@@ -23,6 +22,7 @@ class OrderItemsCard(QWidget):
 
     order_changed: Signal = Signal()
     row_added: Signal = Signal(ProductRowWidget)
+    freight: int = 0
 
     def __init__(
             self,
@@ -105,6 +105,11 @@ class OrderItemsCard(QWidget):
 
     def set_freight_data(self, freight_cents: int, unloading_cents: int) -> None:
         """Update freight/unloading and recalculate price_with_freight for all rows."""
+        freight_total: int = freight_cents + unloading_cents
+        self.freight = freight_total
+        self.recalculate_price_with_freight()
+
+    def recalculate_price_with_freight(self) -> None:
         if not self._product_rows:
             return
 
@@ -113,28 +118,20 @@ class OrderItemsCard(QWidget):
             for row in self._product_rows
         )
         if products_total == 0:
-            # No products — reset all to just the base price
             for row in self._product_rows:
-                base_price: int = parse_currency_to_cents(row.price_input.text())
-                row.set_price_with_freight(base_price)
+                row.set_price_with_freight(0)
             return
+        ratio: float = (self.freight + products_total) / products_total
 
-        freight_total: int = freight_cents + unloading_cents
-        ratio: float = (freight_total + products_total) / products_total
-
-        for row in self._product_rows:
+        for row in self._product_rows[:-1]:
             base_price: int = parse_currency_to_cents(row.price_input.text())
             quantity: int = int(row.quantity_input.text()) if row.quantity_input.text().strip() else 0
             if quantity == 0:
-                # Avoid division by zero — keep original price
-                pwf: int = base_price
+                row.set_price_with_freight(0)
             else:
-                # Same algorithm as FreightDistributionService:
-                # new_price = round((total * ratio) / quantity)
-                # where total = base_price * quantity
                 product_total: int = base_price * quantity
                 pwf = round((product_total * ratio) / quantity)
-            row.set_price_with_freight(pwf)
+                row.set_price_with_freight(pwf)
 
     def get_products_total(self) -> int:
         """Sum of all product totals in cents."""
@@ -214,4 +211,5 @@ class OrderItemsCard(QWidget):
         self._products_total_label.setText(
             f"Total dos produtos: {cents_to_display(total_cents)}"
         )
+        self.recalculate_price_with_freight()
         self.order_changed.emit()

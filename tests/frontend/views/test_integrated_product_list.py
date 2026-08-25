@@ -55,7 +55,7 @@ def _get_dialog_by_type[T](class_type: type[T]) -> T:
         w for w in QApplication.topLevelWidgets()
         if isinstance(w, class_type)
     ]
-    assert dialogs, f"No dialog found with title starting with: {class_type!r}"
+    assert dialogs
     return dialogs[-1]
 
 
@@ -106,6 +106,11 @@ class TestProductListEditOrder:
         dialog = _get_dialog_by_type(OrderEditDialog)
         qtbot.addWidget(dialog)
         qtbot.waitExposed(dialog)
+
+        # ── Verify price_with_freight from seed data ────────────────
+        rows = dialog.items_card.get_product_rows()
+        assert rows[0].price_with_freight_input.text() == "308,82"
+        assert rows[1].price_with_freight_input.text() == "6,18"
 
         # Add a new product row
         rows = dialog.items_card.get_product_rows()
@@ -189,6 +194,11 @@ class TestProductListAddOrder:
         rows[1].name_input.setText("Produto B")
         rows[1].quantity_input.setText("1")
         rows[1].price_input.setText("30,00")
+
+        # ── Verify price_with_freight (zero freight → pwf = base price) ─
+        rows = dialog.items_card.get_product_rows()
+        assert rows[0].price_with_freight_input.text() == "50,00"
+        assert rows[1].price_with_freight_input.text() == "30,00"
 
         dialog.btn_save.click()
         qtbot.wait(100)
@@ -406,6 +416,10 @@ class TestProductListXmlImport:
         rows = dialog.items_card.get_product_rows()
         assert len(rows) == 12
 
+        for row in dialog.items_card.get_product_rows():
+            if row.quantity_input.text() == "0":
+                row.quantity_input.setText("1")
+
         # Step 6: Save the order
         dialog.btn_save.click()
         qtbot.wait(100)
@@ -423,3 +437,192 @@ class TestProductListXmlImport:
         product_view.btn_search.click()
         qtbot.wait(100)
         assert product_view._model.rowCount() == 11
+
+
+class TestProductListFreightDistribution:
+    """Verify that setting freight and unloading in the header card
+    triggers full recalculation of price_with_freight via the signal chain."""
+
+    def test_freight_distribution_recalculates_price_with_freight(
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
+    ) -> None:
+        """
+        Navigate to order list, edit order-a, set freight=100,00 and
+        unloading=20,00 in the header card, and verify that all product
+        rows recalculate their price_with_freight values using the
+        distribution formula.
+        """
+        mw = main_window_with_factories
+
+        # ── Step 1: Navigate to order list ──────────────────────────
+        mw._on_item_clicked("Lista de Produtos", "Notas")
+        product_view = mw.centralWidget()
+        assert isinstance(product_view, ProductListView)
+        product_view.filter_month.setText("07/2024")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 4
+
+        # Navigate to order list
+        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        order_view = mw.centralWidget()
+        assert isinstance(order_view, OrderEditListView)
+        order_view.filter_month.setText("07/2024")
+        order_view.btn_search.click()
+        qtbot.wait(100)
+        assert order_view._model.rowCount() == 3
+
+        # ── Step 2: Open order-a for editing ────────────────────────
+        container = order_view.table_view.indexWidget(
+            order_view._model.index(0, 5)
+        )
+        assert container is not None
+        edit_btn = container.findChild(QPushButton)
+        assert edit_btn is not None
+        edit_btn.click()
+        qtbot.wait(100)
+
+        dialog = _get_dialog_by_type(OrderEditDialog)
+        qtbot.addWidget(dialog)
+        qtbot.waitExposed(dialog)
+
+        # ── Step 3: Verify initial state (order-a already has freight) ─
+        rows = dialog.items_card.get_product_rows()
+        assert rows[0].price_with_freight_input.text() == "308,82"
+        assert rows[1].price_with_freight_input.text() == "6,18"
+
+        # ── Step 4: Clear and set NEW freight/unloading values ──────
+        # Use set_text("") instead of clear() — clear() does NOT emit signals
+        dialog.header_card._freight_input.set_text("")
+        dialog.header_card._unloading_input.set_text("")
+        qtbot.wait(50)
+
+        # Set new freight = 100,00 (10000 cents) and unloading = 20,00 (2000 cents)
+        dialog.header_card._freight_input.set_text("100,00")
+        dialog.header_card._unloading_input.set_text("20,00")
+        qtbot.wait(100)
+
+        # ── Step 5: Verify recalculated price_with_freight ──────────
+        # products_total = 25000 + 500 = 25500
+        # freight_total = 10000 + 2000 = 12000
+        # ratio = (12000 + 25500) / 25500 = 37500 / 25500 ≈ 1.4705882352941178
+        # prod-a1: pwf = round(25000 * 1.4705882352941178) = round(36764.705...) = 36765
+        # prod-a2: pwf = round(500 * 1.4705882352941178) = round(735.294...) = 735
+        assert rows[0].price_with_freight_input.text() == "367,65"
+        assert rows[1].price_with_freight_input.text() == "7,35"
+
+        # ── Step 6: Save and verify product count unchanged ─────────
+        dialog.btn_save.click()
+        qtbot.wait(100)
+
+        # Navigate back to product list
+        mw._on_item_clicked("Lista de Produtos", "Notas")
+        product_view = mw.centralWidget()
+        assert isinstance(product_view, ProductListView)
+
+        # Verify product count still 4 (we edited, didn't add)
+        product_view.filter_month.setText("07/2024")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 4
+
+        # ── Step 7: Verify price and price_with_freight in table ────
+        # Products are ordered by Order.DATE.desc(). Order-a products
+        # are at rows 2 and 3 (July 10, 2024).
+        # price = 25000 cents → "250,00", pwf = 36765 cents → "367,65"
+        # price = 500 cents   → "5,00",     pwf = 735 cents   → "7,35"
+        assert product_view._model.item(2, 2).text() == "Cimento CP-II 50kg"
+        assert product_view._model.item(2, 3).text() == "250,00"
+        assert product_view._model.item(2, 4).text() == "367,65"
+
+        assert product_view._model.item(3, 2).text() == "Cimento CP-II 1kg"
+        assert product_view._model.item(3, 3).text() == "5,00"
+        assert product_view._model.item(3, 4).text() == "7,35"
+
+
+class TestProductListAddOrderWithFreight:
+    """Full round-trip test: add an order with freight, verify in product list."""
+
+    def test_add_order_with_freight_full_round_trip(
+            self,
+            main_window_with_factories: MainWindow,
+            qtbot: QtBot,
+    ) -> None:
+        """
+        Navigate to product list, verify 4 products in 07/2024,
+        navigate to order list, add a new order with freight, save,
+        verify in order list, navigate to product list, verify 5 products.
+        """
+        mw = main_window_with_factories
+
+        # ── Step 1: Verify initial state ────────────────────────────
+        product_view = mw.centralWidget()
+        assert isinstance(product_view, ProductListView)
+        product_view.filter_month.setText("07/2024")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 4
+
+        # Navigate to order list
+        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        order_view = mw.centralWidget()
+        assert isinstance(order_view, OrderEditListView)
+        order_view.filter_month.setText("07/2024")
+        order_view.btn_search.click()
+        qtbot.wait(100)
+        assert order_view._model.rowCount() == 3
+
+        # ── Step 2: Add a new order with freight ────────────────────
+        order_view.btn_add.click()
+        qtbot.wait(100)
+
+        dialog = _get_dialog_by_type(OrderEditDialog)
+        qtbot.addWidget(dialog)
+        qtbot.waitExposed(dialog)
+
+        # Fill header
+        dialog.header_card._supplier_input.set_text("Fornecedor Teste Integrado")
+        dialog.header_card._date_input.set_text("20/07/2024")
+        dialog.header_card._freight_input.set_text("50,00")
+        dialog.header_card._unloading_input.set_text("10,00")
+
+        # Fill row 0
+        rows = dialog.items_card.get_product_rows()
+        rows[0].name_input.setText("Cimento Teste")
+        rows[0].quantity_input.setText("3")
+        rows[0].price_input.setText("30,00")
+
+        # ── Step 3: Verify pwf for the new row ──────────────────────
+        # products_total = 3000 * 3 = 9000
+        # freight_total = 5000 + 1000 = 6000
+        # ratio = (6000 + 9000) / 9000 = 15000 / 9000 ≈ 1.666667
+        # row0: pwf = round(3000 * 1.666667) = round(5000) = 5000
+        assert rows[0].price_with_freight_input.text() == "50,00"
+
+        # Save
+        dialog.btn_save.click()
+        qtbot.wait(100)
+
+        # ── Step 4: Verify order list updated ───────────────────────
+        assert order_view._model.rowCount() == 4
+
+        # ── Step 5: Navigate to product list and verify ─────────────
+        mw._on_item_clicked("Lista de Produtos", "Notas")
+        product_view = mw.centralWidget()
+        assert isinstance(product_view, ProductListView)
+
+        product_view.filter_month.setText("07/2024")
+        product_view.btn_search.click()
+        qtbot.wait(100)
+        assert product_view._model.rowCount() == 5
+
+        # ── Step 6: Verify price and price_with_freight in table ────
+        # Products are ordered by Order.DATE.desc(). The new order
+        # (2024-07-20) falls between order-e (2024-07-25) and
+        # order-b (2024-07-15), so it is at row 1.
+        # price = 3000 cents → "30,00", pwf = 5000 cents → "50,00"
+        assert product_view._model.item(1, 2).text() == "Cimento Teste"
+        assert product_view._model.item(1, 3).text() == "30,00"
+        assert product_view._model.item(1, 4).text() == "50,00"

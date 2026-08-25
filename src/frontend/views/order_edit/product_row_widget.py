@@ -191,7 +191,7 @@ class ProductRowWidget(QWidget):
         price_text: str = self.price_input.text().strip()
 
         name_valid: bool = bool(name)
-        quantity_valid: bool = bool(quantity_text)
+        quantity_valid: bool = bool(quantity_text) and int(quantity_text) > 0
         price_valid: bool = bool(price_text)
 
         filled_count: int = sum([name_valid, quantity_valid, price_valid])

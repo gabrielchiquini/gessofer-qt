@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from bridge.nfe import NfeBridge
+from backend.sefaz.nfe_service import NfeSearchService
 from frontend.workers.nfe_search_worker import NfeSearchWorker
 
 logger = logging.getLogger(__name__)
@@ -32,10 +32,10 @@ class NfeSearchDialog(QDialog):
     def __init__(
             self,
             parent: QWidget | None,
-            nfe_bridge: NfeBridge,
+            nfe_search_service: NfeSearchService,
     ) -> None:
         super().__init__(parent)
-        self._nfe_bridge: NfeBridge = nfe_bridge
+        self._nfe_search_service: NfeSearchService = nfe_search_service
         self.setModal(True)
         self.setMinimumSize(500, 220)
         self.setWindowTitle("Consultar NFe")
@@ -112,7 +112,7 @@ class NfeSearchDialog(QDialog):
         self._progress_label.setVisible(True)
 
         self._thread = QThread(self)
-        self._worker = NfeSearchWorker(nfe_key, nfe_bridge=self._nfe_bridge)
+        self._worker = NfeSearchWorker(nfe_key, nfe_search_service=self._nfe_search_service)
 
         assert self._thread is not None
         assert self._worker is not None

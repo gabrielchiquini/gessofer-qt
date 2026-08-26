@@ -14,7 +14,6 @@ from PySide6.QtWidgets import (
 from backend.services.xml_import_service import XmlImportService
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
-from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from models.order import OrderSummary
@@ -42,7 +41,6 @@ class OrderEditListView(QWidget):
             order_bridge: OrderBridge,
             order_summary_bridge: OrderSummaryBridge,
             xml_import_service: XmlImportService,
-            nfe_bridge: NfeBridge,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
     ) -> None:
@@ -50,7 +48,6 @@ class OrderEditListView(QWidget):
         self._order_bridge: OrderBridge = order_bridge
         self._order_summary_bridge: OrderSummaryBridge = order_summary_bridge
         self._xml_import_service: XmlImportService = xml_import_service
-        self._nfe_bridge: NfeBridge = nfe_bridge
         self._order_edit_dialog_factory: OrderEditDialogFactory = order_edit_dialog_factory
         self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
         self._model: QStandardItemModel = QStandardItemModel(0, 6)
@@ -290,8 +287,7 @@ class OrderEditListView(QWidget):
     def _on_nfe_result(self, xml_path: str) -> None:
         """Handle successful NFe search — import XML and open edit dialog."""
 
-        result_path: str = self._nfe_bridge.search_nfe_key(xml_path)
-        result = self._xml_import_service.parse_file(result_path)
+        result = self._xml_import_service.parse_file(xml_path)
 
         if not result.orders:
             QMessageBox.critical(

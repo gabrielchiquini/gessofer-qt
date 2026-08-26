@@ -19,7 +19,6 @@ from backend.services.save_order_service import SaveOrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 from bridge.expense import ExpenseBridge
-from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from bridge.product import ProductBridge
@@ -201,11 +200,6 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_nfe_bridge(self, nfe_search_service: NfeSearchService) -> NfeBridge:
-        return NfeBridge(nfe_search_service=nfe_search_service)
-
-    @provider
-    @singleton
     def provide_order_summary_bridge(
             self, product_bridge: ProductBridge
     ) -> OrderSummaryBridge:
@@ -235,10 +229,10 @@ class InjectorModule(Module):
     @singleton
     def provide_nfe_search_dialog_factory(
             self,
-            nfe_bridge: NfeBridge,
+            nfe_search_service: NfeSearchService,
     ) -> NfeSearchDialogFactory:
         from frontend.factories.nfe_search_dialog_factory import _NfeSearchDialogFactoryImpl
-        return _NfeSearchDialogFactoryImpl(nfe_bridge=nfe_bridge)
+        return _NfeSearchDialogFactoryImpl(nfe_search_service=nfe_search_service)
 
     @provider
     @singleton
@@ -264,7 +258,6 @@ class InjectorModule(Module):
             self,
             order_bridge: OrderBridge,
             order_summary_bridge: OrderSummaryBridge,
-            nfe_bridge: NfeBridge,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
             xml_import_service: XmlImportService,
@@ -273,7 +266,6 @@ class InjectorModule(Module):
         return _OrderEditListViewFactoryImpl(
             order_bridge=order_bridge,
             order_summary_bridge=order_summary_bridge,
-            nfe_bridge=nfe_bridge,
             order_edit_dialog_factory=order_edit_dialog_factory,
             nfe_search_dialog_factory=nfe_search_dialog_factory,
             xml_import_service=xml_import_service,

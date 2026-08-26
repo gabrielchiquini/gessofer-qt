@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from bridge.nfe import NfeBridge
+from backend.sefaz.nfe_service import NfeSearchService
 from frontend.views.order_edit.nfe_search_dialog import NfeSearchDialog
 
 
@@ -25,13 +25,13 @@ class NfeSearchDialogFactory(Protocol):
 
 
 class _NfeSearchDialogFactoryImpl:
-    """Implementation of NfeSearchDialogFactory backed by a DI-resolved NfeBridge."""
+    """Implementation of NfeSearchDialogFactory backed by a DI-resolved NfeSearchService."""
 
-    def __init__(self, nfe_bridge: NfeBridge) -> None:
-        self._nfe_bridge: NfeBridge = nfe_bridge
+    def __init__(self, nfe_search_service: NfeSearchService) -> None:
+        self._nfe_search_service: NfeSearchService = nfe_search_service
 
     def __call__(self, parent: QWidget | None) -> NfeSearchDialog:
-        return NfeSearchDialog(parent=parent, nfe_bridge=self._nfe_bridge)
+        return NfeSearchDialog(parent=parent, nfe_search_service=self._nfe_search_service)
 
 
 # ──────────────────────────────────────────────────────────────────────
@@ -44,5 +44,5 @@ def _make_nfe_search_dialog_factory(injector: Any) -> NfeSearchDialogFactory:
     from injector import Injector
 
     inv: Injector = injector  # type: ignore[assignment]
-    nfe_bridge = inv.get(NfeBridge)
-    return _NfeSearchDialogFactoryImpl(nfe_bridge=nfe_bridge)
+    nfe_search_service = inv.get(NfeSearchService)
+    return _NfeSearchDialogFactoryImpl(nfe_search_service=nfe_search_service)

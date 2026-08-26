@@ -1,8 +1,12 @@
 from __future__ import annotations
 
+import logging
+
 from backend.certificate.import_pfx import save_pem_from_pfx
 from backend.certificate.read_pem import get_certificate_info
 from models.certificate import CertificateInfo
+
+logger = logging.getLogger(__name__)
 
 
 class CertificateHandler:
@@ -12,13 +16,22 @@ class CertificateHandler:
         """
         Call backend get_certificate_info() and return the result.
 
-        The backend does all parsing in a single file read.
-        The bridge simply forwards the result.
+        If an error occurs, logs the error and returns a default CertificateInfo
+        indicating no certificate is registered.
 
         Returns:
             CertificateInfo dataclass.
         """
-        return get_certificate_info()
+        try:
+            return get_certificate_info()
+        except Exception as exc:
+            logger.error("Error fetching certificate info: %s", exc)
+            logger.debug("Traceback", exc_info=True)
+            return CertificateInfo(
+                owner="Nenhum certificado registrado",
+                expiration_date="",
+                is_valid=False,
+            )
 
     def save_certificate_from_pfx(self, pfx_path: str, pfx_password: str) -> bool:
         """

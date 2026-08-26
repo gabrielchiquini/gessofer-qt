@@ -18,7 +18,6 @@ from backend.services.save_handler import SaveHandler
 from backend.services.save_order_service import SaveOrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
-from bridge.certificate import CertificateBridge
 from bridge.expense import ExpenseBridge
 from bridge.nfe import NfeBridge
 from bridge.order import OrderBridge
@@ -207,13 +206,6 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_certificate_bridge(
-            self, certificate_handler: CertificateHandler
-    ) -> CertificateBridge:
-        return CertificateBridge(certificate_handler=certificate_handler)
-
-    @provider
-    @singleton
     def provide_order_summary_bridge(
             self, product_bridge: ProductBridge
     ) -> OrderSummaryBridge:
@@ -261,10 +253,10 @@ class InjectorModule(Module):
     @singleton
     def provide_certificate_change_dialog_factory(
             self,
-            certificate_bridge: CertificateBridge,
+            certificate_handler: CertificateHandler,
     ) -> CertificateChangeDialogFactory:
         from frontend.factories.certificate_change_dialog_factory import _CertificateChangeDialogFactoryImpl
-        return _CertificateChangeDialogFactoryImpl(certificate_bridge=certificate_bridge)
+        return _CertificateChangeDialogFactoryImpl(certificate_handler=certificate_handler)
 
     @provider
     @singleton
@@ -304,12 +296,12 @@ class InjectorModule(Module):
     @singleton
     def provide_certificate_status_view_factory(
             self,
-            certificate_bridge: CertificateBridge,
+            certificate_handler: CertificateHandler,
             certificate_change_dialog_factory: CertificateChangeDialogFactory,
     ) -> CertificateStatusViewFactory:
         from frontend.factories.certificate_status_view_factory import _CertificateStatusViewFactoryImpl
         return _CertificateStatusViewFactoryImpl(
-            certificate_bridge=certificate_bridge,
+            certificate_handler=certificate_handler,
             certificate_change_dialog_factory=certificate_change_dialog_factory,
         )
 

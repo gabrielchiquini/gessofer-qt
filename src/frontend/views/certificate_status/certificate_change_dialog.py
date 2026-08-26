@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from bridge.certificate import CertificateBridge
+from backend.certificate.handler import CertificateHandler
 from frontend.components.card import Card
 
 
@@ -22,15 +22,15 @@ class CertificateChangeDialog(QDialog):
     def __init__(
             self,
             parent: QWidget,
-            certificate_bridge: CertificateBridge,
+            certificate_handler: CertificateHandler,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
         self.setWindowTitle("Alterar Certificado")
         self.setMinimumSize(400, 180)
 
-        # ── DI Bridge ─────────────────────────────────────────────────
-        self._certificate_bridge: CertificateBridge = certificate_bridge
+        # ── DI Handler ──────────────────────────────────────────────────
+        self._certificate_handler: CertificateHandler = certificate_handler
 
         # ── Widgets ───────────────────────────────────────────────────
         self._pfx_path: str = ""
@@ -114,7 +114,7 @@ class CertificateChangeDialog(QDialog):
             return
 
         try:
-            self._certificate_bridge.save_certificate_from_pfx(
+            self._certificate_handler.save_certificate_from_pfx(
                 self._pfx_path, self.password_input.text(),
             )
             self.accept()

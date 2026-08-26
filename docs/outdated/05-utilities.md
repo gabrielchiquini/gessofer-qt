@@ -1,4 +1,4 @@
-> **Part of:** [Gessofer-Tauri Documentation](./README.md)
+> **Part of:** [Gessofer-Tauri Documentation](README.md)
 
 # Frontend — Utilities & Shared Logic
 

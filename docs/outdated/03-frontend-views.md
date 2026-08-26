@@ -1,4 +1,4 @@
-> **Part of:** [Gessofer-Tauri Documentation](./README.md)
+> **Part of:** [Gessofer-Tauri Documentation](README.md)
 
 # Frontend — Views & Screens
 
@@ -202,7 +202,7 @@ But displayed total: "R$ 230,57" (18200 + 1210 + 3648 = 23058, but test says 230
 }
 ```
 
-**Important:** The save logic **deletes and re-inserts** all orders and products in a single database transaction (see [Database Repository Layer](./06-backend.md)). This is a "write everything" approach rather than incremental updates.
+**Important:** The save logic **deletes and re-inserts** all orders and products in a single database transaction (see [Database Repository Layer](06-backend.md)). This is a "write everything" approach rather than incremental updates.
 
 ### 3.2.5 XML Import Flow (CRITICAL)
 

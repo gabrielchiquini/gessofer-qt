@@ -125,13 +125,8 @@ class OrderItemsCard(QWidget):
 
         for row in self._product_rows[:-1]:
             base_price: int = parse_currency_to_cents(row.price_input.text())
-            quantity: int = int(row.quantity_input.text()) if row.quantity_input.text().strip() else 0
-            if quantity == 0:
-                row.set_price_with_freight(0)
-            else:
-                product_total: int = base_price * quantity
-                pwf = round((product_total * ratio) / quantity)
-                row.set_price_with_freight(pwf)
+            pwf = round((base_price * ratio))
+            row.set_price_with_freight(pwf)
 
     def get_products_total(self) -> int:
         """Sum of all product totals in cents."""

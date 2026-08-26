@@ -151,6 +151,8 @@ class ExpenseItemsCard(QWidget):
     def delete_row(self) -> None:
         """Remove the sender row from layout, delete widget, pop from list."""
         row: ExpenseRowWidget = self.sender()  # type: ignore[union-attr]
+        if row is None:
+            raise RuntimeError("delete_row must be called via signal or with explicit row parameter")
         row.deleteLater()
         self.expenses_layout.removeWidget(row)
         index = self._expense_rows.index(row)

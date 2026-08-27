@@ -7,7 +7,7 @@ from typing import List, Optional, Sequence, cast
 from sqlalchemy import func, select, delete
 from sqlalchemy.orm import Session, selectinload, SessionTransaction
 
-from backend.entities.orm import Order, Product
+from backend.entities.orm import OrderEntity, ProductEntity
 from backend.utils.text import normalize_text
 from models.input import OrderInput, ProductInput
 from models.output import PageResponse
@@ -26,7 +26,7 @@ class OrderRepository:
 
     # ── Query: fetch_orders_for_month ───────────────────────────────
 
-    def fetch_orders_for_month(self, month: int, year: int) -> List[Order]:
+    def fetch_orders_for_month(self, month: int, year: int) -> List[OrderEntity]:
         """
         Fetch all orders and their products for a given year-month.
         month = "07" (zero-padded), year = 2024.
@@ -42,12 +42,12 @@ class OrderRepository:
         date_end = f"{next_year:04d}-{next_month:02d}-01"
 
         stmt = (
-            select(Order)
-            .where(Order.DATE >= date_start, Order.DATE < date_end)
-            .order_by(Order.DATE.asc(), Order.ID.asc())
+            select(OrderEntity)
+            .where(OrderEntity.DATE >= date_start, OrderEntity.DATE < date_end)
+            .order_by(OrderEntity.DATE.asc(), OrderEntity.ID.asc())
         )
         orders = self.session.execute(stmt).scalars().all()
-        orders = [cast(Order, val) for val in orders]
+        orders = [cast(OrderEntity, val) for val in orders]
 
         # Products are loaded via the relationship (lazy by default)
         # Accessing order.products triggers the lazy load.
@@ -55,15 +55,15 @@ class OrderRepository:
 
     # ── Query: fetch_order_by_id ────────────────────────────────────
 
-    def fetch_order_by_id(self, order_id: str) -> Order | None:
+    def fetch_order_by_id(self, order_id: str) -> OrderEntity | None:
         """Fetch a single order by ID with products eagerly loaded."""
         stmt = (
-            select(Order)
-            .where(Order.ID == order_id)
-            .options(selectinload(Order.products))
+            select(OrderEntity)
+            .where(OrderEntity.ID == order_id)
+            .options(selectinload(OrderEntity.products))
         )
         result = self.session.execute(stmt).scalars().first()
-        return cast(Order, result)
+        return cast(OrderEntity, result)
 
     # ── Query: search_products (paginated search) ───────────────────
 
@@ -73,7 +73,7 @@ class OrderRepository:
             supplier: Optional[str] = None,
             product: Optional[str] = None,
             month: Optional[str] = None,
-    ) -> PageResponse[Product]:
+    ) -> PageResponse[ProductEntity]:
         """
         Paginated product search with optional filters.
         page is 1-based.
@@ -81,17 +81,17 @@ class OrderRepository:
 
         Returns PageResponse with matching Product ORM entities.
         """
-        where_clauses = [Product.ID.is_not(None)]
+        where_clauses = [ProductEntity.ID.is_not(None)]
 
         # Filter by supplier (normalized LIKE)
         if supplier:
             normalized_supplier = normalize_text(supplier)
-            where_clauses.append(Order.SUPPLIER_NORMALIZED.like(f"%{normalized_supplier}%"))
+            where_clauses.append(OrderEntity.SUPPLIER_NORMALIZED.like(f"%{normalized_supplier}%"))
 
         # Filter by product name (normalized LIKE)
         if product:
             normalized_product = normalize_text(product)
-            where_clauses.append(Product.NAME_NORMALIZED.like(f"%{normalized_product}%"))
+            where_clauses.append(ProductEntity.NAME_NORMALIZED.like(f"%{normalized_product}%"))
 
         # Filter by month (MM/yyyy) - joins through ORDER table
         if month and len(month) == 7:
@@ -112,14 +112,14 @@ class OrderRepository:
             date_end = f"{next_y:04d}-{next_m:02d}-01"
 
             subquery = (
-                select(Order.ID)
-                .where(Order.DATE >= date_start, Order.DATE < date_end)
+                select(OrderEntity.ID)
+                .where(OrderEntity.DATE >= date_start, OrderEntity.DATE < date_end)
                 .scalar_subquery()
             )
-            where_clauses.append(Product.ORDER_ID.in_(subquery))
+            where_clauses.append(ProductEntity.ORDER_ID.in_(subquery))
 
         # Total count (for pagination)
-        count_stmt = select(func.count()).join(Product.order).where(*where_clauses)
+        count_stmt = select(func.count()).join(ProductEntity.order).where(*where_clauses)
         total = self.session.scalar(count_stmt)
         total = int(total or 0)
 
@@ -129,11 +129,11 @@ class OrderRepository:
         # Fetch page
         offset = (page - 1) * PAGE_SIZE
         query_stmt = (
-            select(Product)
-            .join(Product.order)
-            .options(selectinload(Product.order))
+            select(ProductEntity)
+            .join(ProductEntity.order)
+            .options(selectinload(ProductEntity.order))
             .where(*where_clauses)
-            .order_by(Order.DATE.desc())
+            .order_by(OrderEntity.DATE.desc())
             .limit(PAGE_SIZE)
             .offset(offset)
         )
@@ -153,7 +153,7 @@ class OrderRepository:
         """Delete orders by their UUIDs. Called inside a transaction."""
         if not order_ids:
             return
-        stmt = delete(Order).where(Order.ID.in_(order_ids))
+        stmt = delete(OrderEntity).where(OrderEntity.ID.in_(order_ids))
         self.session.execute(stmt)
 
     # ── Write: insert_order ─────────────────────────────────────────
@@ -162,7 +162,7 @@ class OrderRepository:
         """Insert a single order row. Timestamps are auto-generated by DB."""
         nfe_key_val = order.nfe_key if order.nfe_key else None
         now = datetime.now()
-        order_entity = Order(
+        order_entity = OrderEntity(
             ID=order.id,
             DATE=order.date,
             SUPPLIER=order.supplier,
@@ -181,7 +181,7 @@ class OrderRepository:
         """Delete all products belonging to given order IDs."""
         if not order_ids:
             return
-        stmt = delete(Product).where(Product.ORDER_ID.in_(order_ids))
+        stmt = delete(ProductEntity).where(ProductEntity.ORDER_ID.in_(order_ids))
         self.session.execute(stmt)
 
     # ── Write: insert_product ───────────────────────────────────────
@@ -189,7 +189,7 @@ class OrderRepository:
     def insert_product(self, product: ProductInput) -> None:
         """Insert a single product row. Timestamps are auto-generated by DB."""
         now = datetime.now()
-        product_entity = Product(
+        product_entity = ProductEntity(
             ID=product.id,
             NAME=product.name,
             NAME_NORMALIZED=normalize_text(product.name),

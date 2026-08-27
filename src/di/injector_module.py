@@ -10,15 +10,14 @@ from backend.certificate.handler import CertificateHandler
 from backend.database.connection import get_engine
 from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.backup_service import BackupService
-from backend.services.expense_fetch_handler import ExpenseFetchHandler
-from backend.services.expense_save_handler import ExpenseSaveHandler
+from backend.services.expense_service import ExpenseService
 from backend.services.fetch_handler import FetchHandler
 from backend.services.save_expense_service import SaveExpenseService
 from backend.services.save_handler import SaveHandler
 from backend.services.save_order_service import SaveOrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
-from bridge.expense import ExpenseBridge
+
 from bridge.order import OrderBridge
 from bridge.order_summary import OrderSummaryBridge
 from bridge.product import ProductBridge
@@ -143,17 +142,15 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_expense_fetch_handler(
-            self, session_factory: Callable[[], Session],
-    ) -> ExpenseFetchHandler:
-        return ExpenseFetchHandler(session_factory=session_factory)
-
-    @provider
-    @singleton
-    def provide_expense_save_handler(
-            self, save_expense_service: SaveExpenseService,
-    ) -> ExpenseSaveHandler:
-        return ExpenseSaveHandler(save_expense_service=save_expense_service)
+    def provide_expense_service(
+            self,
+            save_expense_service: SaveExpenseService,
+            session_factory: Callable[[], Session],
+    ) -> ExpenseService:
+        return ExpenseService(
+            save_expense_service=save_expense_service,
+            session_factory=session_factory,
+        )
 
     @provider
     @singleton
@@ -185,18 +182,6 @@ class InjectorModule(Module):
             session_factory: Callable[[], Session],
     ) -> OrderBridge:
         return OrderBridge(save_handler=save_handler, session_factory=session_factory)
-
-    @provider
-    @singleton
-    def provide_expense_bridge(
-            self,
-            expense_fetch_handler: ExpenseFetchHandler,
-            expense_save_handler: ExpenseSaveHandler,
-    ) -> ExpenseBridge:
-        return ExpenseBridge(
-            expense_fetch_handler=expense_fetch_handler,
-            expense_save_handler=expense_save_handler,
-        )
 
     @provider
     @singleton
@@ -238,10 +223,10 @@ class InjectorModule(Module):
     @singleton
     def provide_expense_edit_dialog_factory(
             self,
-            expense_bridge: ExpenseBridge,
+            expense_service: ExpenseService,
     ) -> ExpenseEditDialogFactory:
         from frontend.factories.expense_edit_dialog_factory import _ExpenseEditDialogFactoryImpl
-        return _ExpenseEditDialogFactoryImpl(expense_bridge=expense_bridge)
+        return _ExpenseEditDialogFactoryImpl(expense_service=expense_service)
 
     @provider
     @singleton
@@ -275,12 +260,12 @@ class InjectorModule(Module):
     @singleton
     def provide_expense_list_view_factory(
             self,
-            expense_bridge: ExpenseBridge,
+            expense_service: ExpenseService,
             expense_edit_dialog_factory: ExpenseEditDialogFactory,
     ) -> ExpenseListViewFactory:
         from frontend.factories.expense_list_view_factory import _ExpenseListViewFactoryImpl
         return _ExpenseListViewFactoryImpl(
-            expense_bridge=expense_bridge,
+            expense_service=expense_service,
             expense_edit_dialog_factory=expense_edit_dialog_factory,
         )
 

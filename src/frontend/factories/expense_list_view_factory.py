@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from bridge.expense import ExpenseBridge
+from backend.services.expense_service import ExpenseService
 from frontend.views.expense_list import ExpenseListView
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 
@@ -30,15 +30,15 @@ class _ExpenseListViewFactoryImpl:
 
     def __init__(
         self,
-        expense_bridge: ExpenseBridge,
+        expense_service: ExpenseService,
         expense_edit_dialog_factory: ExpenseEditDialogFactory,
     ) -> None:
-        self._expense_bridge: ExpenseBridge = expense_bridge
+        self._expense_service: ExpenseService = expense_service
         self._expense_edit_dialog_factory: ExpenseEditDialogFactory = expense_edit_dialog_factory
 
     def __call__(self, parent: QWidget) -> ExpenseListView:
         return ExpenseListView(
             parent=parent,
-            expense_bridge=self._expense_bridge,
+            expense_service=self._expense_service,
             expense_edit_dialog_factory=self._expense_edit_dialog_factory,
         )

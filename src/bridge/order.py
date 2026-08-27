@@ -5,11 +5,11 @@ from typing import Callable
 
 from sqlalchemy.orm import Session
 
+from backend.entities.adapter import orm_order_to_model
 from backend.repositories.order_repository import OrderRepository
 from backend.services.save_handler import SaveHandler
 from models.input import OrderInput
 from models.order import Order
-from bridge.product import orm_product_to_dict
 
 logger = logging.getLogger(__name__)
 
@@ -18,9 +18,9 @@ class OrderBridge:
     """Bridge for order-related save and fetch operations."""
 
     def __init__(
-        self,
-        save_handler: SaveHandler,
-        session_factory: Callable[[], Session],
+            self,
+            save_handler: SaveHandler,
+            session_factory: Callable[[], Session],
     ) -> None:
         self._save_handler = save_handler
         self._session_factory = session_factory
@@ -43,7 +43,7 @@ class OrderBridge:
             order = repo.fetch_order_by_id(order_id)
             if order is None:
                 return None
-            return self.orm_order_to_dict(order)
+            return orm_order_to_model(order)
         finally:
             session.close()
 
@@ -62,16 +62,3 @@ class OrderBridge:
         except Exception as exc:
             logger.error("Error in delete_order: %s", exc)
             return False
-
-    def orm_order_to_dict(self, order: Order) -> Order:
-        """Transform an ORM Order entity into an Order dataclass."""
-        return Order(
-            id=order.ID,
-            date=order.DATE.isoformat() if order.DATE else "",
-            supplier=order.SUPPLIER,
-            nfe_key=order.NFE_KEY or "",
-            freight=order.FREIGHT,
-            unloading=order.UNLOADING,
-            products=[orm_product_to_dict(p) for p in order.products],
-        )
-

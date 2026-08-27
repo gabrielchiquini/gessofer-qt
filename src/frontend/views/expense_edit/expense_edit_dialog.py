@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from models.input import ExpenseInput
-from bridge.expense import ExpenseBridge
+from backend.services.expense_service import ExpenseService
 from frontend.views.expense_edit.expense_items_card import ExpenseItemsCard
 
 
@@ -25,7 +25,7 @@ class ExpenseEditDialog(QDialog):
             self,
             parent: QWidget | None,
             month: str,
-            expense_bridge: ExpenseBridge,
+            expense_service: ExpenseService,
     ) -> None:
         super().__init__(parent)
         self.setModal(True)
@@ -35,13 +35,13 @@ class ExpenseEditDialog(QDialog):
         self._month: str = month
 
         # ── DI Bridge ─────────────────────────────────────────────────
-        self._expense_bridge: ExpenseBridge = expense_bridge
+        self._expense_service: ExpenseService = expense_service
 
         # ── Items Card ────────────────────────────────────────────────
         self.items_card: ExpenseItemsCard = ExpenseItemsCard(self, month)
 
         # Load existing expenses
-        expenses_data = self._expense_bridge.fetch_expenses_for_month(self._month)
+        expenses_data = self._expense_service.fetch_expenses_for_month(self._month)
         self.items_card.set_expenses_data(expenses_data.expenses)
 
         # ── Footer Buttons ────────────────────────────────────────────
@@ -84,7 +84,7 @@ class ExpenseEditDialog(QDialog):
             return
 
         expenses_list: list[ExpenseInput] = self.items_card.get_expenses_list()
-        success: bool = self._expense_bridge.save_expenses(expenses_list, self._month)
+        success: bool = self._expense_service.save_expenses(expenses_list, self._month)
         if success:
             self._show_message("Salvo com sucesso!", "success")
             self.expenses_saved.emit(self._month)

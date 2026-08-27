@@ -6,7 +6,6 @@ import pytest
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
-from bridge.expense import ExpenseBridge
 from di.injector_module import get_injector
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 from frontend.views.expense_edit.expense_edit_dialog import ExpenseEditDialog

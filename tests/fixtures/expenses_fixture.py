@@ -9,7 +9,7 @@ from sqlalchemy.engine import Engine
 from frontend.views.expense_list import ExpenseListView
 
 from PySide6.QtWidgets import QWidget
-from bridge.expense import ExpenseBridge
+from backend.services.expense_service import ExpenseService
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
 
 
@@ -22,12 +22,12 @@ def expense_list_widget(
     from di.injector_module import get_injector
 
     injector = get_injector()
-    expense_bridge: ExpenseBridge = injector.get(ExpenseBridge)
+    expense_service: ExpenseService = injector.get(ExpenseService)
     expense_edit_dialog_factory: ExpenseEditDialogFactory = injector.get(ExpenseEditDialogFactory)
 
     widget = ExpenseListView(
         parent=None,
-        expense_bridge=expense_bridge,
+        expense_service=expense_service,
         expense_edit_dialog_factory=expense_edit_dialog_factory,
     )
     qtbot.addWidget(widget)

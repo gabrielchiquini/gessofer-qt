@@ -11,7 +11,7 @@ class Base(DeclarativeBase):
     pass
 
 
-class Order(Base):
+class OrderEntity(Base):
     __tablename__ = "ORDER"
 
     ID: Mapped[str] = mapped_column("ID", String, primary_key=True)
@@ -25,12 +25,12 @@ class Order(Base):
     UPDATED_AT: Mapped[datetime] = mapped_column("UPDATED_AT", DateTime)
 
     # Relationship to Product (backref on Product)
-    products: Mapped[List["Product"]] = relationship(
+    products: Mapped[List["ProductEntity"]] = relationship(
         back_populates="order", cascade="all, delete-orphan"
     )
 
 
-class Product(Base):
+class ProductEntity(Base):
     __tablename__ = "PRODUCT"
 
     ID: Mapped[str] = mapped_column("ID", String, primary_key=True)
@@ -46,10 +46,10 @@ class Product(Base):
     UPDATED_AT: Mapped[datetime] = mapped_column("UPDATED_AT", DateTime)
 
     # Back-reference to Order
-    order: Mapped["Order"] = relationship(back_populates="products")
+    order: Mapped["OrderEntity"] = relationship(back_populates="products")
 
 
-class Expense(Base):
+class ExpenseEntity(Base):
     __tablename__ = "EXPENSE"
 
     ID: Mapped[int] = mapped_column("ID", Integer, primary_key=True, autoincrement=True)

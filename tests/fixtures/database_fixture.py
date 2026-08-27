@@ -11,7 +11,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.orm import Session
 
 import di.injector_module
-from backend.entities.orm import Base, Expense, Order, Product
+from backend.entities.orm import Base, ExpenseEntity, OrderEntity, ProductEntity
 from backend.utils.text import normalize_text
 from tests.fixtures.seed_data import EXPENSES_DATA, ORDERS_DATA
 from tests.util.bridge_reset import reset_bridge_singletons
@@ -29,7 +29,7 @@ def _seed_expenses(engine: Engine) -> None:
     now = datetime.now()
     with Session(engine) as session:
         for expense in EXPENSES_DATA:
-            expense_obj = Expense(
+            expense_obj = ExpenseEntity(
                 MONTH=expense.month,
                 DESCRIPTION=expense.description,
                 VALUE=expense.value,
@@ -49,7 +49,7 @@ def _seed_orders(engine: Engine) -> None:
     now = datetime.now()
     with Session(engine) as session:
         for order in ORDERS_DATA:
-            order_obj = Order(
+            order_obj = OrderEntity(
                 ID=order.id,
                 DATE=order.date,
                 SUPPLIER=order.supplier,
@@ -62,7 +62,7 @@ def _seed_orders(engine: Engine) -> None:
             )
             session.add(order_obj)
             for prod in order.products:
-                product_obj = Product(
+                product_obj = ProductEntity(
                     ID=prod.id,
                     NAME=prod.name,
                     NAME_NORMALIZED=normalize_text(prod.name),

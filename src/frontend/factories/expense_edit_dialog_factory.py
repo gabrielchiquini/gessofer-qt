@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from bridge.expense import ExpenseBridge
+from backend.services.expense_service import ExpenseService
 from frontend.views.expense_edit.expense_edit_dialog import ExpenseEditDialog
 
 
@@ -25,16 +25,16 @@ class ExpenseEditDialogFactory(Protocol):
 
 
 class _ExpenseEditDialogFactoryImpl:
-    """Implementation of ExpenseEditDialogFactory backed by a DI-resolved ExpenseBridge."""
+    """Implementation of ExpenseEditDialogFactory backed by a DI-resolved ExpenseService."""
 
-    def __init__(self, expense_bridge: ExpenseBridge) -> None:
-        self._expense_bridge: ExpenseBridge = expense_bridge
+    def __init__(self, expense_service: ExpenseService) -> None:
+        self._expense_service: ExpenseService = expense_service
 
     def __call__(self, parent: QWidget | None, month: str) -> ExpenseEditDialog:
         return ExpenseEditDialog(
             parent=parent,
             month=month,
-            expense_bridge=self._expense_bridge,
+            expense_service=self._expense_service,
         )
 
 
@@ -48,5 +48,5 @@ def _make_expense_edit_dialog_factory(injector: Any) -> ExpenseEditDialogFactory
     from injector import Injector
 
     inv: Injector = injector  # type: ignore[assignment]
-    expense_bridge = inv.get(ExpenseBridge)
-    return _ExpenseEditDialogFactoryImpl(expense_bridge=expense_bridge)
+    expense_service = inv.get(ExpenseService)
+    return _ExpenseEditDialogFactoryImpl(expense_service=expense_service)

@@ -39,15 +39,15 @@ class MainWindow(QMainWindow):
 
     def _on_item_clicked(self, label: str, group_title: str) -> None:
         """Handle navigation item clicks."""
-        if label == "Lista de Produtos" and group_title == "Notas":
+        if group_title == "Produtos":
             view = self._product_list_view_factory(self)
             self.setCentralWidget(view)
-        elif label == "Lista de pedidos por mês" and group_title == "Notas":
+        elif group_title == "Notas":
             view = self._order_edit_list_view_factory(self)
             self.setCentralWidget(view)
-        elif label == "Status" and group_title == "Certificado":
+        elif group_title == "Certificado":
             view = self._certificate_status_view_factory(self)
             self.setCentralWidget(view)
-        elif label == "Lista" and group_title == "Despesas":
+        elif group_title == "Despesas":
             view = self._expense_list_view_factory(self)
             self.setCentralWidget(view)

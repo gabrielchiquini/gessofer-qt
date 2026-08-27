@@ -3,17 +3,10 @@ from __future__ import annotations
 from typing import Any
 
 NAV_GROUPS: list[dict[str, Any]] = [
-    {"title": "Notas", "items": [
-        {"label": "Lista de Produtos", "group": "Notas"},
-        {"label": "Lista de pedidos por mês", "group": "Notas"},
-    ]},
-    {"title": "Despesas", "items": [
-        {"label": "Lista", "group": "Despesas"},
-        {"label": "Cadastrar", "group": "Despesas"},
-    ]},
-    {"title": "Certificado", "items": [
-        {"label": "Status", "group": "Certificado"},
-    ]},
+    {"title": "Produtos"},
+    {"title": "Notas"},
+    {"title": "Despesas"},
+    {"title": "Certificado"},
 ]
 
 SIDEBAR_WIDTH: int = 200

@@ -23,15 +23,11 @@ class NavigationBar(QMenuBar):
         """Build menus from NAV_GROUPS configuration."""
         for group in NAV_GROUPS:
             menu_title = group["title"]
-            menu = self.addMenu(menu_title)
-            menu.setObjectName(f"nav-menu-{menu_title.lower()}")
 
-            for item in group["items"]:
-                label = item["label"]
-                group_title = item["group"]
-                action = QAction(label, self)
-                action.setObjectName(f"nav-link-{label.lower()}")
-                action.triggered.connect(
-                    lambda checked=False, lbl=label, grp=group_title: self.item_clicked.emit(lbl, grp)
-                )
-                menu.addAction(action)
+            # Add the group title itself as a top-level clickable action
+            direct_action = QAction(menu_title, self)
+            direct_action.setObjectName(f"nav-link-{menu_title.lower()}")
+            direct_action.triggered.connect(
+                lambda checked=False, lbl=menu_title, grp=menu_title: self.item_clicked.emit(lbl, grp)
+            )
+            self.addAction(direct_action)

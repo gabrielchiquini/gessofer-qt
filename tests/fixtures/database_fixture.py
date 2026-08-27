@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 import di.injector_module
 from backend.entities.orm import Base, ExpenseEntity, OrderEntity, ProductEntity
+from backend.services.order_service import OrderService
 from backend.utils.text import normalize_text
 from tests.fixtures.seed_data import EXPENSES_DATA, ORDERS_DATA
 from tests.util.bridge_reset import reset_bridge_singletons
@@ -156,7 +157,9 @@ def session_factory(temp_engine: Engine) -> Callable[[], Session]:
 
 
 @pytest.fixture
-def fetch_handler(session_factory: Callable[[], Session]) -> "FetchHandler":
-    """FetchHandler backed by the test database (already seeded by temp_engine)."""
-    from bridge.product import FetchHandler
-    return FetchHandler(session_factory)
+def order_service(
+    temp_engine: Engine,
+    session_factory: Callable[[], Session],
+) -> OrderService:
+    """OrderService backed by the test database (already seeded by temp_engine)."""
+    return OrderService(engine=temp_engine, session_factory=session_factory)

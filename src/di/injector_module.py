@@ -11,10 +11,8 @@ from backend.database.connection import get_engine
 from backend.sefaz.nfe_service import NfeSearchService
 from backend.services.backup_service import BackupService
 from backend.services.expense_service import ExpenseService
-from backend.services.fetch_handler import FetchHandler
 from backend.services.save_expense_service import SaveExpenseService
-from backend.services.save_handler import SaveHandler
-from backend.services.save_order_service import SaveOrderService
+from backend.services.order_service import OrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 
@@ -64,7 +62,7 @@ class InjectorModule(Module):
 
     - Engine: provided by the existing get_engine() function (backward compatible).
     - Session factory: a factory that creates new sessions on demand (session-per-operation).
-    - SaveOrderService / SaveExpenseService: singletons that receive the Engine via @inject.
+    - OrderService / SaveExpenseService: singletons that receive the Engine via @inject.
     """
 
     @provider
@@ -99,12 +97,6 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_save_order_service(self, engine: Engine) -> SaveOrderService:
-        """Provide a singleton SaveOrderService with the Engine injected."""
-        return SaveOrderService(engine=engine)
-
-    @provider
-    @singleton
     def provide_save_expense_service(self, engine: Engine) -> SaveExpenseService:
         """Provide a singleton SaveExpenseService with the Engine injected."""
         return SaveExpenseService(engine=engine)
@@ -125,20 +117,13 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_fetch_handler(self, session_factory: Callable[[], Session]) -> FetchHandler:
-        return FetchHandler(session_factory=session_factory)
-
-    @provider
-    @singleton
-    def provide_save_handler(
+    def provide_order_service(
             self,
-            save_order_service: SaveOrderService,
-            save_expense_service: SaveExpenseService,
-    ) -> SaveHandler:
-        return SaveHandler(
-            save_order_service=save_order_service,
-            save_expense_service=save_expense_service,
-        )
+            engine: Engine,
+            session_factory: Callable[[], Session],
+    ) -> OrderService:
+        """Provide a singleton OrderService with Engine and session_factory injected."""
+        return OrderService(engine=engine, session_factory=session_factory)
 
     @provider
     @singleton
@@ -171,17 +156,17 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_product_bridge(self, fetch_handler: FetchHandler) -> ProductBridge:
-        return ProductBridge(fetch_handler=fetch_handler)
+    def provide_product_bridge(self, order_service: OrderService) -> ProductBridge:
+        return ProductBridge(order_service=order_service)
 
     @provider
     @singleton
     def provide_order_bridge(
             self,
-            save_handler: SaveHandler,
+            order_service: OrderService,
             session_factory: Callable[[], Session],
     ) -> OrderBridge:
-        return OrderBridge(save_handler=save_handler, session_factory=session_factory)
+        return OrderBridge(order_service=order_service, session_factory=session_factory)
 
     @provider
     @singleton

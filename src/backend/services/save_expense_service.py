@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import logging
 from typing import List
 
 from injector import inject
@@ -8,8 +9,9 @@ from sqlalchemy.orm import Session
 
 from backend.errors import ValidationError, DatabaseError
 from backend.repositories.expense_repository import ExpenseRepository
-from backend.services.save_order_service import logger
 from models.input import ExpenseInput
+
+logger = logging.getLogger(__name__)
 
 
 class SaveExpenseService:

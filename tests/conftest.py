@@ -4,7 +4,7 @@ This module re-exports fixtures from the fixtures package so that
 existing tests continue to work without changes.  The actual
 fixture implementations live in:
 
-- tests/fixtures/database_fixture.py   (temp_engine, session_factory, fetch_handler)
+- tests/fixtures/database_fixture.py   (temp_engine, session_factory, order_service)
 - tests/fixtures/orders_fixture.py     (seeded_fetch_handler, sample_page)
 - tests/fixtures/expenses_fixture.py   (expense_list_widget)
 - tests/fixtures/expenses_edit_fixture.py (expense_edit_dialog, expense_edit_dialog_august)
@@ -12,7 +12,7 @@ fixture implementations live in:
 from __future__ import annotations
 
 # Database fixtures
-from tests.fixtures.database_fixture import fetch_handler, session_factory, temp_engine
+from tests.fixtures.database_fixture import order_service, session_factory, temp_engine
 
 # Order fixtures
 from tests.fixtures.orders_fixture import sample_page, seeded_fetch_handler
@@ -42,7 +42,7 @@ __all__ = [
     # Database
     "temp_engine",
     "session_factory",
-    "fetch_handler",
+    "order_service",
     # Orders
     "seeded_fetch_handler",
     "sample_page",

@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 
 from models.output import PageResponse
-from bridge.product import FetchHandler
+from backend.services.order_service import OrderService
 from tests.fixtures.seed_data import ORDERS_DATA
 from tests.fixtures.seed_data import OrderSeed
 
@@ -48,6 +48,6 @@ def seeded_fetch_handler() -> tuple[OrderSeed, ...]:
 
 
 @pytest.fixture
-def sample_page(fetch_handler: FetchHandler) -> PageResponse:
+def sample_page(order_service: OrderService) -> PageResponse:
     """A PageResponse with seeded data for transformer tests."""
-    return fetch_handler.fetch_products(page=1)
+    return order_service.fetch_products(page=1)

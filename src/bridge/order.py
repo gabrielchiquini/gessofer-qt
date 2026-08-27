@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from backend.entities.adapter import orm_order_to_model
 from backend.repositories.order_repository import OrderRepository
-from backend.services.save_handler import SaveHandler
+from backend.services.order_service import OrderService
 from models.input import OrderInput
 from models.order import Order
 
@@ -19,16 +19,16 @@ class OrderBridge:
 
     def __init__(
             self,
-            save_handler: SaveHandler,
+            order_service: OrderService,
             session_factory: Callable[[], Session],
     ) -> None:
-        self._save_handler = save_handler
+        self._order_service = order_service
         self._session_factory = session_factory
 
     def save_single_order(self, order: OrderInput) -> bool:
         """Save a single order (with its products) as an upsert."""
         try:
-            self._save_handler.save_single_order(order)
+            self._order_service.save_single_order(order)
             return True
         except Exception as exc:
             logger.error("Error in save_single_order: %s", exc)

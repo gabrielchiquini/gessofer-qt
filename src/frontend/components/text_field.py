@@ -93,6 +93,7 @@ class TextField(QWidget):
         self._error_message: str = ""
         self._was_validated: bool = False
         self._custom_error_message: str | None = custom_error_message
+        self._validator: QValidator | None = None
 
         # ── Internal widgets ──────────────────────────────────────────
         self._label: QLabel = QLabel(label, self)
@@ -112,22 +113,22 @@ class TextField(QWidget):
             self._edit.setInputMask(input_mask)
 
         # ── Build the validator chain ─────────────────────────────────
-        _children: list[QValidator] = []
+        validators: list[QValidator] = []
 
         if required:
-            _children.append(_RequiredValidator(self))
+            validators.append(_RequiredValidator(self))
 
         if custom_validator is not None:
-            _children.append(custom_validator)
+            validators.append(custom_validator)
 
         if regex_validation_pattern is not None:
-            _children.append(
+            validators.append(
                 QRegularExpressionValidator(regex_validation_pattern, self)
             )
 
-        if _children:
-            combined: QValidator = _CombinedValidator(self, *_children)
-            self._edit.setValidator(combined)
+        if validators:
+            self._validator: QValidator = _CombinedValidator(self, *validators)
+            self._edit.setValidator(self._validator) #type: ignore[union-attr]
 
         self._edit.textEdited.connect(self._text_edited)
 
@@ -157,27 +158,7 @@ class TextField(QWidget):
     def set_text(self, text: str) -> None:
         """Set the text in the QLineEdit."""
         self._edit.setText(text)
-
-    # ── Property: validation state ────────────────────────────────────
-
-    def get_validation_state(self) -> bool:
-        """Return whether the field is currently valid (Acceptable)."""
-        return self.is_valid()
-
-    def set_validation_state(
-            self,
-            error_message: str | None = None,
-    ) -> None:
-        """Set the validation state and optional error message.
-
-        Args:
-            error_message: Error message to display (empty if valid).
-        """
-        if error_message is not None:
-            self._error_message = error_message
-        else:
-            self._error_message = ""
-        self._update_validation_visibility()
+        self._validate()
 
     # ── Property: was validated ───────────────────────────────────────
 

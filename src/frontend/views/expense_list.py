@@ -66,8 +66,8 @@ class ExpenseListView(QWidget):
         filter_layout.addWidget(self.month_filter)
         self.btn_edit: QPushButton = QPushButton("Editar", self)
         self.btn_edit.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
-        filter_layout.addWidget(self.btn_edit)
         filter_layout.addStretch()
+        filter_layout.addWidget(self.btn_edit)
 
         # Table with scroll area
         self.scroll = QScrollArea(self)

@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend.sefaz.nfe_service import NfeSearchService
+from backend.services.nfe_service import NfeSearchService
 from frontend.workers.nfe_search_worker import NfeSearchWorker
 
 logger = logging.getLogger(__name__)

@@ -6,7 +6,7 @@ import pytest
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
-from bridge.product import ProductBridge
+from backend.services.order_service import OrderService
 from frontend.views.product_list import ProductListView
 
 
@@ -19,11 +19,11 @@ def product_list_widget(
     from di.injector_module import get_injector
 
     injector = get_injector()
-    product_bridge: ProductBridge = injector.get(ProductBridge)
+    order_service: OrderService = injector.get(OrderService)
 
     widget = ProductListView(
         parent=None,
-        product_bridge=product_bridge,
+        order_service=order_service,
     )
     qtbot.addWidget(widget)
     widget.show()

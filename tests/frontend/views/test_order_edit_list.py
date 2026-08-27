@@ -331,7 +331,7 @@ class TestOrderEditListDeleteCancel:
 
         with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
             mock_warning.return_value = QMessageBox.StandardButton.No
-            with patch.object(widget._order_bridge, "delete_order") as mock_delete:
+            with patch.object(widget._order_service, "delete_order") as mock_delete:
                 qtbot.addWidget(delete_btn)
                 qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
 
@@ -366,7 +366,7 @@ class TestOrderEditListDeleteSuccess:
 
         with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
             mock_warning.return_value = QMessageBox.StandardButton.Yes
-            with patch.object(widget._order_bridge, "delete_order", return_value=True) as mock_delete:
+            with patch.object(widget._order_service, "delete_order", return_value=True) as mock_delete:
                 with patch.object(widget, "fetch_orders") as mock_fetch:
                     qtbot.addWidget(delete_btn)
                     qtbot.mouseClick(delete_btn, Qt.MouseButton.LeftButton)
@@ -405,7 +405,7 @@ class TestOrderEditListDeleteError:
 
         with patch("PySide6.QtWidgets.QMessageBox.warning") as mock_warning:
             mock_warning.return_value = QMessageBox.StandardButton.Yes
-            with patch.object(widget._order_bridge, "delete_order", return_value=False) as mock_delete:
+            with patch.object(widget._order_service, "delete_order", return_value=False) as mock_delete:
                 with patch("PySide6.QtWidgets.QMessageBox.critical") as mock_critical:
                     with patch.object(widget, "fetch_orders") as mock_fetch:
                         qtbot.addWidget(delete_btn)

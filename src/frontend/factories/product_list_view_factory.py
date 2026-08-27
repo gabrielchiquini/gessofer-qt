@@ -4,7 +4,7 @@ from typing import Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from bridge.product import ProductBridge
+from backend.services.order_service import OrderService
 from frontend.views.product_list import ProductListView
 
 
@@ -25,10 +25,10 @@ class ProductListViewFactory(Protocol):
 
 
 class _ProductListViewFactoryImpl:
-    """Implementation of ProductListViewFactory backed by a DI-resolved ProductBridge."""
+    """Implementation of ProductListViewFactory backed by a DI-resolved OrderService."""
 
-    def __init__(self, product_bridge: ProductBridge) -> None:
-        self._product_bridge: ProductBridge = product_bridge
+    def __init__(self, order_service: OrderService) -> None:
+        self._order_service: OrderService = order_service
 
     def __call__(self, parent: QWidget) -> ProductListView:
-        return ProductListView(parent=parent, product_bridge=self._product_bridge)
+        return ProductListView(parent=parent, order_service=self._order_service)

@@ -4,7 +4,7 @@ import logging
 
 from PySide6.QtCore import QObject, Signal, Slot
 
-from backend.sefaz.nfe_service import NfeSearchService
+from backend.services.nfe_service import NfeSearchService
 
 logger = logging.getLogger(__name__)
 

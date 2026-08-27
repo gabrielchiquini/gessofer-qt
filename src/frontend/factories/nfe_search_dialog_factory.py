@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from backend.sefaz.nfe_service import NfeSearchService
+from backend.services.nfe_service import NfeSearchService
 from frontend.views.order_edit.nfe_search_dialog import NfeSearchDialog
 
 

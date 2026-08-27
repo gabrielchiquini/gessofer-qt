@@ -14,8 +14,7 @@ from PySide6.QtWidgets import (
 from backend.services.xml_import_service import XmlImportService
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
-from bridge.order import OrderBridge
-from bridge.order_summary import OrderSummaryBridge
+from backend.services.order_service import OrderService
 from models.order import OrderSummary
 from util.paths import ASSETS_DIR
 
@@ -38,15 +37,13 @@ class OrderEditListView(QWidget):
     def __init__(
             self,
             parent: QWidget,
-            order_bridge: OrderBridge,
-            order_summary_bridge: OrderSummaryBridge,
+            order_service: OrderService,
             xml_import_service: XmlImportService,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
     ) -> None:
         super().__init__(parent)
-        self._order_bridge: OrderBridge = order_bridge
-        self._order_summary_bridge: OrderSummaryBridge = order_summary_bridge
+        self._order_service: OrderService = order_service
         self._xml_import_service: XmlImportService = xml_import_service
         self._order_edit_dialog_factory: OrderEditDialogFactory = order_edit_dialog_factory
         self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
@@ -156,7 +153,7 @@ class OrderEditListView(QWidget):
 
         self._current_month = month
         try:
-            summaries: list[OrderSummary] = self._order_summary_bridge.fetch_order_summaries(month)
+            summaries: list[OrderSummary] = self._order_service.fetch_order_summaries(month)
             self._process_orders(summaries)
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
@@ -228,7 +225,7 @@ class OrderEditListView(QWidget):
             QMessageBox.StandardButton.No,
         )
         if reply == QMessageBox.StandardButton.Yes:
-            success = self._order_bridge.delete_order(order_id)
+            success = self._order_service.delete_order(order_id)
             if success:
                 self.fetch_orders()
             else:

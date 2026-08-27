@@ -4,7 +4,7 @@ from typing import Any, Protocol
 
 from PySide6.QtWidgets import QWidget
 
-from bridge.order import OrderBridge
+from backend.services.order_service import OrderService
 from frontend.views.order_edit.order_edit_dialog import OrderEditDialog
 from models.order import Order
 
@@ -35,9 +35,9 @@ class _OrderEditDialogFactoryImpl:
 
     def __init__(
         self,
-        order_bridge: OrderBridge,
+        order_service: OrderService,
     ) -> None:
-        self._order_bridge: OrderBridge = order_bridge
+        self._order_service: OrderService = order_service
 
     def __call__(
         self,
@@ -49,7 +49,7 @@ class _OrderEditDialogFactoryImpl:
             parent=parent,
             order_id=order_id,
             order=order,
-            order_bridge=self._order_bridge,
+            order_service=self._order_service,
         )
 
 
@@ -63,7 +63,7 @@ def _make_order_edit_dialog_factory(injector: Any) -> OrderEditDialogFactory:
     from injector import Injector
 
     inv: Injector = injector  # type: ignore[assignment]
-    order_bridge = inv.get(OrderBridge)
+    order_service = inv.get(OrderService)
     return _OrderEditDialogFactoryImpl(
-        order_bridge=order_bridge,
+        order_service=order_service,
     )

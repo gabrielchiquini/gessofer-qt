@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from backend.certificate.handler import CertificateHandler
 from backend.database.connection import get_engine
-from backend.sefaz.nfe_service import NfeSearchService
+from backend.services.nfe_service import NfeSearchService
 from backend.services.backup_service import BackupService
 from backend.services.expense_service import ExpenseService
 from backend.services.save_expense_service import SaveExpenseService
@@ -16,9 +16,6 @@ from backend.services.order_service import OrderService
 from backend.services.validation_service import ValidationService
 from backend.services.xml_import_service import XmlImportService
 
-from bridge.order import OrderBridge
-from bridge.order_summary import OrderSummaryBridge
-from bridge.product import ProductBridge
 from frontend.factories.certificate_change_dialog_factory import CertificateChangeDialogFactory
 from frontend.factories.certificate_status_view_factory import CertificateStatusViewFactory
 from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFactory
@@ -156,43 +153,22 @@ class InjectorModule(Module):
 
     @provider
     @singleton
-    def provide_product_bridge(self, order_service: OrderService) -> ProductBridge:
-        return ProductBridge(order_service=order_service)
-
-    @provider
-    @singleton
-    def provide_order_bridge(
-            self,
-            order_service: OrderService,
-            session_factory: Callable[[], Session],
-    ) -> OrderBridge:
-        return OrderBridge(order_service=order_service, session_factory=session_factory)
-
-    @provider
-    @singleton
-    def provide_order_summary_bridge(
-            self, product_bridge: ProductBridge
-    ) -> OrderSummaryBridge:
-        return OrderSummaryBridge(product_bridge=product_bridge)
-
-    @provider
-    @singleton
     def provide_product_list_view_factory(
             self,
-            product_bridge: ProductBridge,
+            order_service: OrderService,
     ) -> ProductListViewFactory:
         from frontend.factories.product_list_view_factory import _ProductListViewFactoryImpl
-        return _ProductListViewFactoryImpl(product_bridge=product_bridge)
+        return _ProductListViewFactoryImpl(order_service=order_service)
 
     @provider
     @singleton
     def provide_order_edit_dialog_factory(
             self,
-            order_bridge: OrderBridge,
+            order_service: OrderService,
     ) -> OrderEditDialogFactory:
         from frontend.factories.order_edit_dialog_factory import _OrderEditDialogFactoryImpl
         return _OrderEditDialogFactoryImpl(
-            order_bridge=order_bridge,
+            order_service=order_service,
         )
 
     @provider
@@ -226,16 +202,14 @@ class InjectorModule(Module):
     @singleton
     def provide_order_edit_list_view_factory(
             self,
-            order_bridge: OrderBridge,
-            order_summary_bridge: OrderSummaryBridge,
+            order_service: OrderService,
             order_edit_dialog_factory: OrderEditDialogFactory,
             nfe_search_dialog_factory: NfeSearchDialogFactory,
             xml_import_service: XmlImportService,
     ) -> OrderEditListViewFactory:
         from frontend.factories.order_edit_list_view_factory import _OrderEditListViewFactoryImpl
         return _OrderEditListViewFactoryImpl(
-            order_bridge=order_bridge,
-            order_summary_bridge=order_summary_bridge,
+            order_service=order_service,
             order_edit_dialog_factory=order_edit_dialog_factory,
             nfe_search_dialog_factory=nfe_search_dialog_factory,
             xml_import_service=xml_import_service,

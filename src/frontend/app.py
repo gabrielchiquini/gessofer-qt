@@ -37,7 +37,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(product_list)
         self.nav_bar.item_clicked.connect(self._on_item_clicked)
 
-    def _on_item_clicked(self, label: str, group_title: str) -> None:
+    def _on_item_clicked(self, group_title: str) -> None:
         """Handle navigation item clicks."""
         if group_title == "Produtos":
             view = self._product_list_view_factory(self)

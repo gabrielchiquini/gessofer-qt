@@ -35,3 +35,37 @@ class DateValidator(QValidator):
             return QValidator.State.Intermediate
 
         return QValidator.State.Acceptable
+
+
+class MonthValidator(QValidator):
+    """Validates month/year format MM/AAAA (7 characters total).
+
+    The ``input_mask="99/9999"`` on the QLineEdit already ensures
+    the text is digit-only with a single slash in the right position.
+    This validator checks that the parsed values are semantically valid:
+
+    - Month: 01-12
+    - Year:  >= 1900
+
+    Returns ``Intermediate`` while the user is still typing (incomplete input).
+    Never returns ``Invalid`` — partial input always yields ``Intermediate``.
+    """
+
+    def validate(self, input_field: str, pos: int) -> QValidator.State:
+        # During typing the mask may produce partial strings like "1/" or "10/202"
+        if "/" not in input_field or len(input_field) < 7:
+            return QValidator.State.Intermediate
+
+        parts: list[str] = input_field.split("/")
+        if len(parts) != 2:
+            return QValidator.State.Intermediate
+
+        try:
+            m, y = int(parts[0]), int(parts[1])
+        except ValueError:
+            return QValidator.State.Intermediate
+
+        if not (1 <= m <= 12 and y >= 1900):
+            return QValidator.State.Intermediate
+
+        return QValidator.State.Acceptable

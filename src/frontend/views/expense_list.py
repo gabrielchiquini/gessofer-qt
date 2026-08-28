@@ -33,7 +33,8 @@ class ExpenseListView(QWidget):
         super().__init__(parent)
         self._current_month: str = ""
         self._model: QStandardItemModel = QStandardItemModel(0, 2)
-        self.total_label: QLabel = QLabel("Total: R$ 0,00", self)
+        self.total_label: QLabel = QLabel("Total: 0,00", self)
+        self.total_label.setStyleSheet("font-weight: bold;")
         self._expense_service: ExpenseService = expense_service
         self._expense_edit_dialog_factory: ExpenseEditDialogFactory = expense_edit_dialog_factory
         self._setup_ui()
@@ -101,9 +102,6 @@ class ExpenseListView(QWidget):
 
         footer_layout: QHBoxLayout = QHBoxLayout()
         footer_layout.setContentsMargins(12, 8, 12, 8)
-        footer_label: QLabel = QLabel("Total:", self)
-        footer_label.setStyleSheet("font-weight: bold;")
-        footer_layout.addWidget(footer_label)
         footer_layout.addStretch()
         footer_layout.addWidget(self.total_label)
         self.card.set_footer(footer_layout)

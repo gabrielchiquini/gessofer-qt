@@ -7,14 +7,16 @@ from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QStandardItemModel, QStandardItem, QIcon
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QFrame,
-    QLabel, QLineEdit, QPushButton, QTableView,
-    QSizePolicy, QMessageBox,
+    QPushButton, QTableView, QScrollArea,
+    QSizePolicy, QMessageBox, QLineEdit, QLabel,
 )
 
+from backend.services.order_service import OrderService
 from backend.services.xml_import_service import XmlImportService
 from backend.utils.currency import cents_to_display
 from backend.utils.date import iso_to_br_date, current_month_orders
-from backend.services.order_service import OrderService
+from frontend.components.card import Card
+from frontend.components.month_filter import MonthFilter
 from models.order import OrderSummary
 from util.paths import ASSETS_DIR
 
@@ -29,6 +31,9 @@ logger = logging.getLogger(__name__)
 
 _EDIT_ICON_PATH: str = str(ASSETS_DIR / "edit.svg")
 _DELETE_ICON_PATH: str = str(ASSETS_DIR / "trash.svg")
+_UPLOAD_ICON_PATH: str = str(ASSETS_DIR / "upload.svg")
+_PLUS_ICON_PATH: str = str(ASSETS_DIR / "plus.svg")
+_SEARCH_ICON_PATH: str = str(ASSETS_DIR / "search.svg")
 
 
 class OrderEditListView(QWidget):
@@ -49,6 +54,8 @@ class OrderEditListView(QWidget):
         self._nfe_search_dialog_factory: NfeSearchDialogFactory = nfe_search_dialog_factory
         self._model: QStandardItemModel = QStandardItemModel(0, 6)
         self._current_month: str = ""
+        self.total_label: QLabel = QLabel("Total: 0,00", self)
+        self.total_label.setStyleSheet("font-weight: bold;")
         self._setup_ui()
         self._connect_signals()
 
@@ -61,7 +68,7 @@ class OrderEditListView(QWidget):
         self._setup_table_size()
         if not self._current_month:
             self._current_month = current_month_orders()
-            self.filter_month.setText(self._current_month)
+            self.month_filter.set_month(self._current_month)
             self.fetch_orders()
 
     def _setup_ui(self) -> None:
@@ -74,9 +81,40 @@ class OrderEditListView(QWidget):
         filter_frame = self._setup_filter_bar()
         layout.addWidget(filter_frame)
 
-        # Table with scroll area
-        table = self._setup_table()
-        layout.addWidget(table, 1)
+        # Table with scroll area inside Card with footer
+        self.scroll = QScrollArea(self)
+        self.scroll.setWidgetResizable(True)
+        self.scroll.setFrameShape(QFrame.Shape.NoFrame)
+        self.scroll.setStyleSheet("QScrollArea { border: 0px; border-radius: 0px; }")
+        self.scroll.setHorizontalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.scroll.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAsNeeded)
+
+        self.table_view = QTableView(self)
+        self.table_view.setFrameShape(QFrame.Shape.NoFrame)
+        self.table_view.setStyleSheet("QTableView { background-color: white; }")
+        self.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred)
+        self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
+        self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
+        self.table_view.verticalHeader().setVisible(False)
+        self._model.setHorizontalHeaderLabels([
+            "Data", "Fornecedor", "Produtos", "Total Produtos", "Total", "Ação"
+        ])
+        self._setup_table_size()
+
+        self.table_view.setModel(self._model)
+        self.scroll.setWidget(self.table_view)
+
+        # Card container with footer
+        self.card = Card(self)
+        self.card.set_content(self.scroll)
+
+        footer_layout: QHBoxLayout = QHBoxLayout()
+        footer_layout.setContentsMargins(12, 8, 12, 8)
+        footer_layout.addStretch()
+        footer_layout.addWidget(self.total_label)
+        self.card.set_footer(footer_layout)
+
+        layout.addWidget(self.card, 1)
 
     def _setup_filter_bar(self) -> QFrame:
         """Create the month filter bar with Consultar and Add buttons."""
@@ -85,19 +123,18 @@ class OrderEditListView(QWidget):
         filter_layout = QHBoxLayout(filter_frame)
         filter_layout.setSpacing(8)
 
-        self.filter_month = QLineEdit(self)
-        self.filter_month.setInputMask("99/9999")
-        self.filter_month.setPlaceholderText("MM/AAAA")
-        self.filter_month.returnPressed.connect(self.fetch_orders)
-
-        self.btn_search = QPushButton("Consultar", self)
-        self.btn_add = QPushButton("＋ Adicionar Nota", self)
+        self.month_filter = MonthFilter(self)
+        self.btn_add = QPushButton("Adicionar Nota", self)
+        self.btn_add.setIcon(QIcon(_PLUS_ICON_PATH))
+        self.btn_add.setIconSize(QSize(_TABLE_ICON_SIZE, _TABLE_ICON_SIZE))
         self.btn_import_xml = QPushButton("Importar XML", self)
+        self.btn_import_xml.setIcon(QIcon(_UPLOAD_ICON_PATH))
+        self.btn_import_xml.setIconSize(QSize(_TABLE_ICON_SIZE, _TABLE_ICON_SIZE))
         self.btn_search_xml = QPushButton("Consultar XML", self)
+        self.btn_search_xml.setIcon(QIcon(_SEARCH_ICON_PATH))
+        self.btn_search_xml.setIconSize(QSize(_TABLE_ICON_SIZE, _TABLE_ICON_SIZE))
 
-        filter_layout.addWidget(QLabel("Mês", self))
-        filter_layout.addWidget(self.filter_month)
-        filter_layout.addWidget(self.btn_search)
+        filter_layout.addWidget(self.month_filter)
         filter_layout.addStretch()
         filter_layout.addWidget(self.btn_search_xml)
         filter_layout.addWidget(self.btn_import_xml)
@@ -106,24 +143,7 @@ class OrderEditListView(QWidget):
         return filter_frame
 
     def _setup_table(self) -> QTableView:
-        """Create the scrollable table view."""
-
-        self.table_view = QTableView(self)
-        self.setSizePolicy(
-            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
-        )
-        self.table_view.setEditTriggers(QTableView.EditTrigger.NoEditTriggers)
-        self.table_view.setSelectionMode(QTableView.SelectionMode.NoSelection)
-        self.table_view.verticalHeader().setVisible(False)
-        self.table_view.horizontalScrollBar().setVisible(False)
-
-        self._model.setHorizontalHeaderLabels([
-            "Data", "Fornecedor", "Produtos", "Total Produtos", "Total", "Ação"
-        ])
-
-        self._setup_table_size()
-
-        self.table_view.setModel(self._model)
+        """Return the configured table view (created in _setup_ui)."""
         return self.table_view
 
     def _setup_table_size(self) -> None:
@@ -140,14 +160,24 @@ class OrderEditListView(QWidget):
 
     def _connect_signals(self) -> None:
         """Connect widget signals."""
-        self.btn_search.clicked.connect(self.fetch_orders)
+        self.month_filter.month_selected.connect(self._on_month_selected)
         self.btn_add.clicked.connect(self._on_add_clicked)
         self.btn_import_xml.clicked.connect(self._on_import_xml_clicked)
         self.btn_search_xml.clicked.connect(self._on_consultar_xml_clicked)
 
+    @property
+    def filter_month(self) -> QLineEdit:
+        """Backward compat: expose MonthFilter's input as filter_month."""
+        return self.month_filter.month_input
+
+    @property
+    def btn_search(self) -> QPushButton:
+        """Backward compat: expose MonthFilter's search button as btn_search."""
+        return self.month_filter.search_button
+
     def fetch_orders(self) -> None:
         """Read current month from input, fetch and display orders."""
-        month = self.filter_month.text().strip()
+        month = self.month_filter.month_input.text().strip()
         if not month:
             return
 
@@ -155,9 +185,11 @@ class OrderEditListView(QWidget):
         try:
             summaries: list[OrderSummary] = self._order_service.fetch_order_summaries(month)
             self._process_orders(summaries)
+            self.card.setVisible(True)
         except Exception as exc:
             logger.exception("Error fetching orders: %s", exc)
             self._model.setRowCount(0)
+            self.card.setVisible(False)
 
     def _process_orders(self, summaries: list[OrderSummary]) -> None:
         """Process order summaries and populate the table."""
@@ -177,6 +209,9 @@ class OrderEditListView(QWidget):
                 QStandardItem(""),
             ]
             self._model.appendRow(row)
+
+        total: int = sum(s.order_total for s in summaries)
+        self.total_label.setText(f"Total: {cents_to_display(total)}")
 
         # Place edit + delete buttons in the last column
         for row_index, summary in enumerate(summaries):
@@ -208,6 +243,10 @@ class OrderEditListView(QWidget):
             self.table_view.setIndexWidget(
                 self._model.index(row_index, 5), container_widget
             )
+
+    def _on_month_selected(self, _month: str) -> None:
+        """Adapter: MonthFilter emitted month_selected, fetch orders using current input."""
+        self.fetch_orders()
 
     def _on_edit_clicked(self, order_id: str) -> None:
         """Handle Edit button click — open the order edit dialog."""

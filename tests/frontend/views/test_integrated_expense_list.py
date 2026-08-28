@@ -72,7 +72,7 @@ class TestExpenseListEdit:
         mw = main_window_with_factories
 
         # Step 1: Navigate to expense list
-        mw._on_item_clicked("Lista", "Despesas")
+        mw._on_item_clicked("Despesas")
         expense_view: ExpenseListView = mw.centralWidget() # type: ignore[union-attr]
         assert isinstance(expense_view, ExpenseListView)
 
@@ -128,7 +128,7 @@ class TestExpenseListDelete:
         mw = main_window_with_factories
 
         # Step 1: Navigate to expense list
-        mw._on_item_clicked("Lista", "Despesas")
+        mw._on_item_clicked("Despesas")
         expense_view: ExpenseListView = mw.centralWidget() # type: ignore[union-attr]
         assert isinstance(expense_view, ExpenseListView)
 

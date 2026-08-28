@@ -83,7 +83,7 @@ class TestProductListEditOrder:
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
@@ -126,7 +126,7 @@ class TestProductListEditOrder:
         assert order_view._model.rowCount() == 3
 
         # Step 6: Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
@@ -161,7 +161,7 @@ class TestProductListAddOrder:
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
@@ -207,7 +207,7 @@ class TestProductListAddOrder:
         assert order_view._model.rowCount() == 4
 
         # Step 6: Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
@@ -242,7 +242,7 @@ class TestProductListDeleteOrder:
         assert product_view._model.rowCount() == 4
 
         # Step 2: Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
@@ -268,7 +268,7 @@ class TestProductListDeleteOrder:
         assert order_view._model.rowCount() == 2
 
         # Step 6: Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
@@ -302,7 +302,7 @@ class TestProductListAddOrderEmptyMonth:
         assert product_view._model.rowCount() == 0
 
         # Step 2: Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
@@ -337,7 +337,7 @@ class TestProductListAddOrderEmptyMonth:
         assert order_view._model.rowCount() == 1
 
         # Step 6: Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
@@ -376,7 +376,7 @@ class TestProductListXmlImport:
         assert product_view._model.rowCount() == 0
 
         # Step 2: Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view: OrderEditListView = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(order_view, OrderEditListView)
 
@@ -428,7 +428,7 @@ class TestProductListXmlImport:
         assert order_view._model.rowCount() == 1
 
         # Step 8: Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()  # type: ignore[union-attr]
         assert isinstance(product_view, ProductListView)
 
@@ -457,7 +457,7 @@ class TestProductListFreightDistribution:
         mw = main_window_with_factories
 
         # ── Step 1: Navigate to order list ──────────────────────────
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()
         assert isinstance(product_view, ProductListView)
         product_view.filter_month.setText("07/2024")
@@ -466,7 +466,7 @@ class TestProductListFreightDistribution:
         assert product_view._model.rowCount() == 4
 
         # Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view = mw.centralWidget()
         assert isinstance(order_view, OrderEditListView)
         order_view.filter_month.setText("07/2024")
@@ -518,7 +518,7 @@ class TestProductListFreightDistribution:
         qtbot.wait(100)
 
         # Navigate back to product list
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()
         assert isinstance(product_view, ProductListView)
 
@@ -566,7 +566,7 @@ class TestProductListAddOrderWithFreight:
         assert product_view._model.rowCount() == 4
 
         # Navigate to order list
-        mw._on_item_clicked("Lista de pedidos por mês", "Notas")
+        mw._on_item_clicked("Notas")
         order_view = mw.centralWidget()
         assert isinstance(order_view, OrderEditListView)
         order_view.filter_month.setText("07/2024")
@@ -609,7 +609,7 @@ class TestProductListAddOrderWithFreight:
         assert order_view._model.rowCount() == 4
 
         # ── Step 5: Navigate to product list and verify ─────────────
-        mw._on_item_clicked("Lista de Produtos", "Notas")
+        mw._on_item_clicked("Produtos")
         product_view = mw.centralWidget()
         assert isinstance(product_view, ProductListView)
 

@@ -15,6 +15,7 @@ class MonthFilter(QWidget):
         self.month_input = QLineEdit(self)
         self.month_input.setInputMask("99/9999")
         self.month_input.setPlaceholderText("MM/AAAA")
+        self.month_input.setFixedWidth(100)
 
         self.search_button = QPushButton("Consultar", self)
 

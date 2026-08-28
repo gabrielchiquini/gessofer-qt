@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.expense_service import ExpenseService
 from models.output import ExpenseOutput as BridgeExpense, ExpensesForMonthOutput
-from backend.utils.currency import cents_to_display
+from backend.utils.currency import cents_to_input
 from backend.utils.date import current_month_orders
 from frontend.components.card import Card
 from frontend.components.month_filter import MonthFilter
@@ -137,7 +137,7 @@ class ExpenseListView(QWidget):
         try:
             result: ExpensesForMonthOutput = self._expense_service.fetch_expenses_for_month(month)
             self._process_expenses(result.expenses)
-            self.total_label.setText(f"Total: {cents_to_display(result.total)}")
+            self.total_label.setText(f"Total: {cents_to_input(result.total)}")
             self.scroll.setVisible(True)
             self.card.setVisible(True)
         except Exception as exc:
@@ -152,7 +152,7 @@ class ExpenseListView(QWidget):
 
         for expense in expenses:
             desc_item = QStandardItem(expense.description)
-            value_item = QStandardItem(cents_to_display(expense.value))
+            value_item = QStandardItem(cents_to_input(expense.value))
             value_item.setTextAlignment(Qt.AlignmentFlag.AlignRight | Qt.AlignmentFlag.AlignVCenter)
             row: list[QStandardItem] = [desc_item, value_item]
             self._model.appendRow(row)

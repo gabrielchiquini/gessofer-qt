@@ -3,7 +3,7 @@ from __future__ import annotations
 from PySide6.QtCore import Signal
 from PySide6.QtWidgets import QHBoxLayout, QVBoxLayout, QWidget
 
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
+from backend.utils.currency import cents_to_input, parse_currency_to_cents
 from backend.utils.date import iso_to_br_date
 from models.order import Order
 from frontend.components.card import Card
@@ -105,10 +105,10 @@ class OrderHeaderCard(QWidget):
         self._date_input.set_text(iso_to_br_date(order_data.date))
         cents1 = order_data.freight
         if cents1 > 0:
-            self._freight_input.set_text(cents_to_display(cents1))
+            self._freight_input.set_text(cents_to_input(cents1))
         cents = order_data.unloading
         if cents > 0:
-            self._unloading_input.set_text(cents_to_display(cents))
+            self._unloading_input.set_text(cents_to_input(cents))
         self.order_changed.emit()
 
     def clear(self) -> None:

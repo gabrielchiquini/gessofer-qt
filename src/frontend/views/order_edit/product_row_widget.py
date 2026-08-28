@@ -15,7 +15,7 @@ from PySide6.QtWidgets import (
     QWidget, QToolTip,
 )
 
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
+from backend.utils.currency import cents_to_input, parse_currency_to_cents
 from frontend.util.icons import svg_to_pixmap
 from models.input import ProductInput
 from models.output import Product
@@ -125,11 +125,11 @@ class ProductRowWidget(QWidget):
         if product_data is not None:
             self.name_input.setText(product_data.name)
             self.quantity_input.setText(str(product_data.quantity))
-            self.price_input.setText(cents_to_display(getattr(product_data, "price", 0)))
+            self.price_input.setText(cents_to_input(getattr(product_data, "price", 0)))
             self.price_with_freight_input.setText(
-                cents_to_display(getattr(product_data, "price_with_freight", product_data.price))
+                cents_to_input(getattr(product_data, "price_with_freight", product_data.price))
             )
-            self.total_input.setText(cents_to_display(getattr(product_data, "total", 0)))
+            self.total_input.setText(cents_to_input(getattr(product_data, "total", 0)))
 
         # Initial total calculation
         self._recalculate_total()
@@ -140,7 +140,7 @@ class ProductRowWidget(QWidget):
         quantity_text: str = self.quantity_input.text().strip()
         quantity: int = int(quantity_text) if quantity_text else 0
         total_cents: int = price_cents * quantity
-        self.total_input.setText(cents_to_display(total_cents))
+        self.total_input.setText(cents_to_input(total_cents))
         self._on_any_changed()
 
     def _on_any_changed(self) -> None:
@@ -153,7 +153,7 @@ class ProductRowWidget(QWidget):
 
     def set_price_with_freight(self, value_cents: int) -> None:
         """Set the read-only price_with_freight display value."""
-        self.price_with_freight_input.setText(cents_to_display(value_cents))
+        self.price_with_freight_input.setText(cents_to_input(value_cents))
 
     def is_empty(self) -> bool:
         """Return True if name is empty AND quantity is 0 AND price is 0."""

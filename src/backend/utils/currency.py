@@ -1,7 +1,7 @@
 from math import floor
 
 
-def cents_to_display(cents: int) -> str:
+def cents_to_input(cents: int) -> str:
     """
     Convert integer cents to Brazilian currency display string.
     Example: 123456 -> "1234,56"

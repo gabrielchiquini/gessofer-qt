@@ -11,7 +11,7 @@ from PySide6.QtWidgets import (
 )
 
 from models.input import ExpenseInput
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
+from backend.utils.currency import cents_to_input, parse_currency_to_cents
 from models.output import ExpenseOutput
 from frontend.components.card import Card
 from frontend.views.expense_edit.expense_row_widget import ExpenseRowWidget
@@ -166,5 +166,5 @@ class ExpenseItemsCard(QWidget):
             parse_currency_to_cents(row.value_input.text())
             for row in self._expense_rows[:-1]  # skip trailing empty row
         )
-        self.total_label.setText(f"Total: {cents_to_display(total_cents)}")
+        self.total_label.setText(f"Total: {cents_to_input(total_cents)}")
         self.expense_changed.emit()

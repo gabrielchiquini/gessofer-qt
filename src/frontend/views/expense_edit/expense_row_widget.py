@@ -12,7 +12,7 @@ from PySide6.QtWidgets import (
 )
 
 from models.input import ExpenseInput
-from backend.utils.currency import cents_to_display, parse_currency_to_cents
+from backend.utils.currency import cents_to_input, parse_currency_to_cents
 from models.output import ExpenseOutput
 
 
@@ -77,7 +77,7 @@ class ExpenseRowWidget(QWidget):
         # Pre-fill if expense_data provided
         if expense_data is not None:
             self.name_input.setText(expense_data.description)
-            self.value_input.setText(cents_to_display(expense_data.value))
+            self.value_input.setText(cents_to_input(expense_data.value))
 
     def _on_any_changed(self) -> None:
         """Emit row_changed signal whenever any field changes."""

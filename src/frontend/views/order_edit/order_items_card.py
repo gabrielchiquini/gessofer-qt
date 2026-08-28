@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend.utils.currency import cents_to_input, parse_currency_to_cents
+from backend.utils.currency import cents_to_view, parse_currency_to_cents
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
 from models.input import ProductInput
@@ -204,7 +204,7 @@ class OrderItemsCard(QWidget):
     def _order_changed(self):
         total_cents: int = self.get_products_total()
         self._products_total_label.setText(
-            f"Total dos produtos: {cents_to_input(total_cents)}"
+            f"Total dos produtos: {cents_to_view(total_cents)}"
         )
         self.recalculate_price_with_freight()
         self.order_changed.emit()

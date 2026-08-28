@@ -13,7 +13,7 @@ from PySide6.QtWidgets import (
 
 from backend.services.order_service import OrderService
 from backend.services.xml_import_service import XmlImportService
-from backend.utils.currency import cents_to_input
+from backend.utils.currency import cents_to_input, cents_to_view
 from backend.utils.date import iso_to_br_date, current_month_orders
 from frontend.components.card import Card
 from frontend.components.month_filter import MonthFilter
@@ -197,8 +197,8 @@ class OrderEditListView(QWidget):
 
         for summary in summaries:
             date_br: str = iso_to_br_date(summary.date)
-            products_total_display: str = cents_to_input(summary.products_total)
-            order_total_display: str = cents_to_input(summary.order_total)
+            products_total_display: str = cents_to_view(summary.products_total)
+            order_total_display: str = cents_to_view(summary.order_total)
 
             row: list[QStandardItem] = [
                 QStandardItem(date_br),
@@ -211,7 +211,7 @@ class OrderEditListView(QWidget):
             self._model.appendRow(row)
 
         total: int = sum(s.order_total for s in summaries)
-        self.total_label.setText(f"Total: {cents_to_input(total)}")
+        self.total_label.setText(f"Total: {cents_to_view(total)}")
 
         # Place edit + delete buttons in the last column
         for row_index, summary in enumerate(summaries):

@@ -4,7 +4,7 @@ from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QPushButton, QMessageBox, QWidget
 from pytestqt.qtbot import QtBot
 
-from backend.utils.currency import cents_to_input
+from backend.utils.currency import cents_to_input, cents_to_view
 from backend.utils.date import datetime_to_br_date
 from frontend.views.order_edit.order_edit_list import OrderEditListView
 from tests.fixtures.seed_data import ORDERS_DATA
@@ -91,8 +91,8 @@ class TestOrderEditListDisplay:
         assert model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
         assert model.item(0, 1).text() == ORDERS_DATA[0].supplier
         assert model.item(0, 2).text() == str(len(ORDERS_DATA[0].products))
-        assert model.item(0, 3).text() == cents_to_input(sum(p.total for p in ORDERS_DATA[0].products))
-        assert model.item(0, 4).text() == cents_to_input(
+        assert model.item(0, 3).text() == cents_to_view(sum(p.total for p in ORDERS_DATA[0].products))
+        assert model.item(0, 4).text() == cents_to_view(
             sum(p.total for p in ORDERS_DATA[0].products) + ORDERS_DATA[0].freight + ORDERS_DATA[0].unloading
         )
 
@@ -104,8 +104,8 @@ class TestOrderEditListDisplay:
         assert model.item(2, 0).text() == datetime_to_br_date(ORDERS_DATA[4].date)
         assert model.item(2, 1).text() == ORDERS_DATA[4].supplier
         assert model.item(2, 2).text() == str(len(ORDERS_DATA[4].products))
-        assert model.item(2, 3).text() == cents_to_input(sum(p.total for p in ORDERS_DATA[4].products))
-        assert model.item(2, 4).text() == cents_to_input(
+        assert model.item(2, 3).text() == cents_to_view(sum(p.total for p in ORDERS_DATA[4].products))
+        assert model.item(2, 4).text() == cents_to_view(
             sum(p.total for p in ORDERS_DATA[4].products) + ORDERS_DATA[4].freight + ORDERS_DATA[4].unloading
         )
 
@@ -125,16 +125,16 @@ class TestOrderEditListDisplay:
         # Row 0: Order C (ORDERS_DATA[2])
         assert model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[2].date)
         assert model.item(0, 1).text() == ORDERS_DATA[2].supplier
-        assert model.item(0, 3).text() == cents_to_input(sum(p.total for p in ORDERS_DATA[2].products))
-        assert model.item(0, 4).text() == cents_to_input(
+        assert model.item(0, 3).text() == cents_to_view(sum(p.total for p in ORDERS_DATA[2].products))
+        assert model.item(0, 4).text() == cents_to_view(
             sum(p.total for p in ORDERS_DATA[2].products) + ORDERS_DATA[2].freight + ORDERS_DATA[2].unloading
         )
 
         # Row 1: Order D (ORDERS_DATA[3])
         assert model.item(1, 0).text() == datetime_to_br_date(ORDERS_DATA[3].date)
         assert model.item(1, 1).text() == ORDERS_DATA[3].supplier
-        assert model.item(1, 3).text() == cents_to_input(sum(p.total for p in ORDERS_DATA[3].products))
-        assert model.item(1, 4).text() == cents_to_input(
+        assert model.item(1, 3).text() == cents_to_view(sum(p.total for p in ORDERS_DATA[3].products))
+        assert model.item(1, 4).text() == cents_to_view(
             sum(p.total for p in ORDERS_DATA[3].products) + ORDERS_DATA[3].freight + ORDERS_DATA[3].unloading
         )
 

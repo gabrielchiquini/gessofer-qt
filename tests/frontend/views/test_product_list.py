@@ -1,16 +1,14 @@
 from __future__ import annotations
 
-import pytest
 from pytestqt.qtbot import QtBot
 from sqlalchemy.engine import Engine
 
 from backend.services.order_service import OrderService
+from backend.utils.currency import cents_to_view
+from backend.utils.date import datetime_to_br_date
 from di.injector_module import get_injector
 from frontend.views.product_list import ProductListView
-
 from tests.fixtures.seed_data import ORDERS_DATA
-from backend.utils.currency import cents_to_input
-from backend.utils.date import datetime_to_br_date
 
 
 # ── TC-01: Initial Load ───────────────────────────────────────────
@@ -23,7 +21,7 @@ class TestProductListInitialLoad:
             self,
             temp_engine: Engine,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Show the widget and verify initial state with seeded data."""
         injector = get_injector()
         order_service: OrderService = injector.get(OrderService)
@@ -55,7 +53,7 @@ class TestProductListSupplierFilter:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Filter by supplier 'Cimento' and verify 4 matching products."""
         widget = product_list_widget
 
@@ -79,7 +77,7 @@ class TestProductListProductNameFilter:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Filter by product 'Areia' and verify 1 matching product."""
         widget = product_list_widget
 
@@ -101,7 +99,7 @@ class TestProductListMonthFilter:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Filter by month '07/2024' and verify 4 matching products."""
         widget = product_list_widget
 
@@ -124,7 +122,7 @@ class TestProductListCombinedFilters:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Filter by supplier 'Cimento' and month '07/2024' and verify 3 results."""
         widget = product_list_widget
 
@@ -147,7 +145,7 @@ class TestProductListDisplayCorrectness:
     def test_display_correctness(
             self,
             product_list_widget: ProductListView,
-        ) -> None:
+    ) -> None:
         """Verify every cell in the table matches expected seeded data."""
         widget = product_list_widget
 
@@ -159,43 +157,43 @@ class TestProductListDisplayCorrectness:
         assert widget._model.item(0, 0).text() == datetime_to_br_date(ORDERS_DATA[3].date)
         assert widget._model.item(0, 1).text() == ORDERS_DATA[3].supplier
         assert widget._model.item(0, 2).text() == ORDERS_DATA[3].products[0].name
-        assert widget._model.item(0, 3).text() == cents_to_input(ORDERS_DATA[3].products[0].price)
-        assert widget._model.item(0, 4).text() == cents_to_input(ORDERS_DATA[3].products[0].price_with_freight)
+        assert widget._model.item(0, 3).text() == cents_to_view(ORDERS_DATA[3].products[0].price)
+        assert widget._model.item(0, 4).text() == cents_to_view(ORDERS_DATA[3].products[0].price_with_freight)
 
         # Row 1: Order C (2024-08-05) → Cimento CP-I 50kg (Cimento Portland)
         assert widget._model.item(1, 0).text() == datetime_to_br_date(ORDERS_DATA[2].date)
         assert widget._model.item(1, 1).text() == ORDERS_DATA[2].supplier
         assert widget._model.item(1, 2).text() == ORDERS_DATA[2].products[0].name
-        assert widget._model.item(1, 3).text() == cents_to_input(ORDERS_DATA[2].products[0].price)
-        assert widget._model.item(1, 4).text() == cents_to_input(ORDERS_DATA[2].products[0].price_with_freight)
+        assert widget._model.item(1, 3).text() == cents_to_view(ORDERS_DATA[2].products[0].price)
+        assert widget._model.item(1, 4).text() == cents_to_view(ORDERS_DATA[2].products[0].price_with_freight)
 
         # Row 2: Order E (2024-07-25) → Cal hidratada 20kg (Cimento Portland)
         assert widget._model.item(2, 0).text() == datetime_to_br_date(ORDERS_DATA[4].date)
         assert widget._model.item(2, 1).text() == ORDERS_DATA[4].supplier
         assert widget._model.item(2, 2).text() == ORDERS_DATA[4].products[0].name
-        assert widget._model.item(2, 3).text() == cents_to_input(ORDERS_DATA[4].products[0].price)
-        assert widget._model.item(2, 4).text() == cents_to_input(ORDERS_DATA[4].products[0].price_with_freight)
+        assert widget._model.item(2, 3).text() == cents_to_view(ORDERS_DATA[4].products[0].price)
+        assert widget._model.item(2, 4).text() == cents_to_view(ORDERS_DATA[4].products[0].price_with_freight)
 
         # Row 3: Order B (2024-07-15) → Areia média (Areia Premium LTDA)
         assert widget._model.item(3, 0).text() == datetime_to_br_date(ORDERS_DATA[1].date)
         assert widget._model.item(3, 1).text() == ORDERS_DATA[1].supplier
         assert widget._model.item(3, 2).text() == ORDERS_DATA[1].products[0].name
-        assert widget._model.item(3, 3).text() == cents_to_input(ORDERS_DATA[1].products[0].price)
-        assert widget._model.item(3, 4).text() == cents_to_input(ORDERS_DATA[1].products[0].price_with_freight)
+        assert widget._model.item(3, 3).text() == cents_to_view(ORDERS_DATA[1].products[0].price)
+        assert widget._model.item(3, 4).text() == cents_to_view(ORDERS_DATA[1].products[0].price_with_freight)
 
         # Row 4: Order A product 1 (2024-07-10) → Cimento CP-II 50kg (Cimento Portland)
         assert widget._model.item(4, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
         assert widget._model.item(4, 1).text() == ORDERS_DATA[0].supplier
         assert widget._model.item(4, 2).text() == ORDERS_DATA[0].products[0].name
-        assert widget._model.item(4, 3).text() == cents_to_input(ORDERS_DATA[0].products[0].price)
-        assert widget._model.item(4, 4).text() == cents_to_input(ORDERS_DATA[0].products[0].price_with_freight)
+        assert widget._model.item(4, 3).text() == cents_to_view(ORDERS_DATA[0].products[0].price)
+        assert widget._model.item(4, 4).text() == cents_to_view(ORDERS_DATA[0].products[0].price_with_freight)
 
         # Row 5: Order A product 2 (2024-07-10) → Cimento CP-II 1kg (Cimento Portland)
         assert widget._model.item(5, 0).text() == datetime_to_br_date(ORDERS_DATA[0].date)
         assert widget._model.item(5, 1).text() == ORDERS_DATA[0].supplier
         assert widget._model.item(5, 2).text() == ORDERS_DATA[0].products[1].name
-        assert widget._model.item(5, 3).text() == cents_to_input(ORDERS_DATA[0].products[1].price)
-        assert widget._model.item(5, 4).text() == cents_to_input(ORDERS_DATA[0].products[1].price_with_freight)
+        assert widget._model.item(5, 3).text() == cents_to_view(ORDERS_DATA[0].products[1].price)
+        assert widget._model.item(5, 4).text() == cents_to_view(ORDERS_DATA[0].products[1].price_with_freight)
 
 
 # ── TC-07: Empty State ────────────────────────────────────────────
@@ -207,7 +205,7 @@ class TestProductListEmptyState:
     def test_empty_state(
             self,
             product_list_widget: ProductListView,
-        ) -> None:
+    ) -> None:
         """Filter by a month with no data and verify empty state."""
         widget = product_list_widget
 
@@ -231,7 +229,7 @@ class TestProductListPagination:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Verify single-page pagination boundary behavior."""
         widget = product_list_widget
 
@@ -259,7 +257,7 @@ class TestProductListClearFilters:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Apply a filter, then clear and verify all data is restored."""
         widget = product_list_widget
 
@@ -291,7 +289,7 @@ class TestProductListEnterKeySearch:
             self,
             product_list_widget: ProductListView,
             qtbot: QtBot,
-        ) -> None:
+    ) -> None:
         """Type in filter_product and emit returnPressed to trigger search."""
         widget = product_list_widget
 

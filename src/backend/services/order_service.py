@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from backend.entities.adapter import orm_order_to_model
 from backend.entities.orm import ProductEntity, OrderEntity
 from backend.repositories.order_repository import OrderRepository
-from backend.utils.currency import cents_to_input
+from backend.utils.currency import cents_to_input, cents_to_view
 from backend.utils.date import parse_month_for_orders, datetime_to_br_date
 from backend.errors import DatabaseError
 from models.input import OrderInput
@@ -196,8 +196,8 @@ def product_list_item_to_dict(product: ProductEntity) -> ProductListItem:
         date=date_str,
         supplier=product.order.SUPPLIER if product.order else "",
         name=product.NAME,
-        price=cents_to_input(product.PRICE),
-        price_with_freight=cents_to_input(product.PRICE_WITH_FREIGHT),
-        total_price=cents_to_input(product.TOTAL_PRICE),
+        price=cents_to_view(product.PRICE),
+        price_with_freight=cents_to_view(product.PRICE_WITH_FREIGHT),
+        total_price=cents_to_view(product.TOTAL_PRICE),
         order_id=product.ORDER_ID,
     )

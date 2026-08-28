@@ -110,7 +110,7 @@ class TestExpenseListEdit:
 
         # Step 7: Verify the edited expense appears with correct data
         assert expense_view._model.item(0, 0).text() == "Material de escritório EDITADO"
-        assert expense_view._model.item(0, 1).text() == "200,00"
+        assert expense_view._model.item(0, 1).text() == "R$ 200,00"
 
 
 # ── TC-02: Delete Expense and Verify List Updates ───────────────────

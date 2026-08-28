@@ -9,7 +9,7 @@ from frontend.factories.expense_edit_dialog_factory import ExpenseEditDialogFact
 from frontend.views.expense_list import ExpenseListView
 
 from tests.fixtures.seed_data import EXPENSES_DATA
-from backend.utils.currency import cents_to_input
+from backend.utils.currency import cents_to_input, cents_to_view
 
 
 # ── TC-01: Initial Load ───────────────────────────────────────────
@@ -99,9 +99,9 @@ class TestExpenseListDisplay:
         assert model.item(2, 0).text() == EXPENSES_DATA[2].description
 
         # Values formatted as Brazilian currency (no "R$", just the number)
-        assert model.item(0, 1).text() == cents_to_input(EXPENSES_DATA[0].value)
-        assert model.item(1, 1).text() == cents_to_input(EXPENSES_DATA[1].value)
-        assert model.item(2, 1).text() == cents_to_input(EXPENSES_DATA[2].value)
+        assert model.item(0, 1).text() == cents_to_view(EXPENSES_DATA[0].value)
+        assert model.item(1, 1).text() == cents_to_view(EXPENSES_DATA[1].value)
+        assert model.item(2, 1).text() == cents_to_view(EXPENSES_DATA[2].value)
 
         # Verify August ordering
         widget.month_filter.set_month("08/2024")
@@ -109,8 +109,8 @@ class TestExpenseListDisplay:
 
         assert model.item(0, 0).text() == EXPENSES_DATA[3].description
         assert model.item(1, 0).text() == EXPENSES_DATA[4].description
-        assert model.item(0, 1).text() == cents_to_input(EXPENSES_DATA[3].value)
-        assert model.item(1, 1).text() == cents_to_input(EXPENSES_DATA[4].value)
+        assert model.item(0, 1).text() == cents_to_view(EXPENSES_DATA[3].value)
+        assert model.item(1, 1).text() == cents_to_view(EXPENSES_DATA[4].value)
 
 
 # ── TC-04: Total Calculation ──────────────────────────────────────
@@ -131,13 +131,13 @@ class TestExpenseListTotal:
         widget.month_filter.set_month("07/2024")
         widget.month_filter.search_button.click()
 
-        assert widget.total_label.text() == f"Total: {cents_to_input(sum(e.value for e in EXPENSES_DATA[0:3]))}"
+        assert widget.total_label.text() == f"Total: {cents_to_view(sum(e.value for e in EXPENSES_DATA[0:3]))}"
 
         # August 2024 total
         widget.month_filter.set_month("08/2024")
         widget.month_filter.search_button.click()
 
-        assert widget.total_label.text() == f"Total: {cents_to_input(sum(e.value for e in EXPENSES_DATA[3:5]))}"
+        assert widget.total_label.text() == f"Total: {cents_to_view(sum(e.value for e in EXPENSES_DATA[3:5]))}"
 
 
 # ── TC-07: Empty State ────────────────────────────────────────────
@@ -161,7 +161,7 @@ class TestExpenseListEmptyState:
         assert widget._model.rowCount() == 0
 
         # Total should be zero (cents_to_display(0) == "0,00")
-        assert widget.total_label.text() == "Total: 0,00"
+        assert widget.total_label.text() == "Total: R$ 0,00"
 
         # Scroll area and card should still be visible
         # (fetch_expenses doesn't hide them on empty results, only on exception)

@@ -40,7 +40,7 @@ class TestExpenseEditDialogInit:
         assert rows[3].is_empty() is True
 
         # Total: 15000 + 7500 + 150000 = 172500 cents → "1725,00"
-        assert expense_edit_dialog.items_card.total_label.text() == "Total: 1725,00"
+        assert expense_edit_dialog.items_card.total_label.text() == "Total: R$ 1.725,00"
 
     def test_dialog_initializes_with_august_expenses(
             self,
@@ -57,7 +57,7 @@ class TestExpenseEditDialogInit:
         assert rows[2].is_empty() is True
 
         # Total: 45000 + 12000 = 57000 cents → "570,00"
-        assert expense_edit_dialog_august.items_card.total_label.text() == "Total: 570,00"
+        assert expense_edit_dialog_august.items_card.total_label.text() == "Total: R$ 570,00"
 
 
 # ── TC-03: Save Valid Expenses ────────────────────────────────────
@@ -202,7 +202,7 @@ class TestExpenseEditDialogDeleteRow:
     ) -> None:
         """Delete a middle row — total recalculates, delete buttons update."""
         initial_total = expense_edit_dialog.items_card.total_label.text()
-        assert initial_total == "Total: 1725,00"
+        assert initial_total == "Total: R$ 1.725,00"
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[1].delete_button.click()
@@ -211,7 +211,7 @@ class TestExpenseEditDialogDeleteRow:
         assert len(rows) == 3  # 2 seeded + 1 trailing
 
         # Total recalculated: 15000 + 150000 = 165000 → "1650,00"
-        assert expense_edit_dialog.items_card.total_label.text() == "Total: 1650,00"
+        assert expense_edit_dialog.items_card.total_label.text() == "Total: R$ 1.650,00"
 
         # Last row (trailing) delete button disabled
         assert rows[-1].delete_button.isEnabled() is False
@@ -232,14 +232,14 @@ class TestExpenseEditDialogTotal:
     ) -> None:
         """Change a row value — total recalculates correctly."""
         # Initial total
-        assert expense_edit_dialog.items_card.total_label.text() == "Total: 1725,00"
+        assert expense_edit_dialog.items_card.total_label.text() == "Total: R$ 1.725,00"
 
         # Modify row 0 value to 500,00 (50000 cents)
         rows = expense_edit_dialog.items_card.get_expense_rows()
         rows[0].value_input.setText("500,00")
 
         # Total: 50000 + 7500 + 150000 = 207500 → "2075,00"
-        assert expense_edit_dialog.items_card.total_label.text() == "Total: 2075,00"
+        assert expense_edit_dialog.items_card.total_label.text() == "Total: R$ 2.075,00"
 
     def test_total_includes_auto_added_row(
             self,
@@ -255,7 +255,7 @@ class TestExpenseEditDialogTotal:
         assert len(rows) == 5
 
         # Total: 15000 + 7500 + 150000 + 25000 = 197500 → "1975,00"
-        assert expense_edit_dialog.items_card.total_label.text() == "Total: 1975,00"
+        assert expense_edit_dialog.items_card.total_label.text() == "Total: R$ 1.975,00"
 
 
 # ── TC-09: Empty Month (No Seeded Expenses) ───────────────────────
@@ -273,7 +273,7 @@ class TestExpenseEditDialogEmptyMonth:
         assert len(rows) == 1  # only trailing empty row
         assert rows[0].is_empty() is True
 
-        assert expense_edit_dialog_january.items_card.total_label.text() == "Total: 0,00"
+        assert expense_edit_dialog_january.items_card.total_label.text() == "Total: R$ 0,00"
 
 
 # ── TC-11, 12, 13, 14: Row Validation ─────────────────────────────

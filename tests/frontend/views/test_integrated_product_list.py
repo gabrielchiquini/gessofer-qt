@@ -534,12 +534,12 @@ class TestProductListFreightDistribution:
         # price = 25000 cents → "250,00", pwf = 36765 cents → "367,65"
         # price = 500 cents   → "5,00",     pwf = 735 cents   → "7,35"
         assert product_view._model.item(2, 2).text() == "Cimento CP-II 50kg"
-        assert product_view._model.item(2, 3).text() == "250,00"
-        assert product_view._model.item(2, 4).text() == "367,65"
+        assert product_view._model.item(2, 3).text() == "R$ 250,00"
+        assert product_view._model.item(2, 4).text() == "R$ 367,65"
 
         assert product_view._model.item(3, 2).text() == "Cimento CP-II 1kg"
-        assert product_view._model.item(3, 3).text() == "5,00"
-        assert product_view._model.item(3, 4).text() == "7,35"
+        assert product_view._model.item(3, 3).text() == "R$ 5,00"
+        assert product_view._model.item(3, 4).text() == "R$ 7,35"
 
 
 class TestProductListAddOrderWithFreight:
@@ -624,5 +624,5 @@ class TestProductListAddOrderWithFreight:
         # order-b (2024-07-15), so it is at row 1.
         # price = 3000 cents → "30,00", pwf = 5000 cents → "50,00"
         assert product_view._model.item(1, 2).text() == "Cimento Teste"
-        assert product_view._model.item(1, 3).text() == "30,00"
-        assert product_view._model.item(1, 4).text() == "50,00"
+        assert product_view._model.item(1, 3).text() == "R$ 30,00"
+        assert product_view._model.item(1, 4).text() == "R$ 50,00"

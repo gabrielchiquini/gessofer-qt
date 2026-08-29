@@ -47,10 +47,7 @@ def parse_sqlite_datetime(value: str | None) -> datetime | None:
         return None
     # SQLite may store as ISO string or as integer (unix timestamp).
     val = str(value)
-    try:
-        return datetime.fromisoformat(val)
-    except ValueError:
-        return datetime.fromtimestamp(float(val))
+    return datetime.strptime(val, "%Y-%m-%d %H:%M:%S.%f %z")
 
 
 # ---------------------------------------------------------------------------
@@ -79,6 +76,9 @@ def migrate(old_db: str, new_db: str) -> None:
     new_conn.execute("PRAGMA foreign_keys = ON")
 
     try:
+        new_conn.execute("DELETE FROM EXPENSE")
+        new_conn.execute("DELETE FROM PRODUCT")
+        new_conn.execute('DELETE FROM "ORDER"')
         mappings = _migrate_orders(old_conn, new_conn)
         _migrate_products(old_conn, new_conn, mappings)
         _migrate_expenses(old_conn, new_conn)
@@ -117,12 +117,12 @@ def _migrate_orders(old_conn: sqlite3.Connection, new_conn: sqlite3.Connection) 
         new_id = str(uuid.uuid4())
 
         fornecedor = row["fornecedor"]
-        data = row["data"]
-        chave_nfe = row.get("chaveNFE")
+        data = row["data"][0:10]
+        chave_nfe = row["chaveNFE"]
         frete = real_to_cents(row["frete"]) if row["frete"] is not None else 0
         descarga = real_to_cents(row["descarga"]) if row["descarga"] is not None else 0
-        created_at = parse_sqlite_datetime(row.get("createdAt"))
-        updated_at = parse_sqlite_datetime(row.get("updatedAt"))
+        created_at = parse_sqlite_datetime(row["createdAt"])
+        updated_at = parse_sqlite_datetime(row["updatedAt"])
 
         # Default timestamps if missing
         if created_at is None:
@@ -145,8 +145,8 @@ def _migrate_orders(old_conn: sqlite3.Connection, new_conn: sqlite3.Connection) 
                 chave_nfe,
                 frete,
                 descarga,
-                created_at.isoformat(),
-                updated_at.isoformat(),
+                created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             ),
         )
 
@@ -198,7 +198,8 @@ def _migrate_products(
         )
         nota_row = frete_cursor.fetchone()
         frete_total = (
-                real_to_cents(nota_row["frete"]) + real_to_cents(nota_row["descarga"])
+                real_to_cents(nota_row["frete"] if nota_row["frete"] is not None else 0)
+                + real_to_cents(nota_row["descarga"] if nota_row["descarga"] is not None else 0)
         )
 
         # Compute ratio for inverse freight distribution.
@@ -218,8 +219,8 @@ def _migrate_products(
                 price = preco_unit  # no freight applied
 
             preco_total = price * int(pr["quantidade"])
-            created_at = parse_sqlite_datetime(pr.get("createdAt"))
-            updated_at = parse_sqlite_datetime(pr.get("updatedAt"))
+            created_at = parse_sqlite_datetime(pr["createdAt"])
+            updated_at = parse_sqlite_datetime(pr["updatedAt"])
 
             if created_at is None:
                 created_at = datetime.now()
@@ -246,8 +247,8 @@ def _migrate_products(
                     preco_total,
                     new_order_uuid,
                     ordinal,
-                    created_at.isoformat(),
-                    updated_at.isoformat(),
+                    created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                    updated_at.strftime("%Y-%m-%d %H:%M:%S"),
                 ),
             )
             migrated += 1
@@ -280,8 +281,8 @@ def _migrate_expenses(
 
         description = row["name"]
         value = real_to_cents(row["value"]) if row["value"] is not None else 0
-        created_at = parse_sqlite_datetime(row.get("createdAt"))
-        updated_at = parse_sqlite_datetime(row.get("updatedAt"))
+        created_at = parse_sqlite_datetime(row["createdAt"])
+        updated_at = parse_sqlite_datetime(row["updatedAt"])
 
         if created_at is None:
             created_at = datetime.now()
@@ -298,8 +299,8 @@ def _migrate_expenses(
                 month_str,
                 description,
                 value,
-                created_at.isoformat(),
-                updated_at.isoformat(),
+                created_at.strftime("%Y-%m-%d %H:%M:%S"),
+                updated_at.strftime("%Y-%m-%d %H:%M:%S"),
             ),
         )
         migrated += 1

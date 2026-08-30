@@ -1,10 +1,8 @@
 from __future__ import annotations
 
 import uuid
-from pathlib import Path
 
-from Custom_Widgets.QCustomQToolTip import QCustomQToolTip
-from PySide6.QtCore import Signal, Qt, QObject, QEvent
+from PySide6.QtCore import Signal, Qt, QEvent, QPoint, QObject
 from PySide6.QtGui import QRegularExpressionValidator, QFont, QIcon, QMouseEvent
 from PySide6.QtWidgets import (
     QHBoxLayout,
@@ -12,8 +10,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QPushButton,
     QVBoxLayout,
-    QWidget, QToolTip,
-)
+    QWidget, )
 
 from backend.utils.currency import cents_to_input, parse_currency_to_cents
 from frontend.util.icons import svg_to_pixmap
@@ -84,7 +81,6 @@ class ProductRowWidget(QWidget):
         self.delete_button.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         # Warning icon — shown when product has import warnings
-        assets_dir: Path = Path(__file__).parent.parent / "assets"
         self.warning_icon: QLabel = QLabel(self)
         self.warning_icon.setFixedSize(18, 18)
 
@@ -222,31 +218,46 @@ class ProductRowWidget(QWidget):
         """Show warning icon with tooltip, or hide if no warnings."""
         if warnings:
             text = "; ".join(warnings)
-            # self.hover_filter = MouseHoverFilter(text)
-            # self.warning_icon.installEventFilter(self.hover_filter)
+            self.hover_filter = MouseHoverFilter(text, self.warning_icon)
+            self.warning_icon.installEventFilter(self.hover_filter)
             self.warning_icon.setPixmap(svg_to_pixmap(_EXCLAMATION_ICON_PATH, 18, 18))
-            QCustomQToolTip(
-                text=text,
-                parent=self,
-                target=self.warning_icon,
-                duration=1500,
-                tailPosition="top-center"
-            )
-            self.warning_icon.setToolTip(text)
-        else:
-            self.warning_icon.setToolTip("")
 
 
 class MouseHoverFilter(QObject):
-    def __init__(self, tooltip: str):
+    def __init__(self, tooltip: str, parent: QWidget):
         super().__init__()
-        self.tooltip = tooltip
+        self.custom_tip = MyCustomToolTip(tooltip)
+        self.parent = parent
 
     def eventFilter(self, obj, event):
         if event.type() == QEvent.Type.Enter:
             event: QMouseEvent = event  # type: ignore[union-attr]
-            QToolTip.showText(event.globalPos(), self.tooltip)
+            pos = self.parent.mapToGlobal(event.pos())
+            self.custom_tip.move(pos)
+            self.custom_tip.show()
+            return True
         elif event.type() == QEvent.Type.Leave:
-            event: QMouseEvent = event  # type: ignore[union-attr]
-
+            if self.custom_tip:
+                self.custom_tip.hide()
         return super().eventFilter(obj, event)
+
+
+class MyCustomToolTip(QWidget):
+    """An entirely custom widget acting as a tooltip popup."""
+
+    def __init__(self, text, parent=None):
+        super().__init__(parent, Qt.WindowType.ToolTip | Qt.WindowType.FramelessWindowHint)
+        self.setAttribute(Qt.WidgetAttribute.WA_ShowWithoutActivating)
+
+        # Build your custom layout and design here
+        layout = QVBoxLayout(self)
+        self.label = QLabel(text, self)
+        self.label.setStyleSheet("color: white; font-weight: bold;")
+        self.setContentsMargins(0,0,0,0)
+        layout.addWidget(self.label)
+
+        self.setStyleSheet("""
+            QWidget {
+                background-color: #333333;
+            }
+        """)

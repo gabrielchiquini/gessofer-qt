@@ -3,8 +3,7 @@ import gzip
 import logging
 from time import sleep
 
-from lxml import etree
-
+import lxml.etree as etree
 from backend.sefaz.config import URL_SEARCH
 from backend.sefaz.confirm import confirm_nfe
 from backend.sefaz.util import CNPJ, NSMAP, create_session
@@ -44,15 +43,18 @@ def _download_nfe_request(
         <consChNFe><chNFe>{nfe_key}</chNFe></consChNFe>
     </distDFeInt>"""
 
-    soap_envelope: str = (
-        '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">'
-        f'<soap:Body>'
-        f'<nfeDadosMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">'
-        f'{xml_request}'
-        f'</nfeDadosMsg>'
-        f'</soap:Body>'
-        f'</soap:Envelope>'
-    )
+    soap_envelope: str = f"""
+        <soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+            <soap:Body>
+                <nfeDistDFeInteresse xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
+                    <nfeDadosMsg xmlns="http://www.portalfiscal.inf.br/nfe/wsdl/NFeDistribuicaoDFe">
+                        {xml_request}
+                    </nfeDadosMsg>
+                </nfeDistDFeInteresse>
+            </soap:Body>
+        </soap:Envelope>
+    """
+    logger.debug(f"Request\n: {soap_envelope}")
 
     session = create_session()
 
@@ -66,6 +68,7 @@ def _download_nfe_request(
         headers=headers,
         timeout=60,
     )
+    logger.debug(f"Response\n: {response.text}")
     response.raise_for_status()
     return response.content
 

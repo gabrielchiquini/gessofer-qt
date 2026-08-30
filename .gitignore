@@ -35,6 +35,7 @@ MANIFEST
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.
 *.manifest
 *.spec
+!src/pysidedeploy.spec
 
 # Installer logs
 pip-log.txt
@@ -176,3 +177,5 @@ pyrightconfig.json
 # End of https://www.toptal.com/developers/gitignore/api/python
 
 main.db*
+src/pyside_app_demo.*
+*.db

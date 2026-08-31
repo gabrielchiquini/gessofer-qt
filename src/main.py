@@ -36,6 +36,7 @@ def main() -> None:
     # 3. Register the handler before creating the QApplication
     QtCore.qInstallMessageHandler(qt_message_handler)
     app = QApplication(sys.argv)
+    # app.focusChanged.connect(on_focus_changed)
 
     app.setStyle("FluentUI3")
     app.setApplicationName("Gessofer")
@@ -74,6 +75,11 @@ def main() -> None:
 
     sys.exit(app.exec())
 
+# def on_focus_changed(old, now):
+#     old_name = f"{old.metaObject().className()}({old.objectName()})" if old else "None"
+#     now_name = f"{now.metaObject().className()}({now.objectName()})" if now else "None"
+#     logging.debug(f"Focus changed: {old_name} -> {now_name}")
+#
 
 if __name__ == "__main__":
     main()

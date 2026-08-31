@@ -53,6 +53,7 @@ class OrderItemsCard(QWidget):
         self._scroll_area.setWidget(self._scroll_container)
         self._scroll_area.setWidgetResizable(True)
         self._scroll_area.setFrameShape(QFrame.Shape.NoFrame)
+        self._scroll_area.setFocusPolicy(Qt.FocusPolicy.NoFocus)
 
         self._card.set_content(self._scroll_area)
 

@@ -16,10 +16,10 @@ class _RequiredValidator(QValidator):
     def __init__(self, parent: QWidget | None = None) -> None:
         super().__init__(parent)
 
-    def validate(self, input_field: str, pos: int) -> QValidator.State:
+    def validate(self, input_field: str, pos: int) -> tuple[QValidator.State, str, int]:
         if input_field.strip():
-            return QValidator.State.Acceptable
-        return QValidator.State.Intermediate
+            return QValidator.State.Acceptable, input_field, pos
+        return QValidator.State.Intermediate, input_field, pos
 
 
 class _CombinedValidator(QValidator):
@@ -40,7 +40,7 @@ class _CombinedValidator(QValidator):
     def validate(self, input_field: str, pos: int) -> QValidator.State:
         worst: QValidator.State = QValidator.State.Acceptable
         for validator in self._validators:
-            state = validator.validate(input_field, pos)
+            state, _, _ = validator.validate(input_field, pos)
             if state == QValidator.State.Invalid:
                 return QValidator.State.Invalid
             if state == QValidator.State.Intermediate:
@@ -108,7 +108,7 @@ class TextField(QWidget):
 
         # QLineEdit setup
         self._edit.setPlaceholderText(placeholder)
-        self._edit.setContentsMargins(0,0,0,0)
+        self._edit.setContentsMargins(0, 0, 0, 0)
         if input_mask is not None:
             self._edit.setInputMask(input_mask)
 
@@ -128,7 +128,7 @@ class TextField(QWidget):
 
         if validators:
             self._validator: QValidator = _CombinedValidator(self, *validators)
-            self._edit.setValidator(self._validator) #type: ignore[union-attr]
+            self._edit.setValidator(self._validator)  # type: ignore[union-attr]
 
         self._edit.textEdited.connect(self._text_edited)
 
@@ -264,5 +264,4 @@ class TextField(QWidget):
 
     def _text_edited(self) -> None:
         """React to user text edits: mark as validated and re-check."""
-        self.set_was_validated(True)
         self._validate()

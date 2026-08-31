@@ -17,24 +17,24 @@ class DateValidator(QValidator):
     Returns ``Intermediate`` while the user is still typing (incomplete date).
     """
 
-    def validate(self, input_field: str, pos: int) -> QValidator.State:
+    def validate(self, input_field: str, pos: int) -> tuple[QValidator.State, str, int]:
         # During typing the mask may produce partial strings like "1/" or "10/7/"
         if "/" not in input_field or len(input_field) < 8:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         parts: list[str] = input_field.split("/")
         if len(parts) != 3:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         try:
             d, m, y = int(parts[0]), int(parts[1]), int(parts[2])
         except ValueError:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         if not (1 <= d <= 31 and 1 <= m <= 12 and y >= 1900):
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
-        return QValidator.State.Acceptable
+        return QValidator.State.Acceptable, input_field, pos
 
 
 class MonthValidator(QValidator):
@@ -51,21 +51,21 @@ class MonthValidator(QValidator):
     Never returns ``Invalid`` — partial input always yields ``Intermediate``.
     """
 
-    def validate(self, input_field: str, pos: int) -> QValidator.State:
+    def validate(self, input_field: str, pos: int) -> tuple[QValidator.State, str, int]:
         # During typing the mask may produce partial strings like "1/" or "10/202"
         if "/" not in input_field or len(input_field) < 7:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         parts: list[str] = input_field.split("/")
         if len(parts) != 2:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         try:
             m, y = int(parts[0]), int(parts[1])
         except ValueError:
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
         if not (1 <= m <= 12 and y >= 1900):
-            return QValidator.State.Intermediate
+            return QValidator.State.Intermediate, input_field, pos
 
-        return QValidator.State.Acceptable
+        return QValidator.State.Acceptable, input_field, pos

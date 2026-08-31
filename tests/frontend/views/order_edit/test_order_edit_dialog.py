@@ -43,12 +43,12 @@ class TestOrderEditDialogInit:
         assert rows[0]._name_input.text() == "Cimento CP-II 50kg"
         assert rows[0]._quantity_input.text() == "1"
         assert rows[0]._price_input.text() == "250,00"
-        assert rows[0]._total_with_freight_input.text() == "250,00"
+        assert rows[0]._total_with_freight_input.text() == "308,82"
 
         assert rows[1]._name_input.text() == "Cimento CP-II 1kg"
         assert rows[1]._quantity_input.text() == "1"
         assert rows[1]._price_input.text() == "5,00"
-        assert rows[1]._total_with_freight_input.text() == "5,00"
+        assert rows[1]._total_with_freight_input.text() == "6,18"
 
         # price_with_freight assertions — loaded from DB via seed data
         assert rows[0]._price_with_freight_input.text() == "308,82"
@@ -419,7 +419,7 @@ class TestOrderEditDialogNewOrder:
         assert rows[0]._name_input.text() == "Cimento Teste"
         assert rows[0]._quantity_input.text() == "2"
         assert rows[0]._price_input.text() == "50,00"
-        assert rows[0]._total_with_freight_input.text() == "100,00"
+        assert rows[0]._total_with_freight_input.text() == "220,00"
         assert rows[0]._price_with_freight_input.text() == "110,00"
 
         # Verify header fields

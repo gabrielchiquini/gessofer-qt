@@ -31,7 +31,9 @@ class TestOrderItemsCardDataLoading:
             f"{tc_id}: row 0 qty mismatch"
         assert rows[0]._price_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price), \
             f"{tc_id}: row 0 price mismatch"
-        assert rows[0]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[0].total), \
+        # total_with_freight = price_with_freight × quantity
+        expected_total_0: int = ORDERS_DATA[0].products[0].price_with_freight * ORDERS_DATA[0].products[0].quantity
+        assert rows[0]._total_with_freight_input.text() == cents_to_input(expected_total_0), \
             f"{tc_id}: row 0 total mismatch"
         assert rows[0]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price_with_freight), \
             f"{tc_id}: row 0 price_with_freight mismatch"
@@ -43,7 +45,9 @@ class TestOrderItemsCardDataLoading:
             f"{tc_id}: row 1 qty mismatch"
         assert rows[1]._price_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price), \
             f"{tc_id}: row 1 price mismatch"
-        assert rows[1]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[1].total), \
+        # total_with_freight = price_with_freight × quantity
+        expected_total_1: int = ORDERS_DATA[0].products[1].price_with_freight * ORDERS_DATA[0].products[1].quantity
+        assert rows[1]._total_with_freight_input.text() == cents_to_input(expected_total_1), \
             f"{tc_id}: row 1 total mismatch"
         assert rows[1]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price_with_freight), \
             f"{tc_id}: row 1 price_with_freight mismatch"
@@ -74,7 +78,9 @@ class TestOrderItemsCardDataLoading:
                 f"{tc_id}: row 0 qty mismatch"
             assert rows[0]._price_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price), \
                 f"{tc_id}: row 0 price mismatch"
-            assert rows[0]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[1].products[0].total), \
+            # total_with_freight = price_with_freight × quantity
+            expected_total_b: int = ORDERS_DATA[1].products[0].price_with_freight * ORDERS_DATA[1].products[0].quantity
+            assert rows[0]._total_with_freight_input.text() == cents_to_input(expected_total_b), \
                 f"{tc_id}: row 0 total mismatch"
             assert rows[0]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price_with_freight), \
                 f"{tc_id}: row 0 price_with_freight mismatch"

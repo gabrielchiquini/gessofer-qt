@@ -18,34 +18,34 @@ class TestProductRowWidget:
                                                    ) -> None:
         tc_id: str = "TC-72"
         row = product_row_widget
-        row.price_input.setText("100,00")
+        row._price_input.setText("100,00")
 
-        row.quantity_input.setText("3")
+        row._quantity_input.setText("3")
 
-        assert row.total_input.text() == "300,00"
+        assert row._total_with_freight_input.text() == "300,00"
 
     def test_auto_calculation_with_empty_price(self, product_row_widget: ProductRowWidget,
 
                                                ) -> None:
         tc_id: str = "TC-73"
         row = product_row_widget
-        row.quantity_input.setText("5")
+        row._quantity_input.setText("5")
 
-        assert row.total_input.text() == "0,00"
+        assert row._total_with_freight_input.text() == "0,00"
 
     def test_auto_calculation_with_empty_quantity(self, product_row_widget: ProductRowWidget,
 
                                                   ) -> None:
         tc_id: str = "TC-74"
         row = product_row_widget
-        row.price_input.setText("50,00")
+        row._price_input.setText("50,00")
 
-        assert row.total_input.text() == "0,00"
+        assert row._total_with_freight_input.text() == "0,00"
 
     def test_auto_calculation_both_empty(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-75"
         row = product_row_widget
-        assert row.total_input.text() == "0,00"
+        assert row._total_with_freight_input.text() == ""
 
     def test_is_empty_fully_empty(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-76"
@@ -55,23 +55,23 @@ class TestProductRowWidget:
     def test_is_empty_partially_filled(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-77"
         row = product_row_widget
-        row.name_input.setText("Cimento")
+        row._name_input.setText("Cimento")
         assert row.is_empty() is False
 
     def test_is_empty_all_fields_filled(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-78"
         row = product_row_widget
-        row.name_input.setText("Cimento")
-        row.quantity_input.setText("1")
-        row.price_input.setText("50,00")
+        row._name_input.setText("Cimento")
+        row._quantity_input.setText("1")
+        row._price_input.setText("50,00")
         assert row.is_empty() is False
 
     def test_get_product_data_returns_correct_data(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-79"
         row = product_row_widget
-        row.name_input.setText("Cimento")
-        row.quantity_input.setText("2")
-        row.price_input.setText("25,00")
+        row._name_input.setText("Cimento")
+        row._quantity_input.setText("2")
+        row._price_input.setText("25,00")
 
         data = row.get_product_data("test-order", 1)
         assert data.name == "Cimento"
@@ -82,9 +82,9 @@ class TestProductRowWidget:
     def test_validate_required_if_filled_all_three(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-80"
         row = product_row_widget
-        row.name_input.setText("Cimento")
-        row.quantity_input.setText("2")
-        row.price_input.setText("25,00")
+        row._name_input.setText("Cimento")
+        row._quantity_input.setText("2")
+        row._price_input.setText("25,00")
 
         valid, errors = row.validate(show_errors=True)
         assert valid is True
@@ -93,7 +93,7 @@ class TestProductRowWidget:
     def test_validate_required_if_filled_name_only(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-81"
         row = product_row_widget
-        row.name_input.setText("Cimento")
+        row._name_input.setText("Cimento")
 
         valid, errors = row.validate(show_errors=True)
         assert valid is False
@@ -102,7 +102,7 @@ class TestProductRowWidget:
     def test_validate_required_if_filled_qty_only(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-82"
         row = product_row_widget
-        row.quantity_input.setText("5")
+        row._quantity_input.setText("5")
 
         valid, errors = row.validate(show_errors=True)
         assert valid is False
@@ -111,7 +111,7 @@ class TestProductRowWidget:
     def test_validate_required_if_filled_price_only(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-83"
         row = product_row_widget
-        row.price_input.setText("99,99")
+        row._price_input.setText("99,99")
 
         valid, errors = row.validate(show_errors=True)
         assert valid is False
@@ -120,8 +120,8 @@ class TestProductRowWidget:
     def test_validate_required_if_filled_name_plus_qty(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-84"
         row = product_row_widget
-        row.name_input.setText("Cimento")
-        row.quantity_input.setText("2")
+        row._name_input.setText("Cimento")
+        row._quantity_input.setText("2")
 
         valid, errors = row.validate(show_errors=True)
         assert valid is False
@@ -143,9 +143,9 @@ class TestProductRowWidget:
     def test_error_label_hidden_when_valid(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-88"
         row = product_row_widget
-        row.name_input.setText("Cimento")
-        row.quantity_input.setText("2")
-        row.price_input.setText("25,00")
+        row._name_input.setText("Cimento")
+        row._quantity_input.setText("2")
+        row._price_input.setText("25,00")
         row.validate(show_errors=True)
 
         assert row._error.isVisible() is False
@@ -153,7 +153,7 @@ class TestProductRowWidget:
     def test_error_label_visible_when_invalid(self, product_row_widget: ProductRowWidget, ) -> None:
         tc_id: str = "TC-89"
         row = product_row_widget
-        row.name_input.setText("Cimento")
+        row._name_input.setText("Cimento")
         row.validate(show_errors=True)
 
         assert row._error.isVisible() is True
@@ -163,7 +163,7 @@ class TestProductRowWidget:
         row = product_row_widget
         emitted: List[object] = []
         row.row_changed.connect(lambda: emitted.append(True))
-        row.name_input.setText("Cimento")
+        row._name_input.setText("Cimento")
         assert len(emitted) >= 1
 
 class TestProductRowWidgetPreFilled:
@@ -180,10 +180,10 @@ class TestProductRowWidgetPreFilled:
         from PySide6.QtWidgets import QApplication
         new_row: ProductRowWidget = ProductRowWidget(parent=QApplication.activeWindow(), product_data=product)
 
-        assert new_row.name_input.text() == "Cimento CP-II 50kg"
-        assert new_row.quantity_input.text() == "3"
-        assert new_row.price_input.text() == "250,00"
-        assert new_row.total_input.text() == "750,00"
-        assert new_row.price_with_freight_input.text() == "250,00"
+        assert new_row._name_input.text() == "Cimento CP-II 50kg"
+        assert new_row._quantity_input.text() == "3"
+        assert new_row._price_input.text() == "250,00"
+        assert new_row._total_with_freight_input.text() == "750,00"
+        assert new_row._price_with_freight_input.text() == "250,00"
 
         new_row.deleteLater()

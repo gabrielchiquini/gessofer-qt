@@ -38,42 +38,42 @@ class ProductRowWidget(QWidget):
         self._id: str = product_data.id if product_data else str(uuid.uuid4())
 
         # Name input
-        self.name_input: QLineEdit = QLineEdit(self)
-        self.name_input.setPlaceholderText("Produto")
+        self._name_input: QLineEdit = QLineEdit(self)
+        self._name_input.setPlaceholderText("Produto")
 
         # Quantity input — digits only
-        self.quantity_input: QLineEdit = QLineEdit(self)
-        self.quantity_input.setPlaceholderText("Qtde")
-        self.quantity_input.setMaximumWidth(60)
+        self._quantity_input: QLineEdit = QLineEdit(self)
+        self._quantity_input.setPlaceholderText("Qtde")
+        self._quantity_input.setMaximumWidth(60)
         qty_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*$"
         )
-        self.quantity_input.setValidator(qty_validator)
+        self._quantity_input.setValidator(qty_validator)
 
         # Price input — currency format
-        self.price_input: QLineEdit = QLineEdit(self)
-        self.price_input.setPlaceholderText("0,00")
+        self._price_input: QLineEdit = QLineEdit(self)
+        self._price_input.setPlaceholderText("Preço un")
         price_validator: QRegularExpressionValidator = QRegularExpressionValidator(
             r"^\d*([.,]\d{1,2})?$"
         )
-        self.price_input.setValidator(price_validator)
-        self.price_input.setMaximumWidth(80)
+        self._price_input.setValidator(price_validator)
+        self._price_input.setMaximumWidth(100)
 
         # Price with freight input — read-only, gray, auto-calculated
-        self.price_with_freight_input: QLineEdit = QLineEdit(self)
-        self.price_with_freight_input.setPlaceholderText("0,00")
-        self.price_with_freight_input.setReadOnly(True)
-        self.price_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.price_with_freight_input.setStyleSheet("color: gray;")
-        self.price_with_freight_input.setMaximumWidth(80)
+        self._price_with_freight_input: QLineEdit = QLineEdit(self)
+        self._price_with_freight_input.setPlaceholderText("Preço com frete")
+        self._price_with_freight_input.setReadOnly(True)
+        self._price_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._price_with_freight_input.setStyleSheet("color: gray;")
+        self._price_with_freight_input.setMaximumWidth(100)
 
         # Total input — read-only, gray
-        self.total_input: QLineEdit = QLineEdit(self)
-        self.total_input.setPlaceholderText("0,00")
-        self.total_input.setReadOnly(True)
-        self.total_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
-        self.total_input.setStyleSheet("color: gray;")
-        self.total_input.setMaximumWidth(80)
+        self._total_with_freight_input: QLineEdit = QLineEdit(self)
+        self._total_with_freight_input.setPlaceholderText("Preço total est")
+        self._total_with_freight_input.setReadOnly(True)
+        self._total_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self._total_with_freight_input.setStyleSheet("color: gray;")
+        self._total_with_freight_input.setMaximumWidth(100)
 
         # Delete button
         self.delete_button: QPushButton = QPushButton("✕", self)
@@ -100,11 +100,11 @@ class ProductRowWidget(QWidget):
 
         row_layout: QHBoxLayout = QHBoxLayout()
         row_layout.setContentsMargins(0, 0, 0, 0)
-        row_layout.addWidget(self.name_input, stretch=1)
-        row_layout.addWidget(self.quantity_input)
-        row_layout.addWidget(self.price_input)
-        row_layout.addWidget(self.price_with_freight_input)
-        row_layout.addWidget(self.total_input)
+        row_layout.addWidget(self._name_input, stretch=1)
+        row_layout.addWidget(self._quantity_input)
+        row_layout.addWidget(self._price_input)
+        row_layout.addWidget(self._price_with_freight_input)
+        row_layout.addWidget(self._total_with_freight_input)
         row_layout.addWidget(self.warning_icon)
         row_layout.addWidget(self.delete_button)
 
@@ -112,32 +112,35 @@ class ProductRowWidget(QWidget):
         main_layout.addWidget(self._error)
 
         # Signal connections for auto-calculation
-        self.price_input.textChanged.connect(self._recalculate_total)
-        self.quantity_input.textChanged.connect(self._recalculate_total)
-        self.name_input.textChanged.connect(self._on_any_changed)
+        self._price_input.textChanged.connect(self._recalculate_total)
+        self._quantity_input.textChanged.connect(self._recalculate_total)
+        self._name_input.textChanged.connect(self._on_any_changed)
         self.delete_button.clicked.connect(self._on_delete)
 
         # Pre-fill if product_data provided
         if product_data is not None:
-            self.name_input.setText(product_data.name)
-            self.quantity_input.setText(str(product_data.quantity))
-            self.price_input.setText(cents_to_input(getattr(product_data, "price", 0)))
-            self.price_with_freight_input.setText(
+            self._name_input.setText(product_data.name)
+            self._quantity_input.setText(str(product_data.quantity))
+            self._price_input.setText(cents_to_input(getattr(product_data, "price", 0)))
+            self._price_with_freight_input.setText(
                 cents_to_input(getattr(product_data, "price_with_freight", product_data.price))
             )
-            self.total_input.setText(cents_to_input(getattr(product_data, "total", 0)))
+            self._total_with_freight_input.setText(cents_to_input(getattr(product_data, "total", 0)))
 
         # Initial total calculation
         self._recalculate_total()
 
     def _recalculate_total(self) -> None:
         """Auto-calculate total from price × quantity."""
-        price_cents: int = parse_currency_to_cents(self.price_input.text())
-        quantity_text: str = self.quantity_input.text().strip()
+        if not self._name_input.text() and not self._price_input.text() and not self._quantity_input.text():
+            return
+        self._on_any_changed()
+        price_cents: int = parse_currency_to_cents(self._price_with_freight_input.text())
+        quantity_text: str = self._quantity_input.text().strip()
         quantity: int = int(quantity_text) if quantity_text else 0
         total_cents: int = price_cents * quantity
-        self.total_input.setText(cents_to_input(total_cents))
-        self._on_any_changed()
+        self._total_with_freight_input.setText(cents_to_input(total_cents))
+
 
     def _on_any_changed(self) -> None:
         """Emit row_changed signal whenever any field changes."""
@@ -149,14 +152,17 @@ class ProductRowWidget(QWidget):
 
     def set_price_with_freight(self, value_cents: int) -> None:
         """Set the read-only price_with_freight display value."""
-        self.price_with_freight_input.setText(cents_to_input(value_cents))
+        self._price_with_freight_input.setText(cents_to_input(value_cents))
+
+    def set_total_with_freight(self, value_cents: int) -> None:
+        self._total_with_freight_input.setText(cents_to_input(value_cents))
 
     def is_empty(self) -> bool:
         """Return True if name is empty AND quantity is 0 AND price is 0."""
         return (
-                not self.name_input.text().strip()
-                and not self.quantity_input.text().strip()
-                and not self.price_input.text().strip()
+                not self._name_input.text().strip()
+                and not self._quantity_input.text().strip()
+                and not self._price_input.text().strip()
         )
 
     def get_product_data(
@@ -165,16 +171,34 @@ class ProductRowWidget(QWidget):
         """Return a ProductInput from the current widget state."""
         return ProductInput(
             id=self._id,
-            name=self.name_input.text().strip(),
-            quantity=int(self.quantity_input.text())
-            if self.quantity_input.text().strip()
+            name=self._name_input.text().strip(),
+            quantity=self.get_quantity()
+            if self._quantity_input.text().strip()
             else 0,
-            price=parse_currency_to_cents(self.price_input.text()),
-            price_with_freight=parse_currency_to_cents(self.price_with_freight_input.text()),
-            total=parse_currency_to_cents(self.total_input.text()),
+            price=self.get_price(),
+            price_with_freight=self.get_price_with_freight(),
+            total=self.get_total_price(),
             order_id=order_id,
             item_ordinal=ordinal,
         )
+
+    def get_price(self) -> int:
+        return parse_currency_to_cents(self._price_input.text())
+
+    def get_price_with_freight(self):
+        return parse_currency_to_cents(self._price_with_freight_input.text())
+
+    def get_total_price_with_freight(self) -> int:
+        return self.get_price_with_freight() * self.get_quantity()
+
+    def get_total_price(self) -> int:
+        return self.get_price() * self.get_quantity()
+
+    def get_quantity(self) -> int:
+        text = self._quantity_input.text().strip()
+        if not text:
+            return 0
+        return int(text)
 
     def validate(self, *, show_errors: bool = False) -> tuple[bool, list[str]]:
         """
@@ -182,9 +206,9 @@ class ProductRowWidget(QWidget):
         If any of name/quantity/price is filled, all three must be filled.
         Returns (True, []) if valid or fully empty; (False, [errors]) if partially filled.
         """
-        name: str = self.name_input.text().strip()
-        quantity_text: str = self.quantity_input.text().strip()
-        price_text: str = self.price_input.text().strip()
+        name: str = self._name_input.text().strip()
+        quantity_text: str = self._quantity_input.text().strip()
+        price_text: str = self._price_input.text().strip()
 
         name_valid: bool = bool(name)
         quantity_valid: bool = bool(quantity_text) and int(quantity_text) > 0
@@ -194,15 +218,15 @@ class ProductRowWidget(QWidget):
 
         if 0 < filled_count < 3:
             errors: list[str] = []
-            if not name_valid and (show_errors or self.name_input.isModified()):
+            if not name_valid and (show_errors or self._name_input.isModified()):
                 errors.append(
                     "Nome do produto obrigatório quando outros campos estão preenchidos."
                 )
-            if not quantity_valid and (show_errors or self.quantity_input.isModified()):
+            if not quantity_valid and (show_errors or self._quantity_input.isModified()):
                 errors.append(
                     "Quantidade do produto obrigatória quando outros campos estão preenchidos."
                 )
-            if not price_valid and (show_errors or self.price_input.isModified()):
+            if not price_valid and (show_errors or self._price_input.isModified()):
                 errors.append(
                     "Preço do produto obrigatório quando outros campos estão preenchidos."
                 )

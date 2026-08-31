@@ -40,19 +40,19 @@ class TestOrderEditDialogInit:
         dialog = order_edit_dialog_existing
         rows = dialog.items_card.get_product_rows()
 
-        assert rows[0].name_input.text() == "Cimento CP-II 50kg"
-        assert rows[0].quantity_input.text() == "1"
-        assert rows[0].price_input.text() == "250,00"
-        assert rows[0].total_input.text() == "250,00"
+        assert rows[0]._name_input.text() == "Cimento CP-II 50kg"
+        assert rows[0]._quantity_input.text() == "1"
+        assert rows[0]._price_input.text() == "250,00"
+        assert rows[0]._total_with_freight_input.text() == "250,00"
 
-        assert rows[1].name_input.text() == "Cimento CP-II 1kg"
-        assert rows[1].quantity_input.text() == "1"
-        assert rows[1].price_input.text() == "5,00"
-        assert rows[1].total_input.text() == "5,00"
+        assert rows[1]._name_input.text() == "Cimento CP-II 1kg"
+        assert rows[1]._quantity_input.text() == "1"
+        assert rows[1]._price_input.text() == "5,00"
+        assert rows[1]._total_with_freight_input.text() == "5,00"
 
         # price_with_freight assertions — loaded from DB via seed data
-        assert rows[0].price_with_freight_input.text() == "308,82"
-        assert rows[1].price_with_freight_input.text() == "6,18"
+        assert rows[0]._price_with_freight_input.text() == "308,82"
+        assert rows[1]._price_with_freight_input.text() == "6,18"
 
     def test_init_with_blank_order_has_one_empty_row(self, order_edit_dialog_blank: OrderEditDialog, ) -> None:
         tc_id: str = "TC-58"
@@ -131,7 +131,7 @@ class TestOrderEditDialogSave:
         dialog.header_card._supplier_input.set_text("Novo Fornecedor")
 
         rows = dialog.items_card.get_product_rows()
-        rows[0].price_input.setText("300,00")
+        rows[0]._price_input.setText("300,00")
 
         saved: List[OrderInput] = []
         dialog.order_saved.connect(saved.append)
@@ -151,8 +151,8 @@ class TestOrderEditDialogSave:
         saved: List[OrderInput] = []
         dialog.order_saved.connect(saved.append)
         for row in dialog.items_card.get_product_rows():
-            if row.quantity_input.text() == "0":
-                row.quantity_input.setText("1")
+            if row._quantity_input.text() == "0":
+                row._quantity_input.setText("1")
         dialog.btn_save.click()
 
         assert len(saved) == 1
@@ -210,7 +210,7 @@ class TestOrderEditDialogValidation:
 
         # Fill only name in trailing row
         rows = dialog.items_card.get_product_rows()
-        rows[-1].name_input.setText("Produto incompleto")
+        rows[-1]._name_input.setText("Produto incompleto")
 
         saved: List[OrderInput] = []
         dialog.order_saved.connect(saved.append)
@@ -233,7 +233,7 @@ class TestOrderEditDialogValidation:
 
         # Fill only name in trailing row (items error)
         rows = dialog.items_card.get_product_rows()
-        rows[-1].name_input.setText("Produto incompleto")
+        rows[-1]._name_input.setText("Produto incompleto")
 
         saved: List[OrderInput] = []
         dialog.order_saved.connect(saved.append)
@@ -287,8 +287,8 @@ class TestOrderEditDialogFreightDistribution:
         assert len(rows) == 3
 
         # Verify price_with_freight from seed data
-        assert rows[0].price_with_freight_input.text() == "308,82"
-        assert rows[1].price_with_freight_input.text() == "6,18"
+        assert rows[0]._price_with_freight_input.text() == "308,82"
+        assert rows[1]._price_with_freight_input.text() == "6,18"
 
         # Verify header freight/unloading fields are populated
         assert dialog.header_card._freight_input.get_text() == "50,00"
@@ -323,8 +323,8 @@ class TestOrderEditDialogFreightDistribution:
         # ratio = (25000 + 25500) / 25500 = 50500 / 25500 ≈ 1.9803921568627452
         # prod-a1: pwf = round(25000 * 1.9803921568627452) = round(49509.803...) = 49510
         # prod-a2: pwf = round(500 * 1.9803921568627452) = round(990.196...) = 990
-        assert rows[0].price_with_freight_input.text() == "495,10"
-        assert rows[1].price_with_freight_input.text() == "9,90"
+        assert rows[0]._price_with_freight_input.text() == "495,10"
+        assert rows[1]._price_with_freight_input.text() == "9,90"
 
     def test_freight_zero_resets_price_with_freight_to_base_price(
             self,
@@ -343,9 +343,9 @@ class TestOrderEditDialogFreightDistribution:
 
         # Verify price_with_freight equals base price
         # Row 0: price = 25000 cents → "250,00"
-        assert rows[0].price_with_freight_input.text() == "250,00"
+        assert rows[0]._price_with_freight_input.text() == "250,00"
         # Row 1: price = 500 cents → "5,00"
-        assert rows[1].price_with_freight_input.text() == "5,00"
+        assert rows[1]._price_with_freight_input.text() == "5,00"
 
     def test_freight_distribution_with_order_b_single_product(
             self,
@@ -368,7 +368,7 @@ class TestOrderEditDialogFreightDistribution:
             assert len(rows) == 2
 
             # Initial: freight=3000, unloading=500, seed pwf=121750 → "1217,50"
-            assert rows[0].price_with_freight_input.text() == "1217,50"
+            assert rows[0]._price_with_freight_input.text() == "1217,50"
 
             # Change freight to 1000,00 and unloading to 500,00
             dialog.header_card._freight_input.set_text("")
@@ -380,7 +380,7 @@ class TestOrderEditDialogFreightDistribution:
             # freight_total = 100000 + 50000 = 150000
             # ratio = (150000 + 240000) / 240000 = 390000 / 240000 = 1.625
             # prod-b1: pwf = round(120000 * 1.625) = round(195000) = 195000
-            assert rows[0].price_with_freight_input.text() == "1950,00"
+            assert rows[0]._price_with_freight_input.text() == "1950,00"
         finally:
             dialog.deleteLater()
 
@@ -406,9 +406,9 @@ class TestOrderEditDialogNewOrder:
 
         # Fill row 0
         rows = dialog.items_card.get_product_rows()
-        rows[0].name_input.setText("Cimento Teste")
-        rows[0].quantity_input.setText("2")
-        rows[0].price_input.setText("50,00")
+        rows[0]._name_input.setText("Cimento Teste")
+        rows[0]._quantity_input.setText("2")
+        rows[0]._price_input.setText("50,00")
 
         # ── Verify calculated values ────────────────────────────────
         # products_total = 5000 * 2 = 10000
@@ -416,11 +416,11 @@ class TestOrderEditDialogNewOrder:
         # ratio = (12000 + 10000) / 10000 = 22000 / 10000 = 2.2
         # row0: pwf = round(5000 * 2.2) = round(11000) = 11000
         # row0 total = 5000 * 2 = 10000
-        assert rows[0].name_input.text() == "Cimento Teste"
-        assert rows[0].quantity_input.text() == "2"
-        assert rows[0].price_input.text() == "50,00"
-        assert rows[0].total_input.text() == "100,00"
-        assert rows[0].price_with_freight_input.text() == "110,00"
+        assert rows[0]._name_input.text() == "Cimento Teste"
+        assert rows[0]._quantity_input.text() == "2"
+        assert rows[0]._price_input.text() == "50,00"
+        assert rows[0]._total_with_freight_input.text() == "100,00"
+        assert rows[0]._price_with_freight_input.text() == "110,00"
 
         # Verify header fields
         assert dialog.header_card._supplier_input.get_text() == "Fornecedor Teste Novo"

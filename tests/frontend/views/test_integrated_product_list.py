@@ -109,15 +109,15 @@ class TestProductListEditOrder:
 
         # ── Verify price_with_freight from seed data ────────────────
         rows = dialog.items_card.get_product_rows()
-        assert rows[0].price_with_freight_input.text() == "308,82"
-        assert rows[1].price_with_freight_input.text() == "6,18"
+        assert rows[0]._price_with_freight_input.text() == "308,82"
+        assert rows[1]._price_with_freight_input.text() == "6,18"
 
         # Add a new product row
         rows = dialog.items_card.get_product_rows()
         # Row 3 is the new empty row (rows 0-2 are existing data)
-        rows[2].name_input.setText("Novo Produto")
-        rows[2].quantity_input.setText("1")
-        rows[2].price_input.setText("10,00")
+        rows[2]._name_input.setText("Novo Produto")
+        rows[2]._quantity_input.setText("1")
+        rows[2]._price_input.setText("10,00")
 
         dialog.btn_save.click()
         qtbot.wait(100)
@@ -185,20 +185,20 @@ class TestProductListAddOrder:
 
         # Fill row 0 (already exists)
         rows = dialog.items_card.get_product_rows()
-        rows[0].name_input.setText("Produto A")
-        rows[0].quantity_input.setText("2")
-        rows[0].price_input.setText("50,00")
+        rows[0]._name_input.setText("Produto A")
+        rows[0]._quantity_input.setText("2")
+        rows[0]._price_input.setText("50,00")
 
         # Add row 1
         rows = dialog.items_card.get_product_rows()
-        rows[1].name_input.setText("Produto B")
-        rows[1].quantity_input.setText("1")
-        rows[1].price_input.setText("30,00")
+        rows[1]._name_input.setText("Produto B")
+        rows[1]._quantity_input.setText("1")
+        rows[1]._price_input.setText("30,00")
 
         # ── Verify price_with_freight (zero freight → pwf = base price) ─
         rows = dialog.items_card.get_product_rows()
-        assert rows[0].price_with_freight_input.text() == "50,00"
-        assert rows[1].price_with_freight_input.text() == "30,00"
+        assert rows[0]._price_with_freight_input.text() == "50,00"
+        assert rows[1]._price_with_freight_input.text() == "30,00"
 
         dialog.btn_save.click()
         qtbot.wait(100)
@@ -326,9 +326,9 @@ class TestProductListAddOrderEmptyMonth:
 
         # Fill product row 0
         rows = dialog.items_card.get_product_rows()
-        rows[0].name_input.setText("Produto Outubro")
-        rows[0].quantity_input.setText("1")
-        rows[0].price_input.setText("100,00")
+        rows[0]._name_input.setText("Produto Outubro")
+        rows[0]._quantity_input.setText("1")
+        rows[0]._price_input.setText("100,00")
 
         dialog.btn_save.click()
         qtbot.wait(100)
@@ -417,8 +417,8 @@ class TestProductListXmlImport:
         assert len(rows) == 12
 
         for row in dialog.items_card.get_product_rows():
-            if row.quantity_input.text() == "0":
-                row.quantity_input.setText("1")
+            if row._quantity_input.text() == "0":
+                row._quantity_input.setText("1")
 
         # Step 6: Save the order
         dialog.btn_save.click()
@@ -490,8 +490,8 @@ class TestProductListFreightDistribution:
 
         # ── Step 3: Verify initial state (order-a already has freight) ─
         rows = dialog.items_card.get_product_rows()
-        assert rows[0].price_with_freight_input.text() == "308,82"
-        assert rows[1].price_with_freight_input.text() == "6,18"
+        assert rows[0]._price_with_freight_input.text() == "308,82"
+        assert rows[1]._price_with_freight_input.text() == "6,18"
 
         # ── Step 4: Clear and set NEW freight/unloading values ──────
         # Use set_text("") instead of clear() — clear() does NOT emit signals
@@ -510,8 +510,8 @@ class TestProductListFreightDistribution:
         # ratio = (12000 + 25500) / 25500 = 37500 / 25500 ≈ 1.4705882352941178
         # prod-a1: pwf = round(25000 * 1.4705882352941178) = round(36764.705...) = 36765
         # prod-a2: pwf = round(500 * 1.4705882352941178) = round(735.294...) = 735
-        assert rows[0].price_with_freight_input.text() == "367,65"
-        assert rows[1].price_with_freight_input.text() == "7,35"
+        assert rows[0]._price_with_freight_input.text() == "367,65"
+        assert rows[1]._price_with_freight_input.text() == "7,35"
 
         # ── Step 6: Save and verify product count unchanged ─────────
         dialog.btn_save.click()
@@ -590,16 +590,16 @@ class TestProductListAddOrderWithFreight:
 
         # Fill row 0
         rows = dialog.items_card.get_product_rows()
-        rows[0].name_input.setText("Cimento Teste")
-        rows[0].quantity_input.setText("3")
-        rows[0].price_input.setText("30,00")
+        rows[0]._name_input.setText("Cimento Teste")
+        rows[0]._quantity_input.setText("3")
+        rows[0]._price_input.setText("30,00")
 
         # ── Step 3: Verify pwf for the new row ──────────────────────
         # products_total = 3000 * 3 = 9000
         # freight_total = 5000 + 1000 = 6000
         # ratio = (6000 + 9000) / 9000 = 15000 / 9000 ≈ 1.666667
         # row0: pwf = round(3000 * 1.666667) = round(5000) = 5000
-        assert rows[0].price_with_freight_input.text() == "50,00"
+        assert rows[0]._price_with_freight_input.text() == "50,00"
 
         # Save
         dialog.btn_save.click()

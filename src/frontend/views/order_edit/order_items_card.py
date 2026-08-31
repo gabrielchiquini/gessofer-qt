@@ -10,7 +10,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from backend.utils.currency import cents_to_view, parse_currency_to_cents
+from backend.utils.currency import cents_to_view
 from frontend.components.card import Card
 from frontend.views.order_edit.product_row_widget import ProductRowWidget
 from models.input import ProductInput
@@ -114,24 +114,26 @@ class OrderItemsCard(QWidget):
             return
 
         products_total: int = sum(
-            parse_currency_to_cents(row.total_input.text())
+            row.get_total_price()
             for row in self._product_rows
         )
         if products_total == 0:
             for row in self._product_rows:
                 row.set_price_with_freight(0)
+                row.set_total_with_freight(0)
             return
         ratio: float = (self.freight + products_total) / products_total
 
         for row in self._product_rows[:-1]:
-            base_price: int = parse_currency_to_cents(row.price_input.text())
-            pwf = round((base_price * ratio))
-            row.set_price_with_freight(pwf)
+            base_price: int = row.get_price()
+            total_price: int = row.get_total_price()
+            row.set_price_with_freight(round((base_price * ratio)))
+            row.set_total_with_freight(round((total_price * ratio)))
 
     def get_products_total(self) -> int:
         """Sum of all product totals in cents."""
         return sum(
-            parse_currency_to_cents(row.total_input.text())
+            row.get_total_price()
             for row in self._product_rows
         )
 
@@ -204,7 +206,8 @@ class OrderItemsCard(QWidget):
     def _order_changed(self):
         total_cents: int = self.get_products_total()
         self._products_total_label.setText(
-            f"Total dos produtos: {cents_to_view(total_cents)}"
+            f"Total dos produtos: {cents_to_view(total_cents)}\n"
+            f"Total da nota: {cents_to_view(total_cents + self.freight)}"
         )
         self.recalculate_price_with_freight()
         self.order_changed.emit()

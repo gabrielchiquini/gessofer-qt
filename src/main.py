@@ -12,15 +12,12 @@ from frontend.factories.certificate_status_view_factory import CertificateStatus
 from frontend.factories.expense_list_view_factory import ExpenseListViewFactory
 from frontend.factories.order_edit_list_view_factory import OrderEditListViewFactory
 from frontend.factories.product_list_view_factory import ProductListViewFactory
+from backend.utils.log import setup_log
 
 
 def main() -> None:
-    logging.basicConfig(
-        level=logging.DEBUG,
-        style='{',
-        format='{asctime} | {levelname:<8} | {name:<12} | {message}'
-    )
-    logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
+    # Install file-based logging (silent failure is acceptable)
+    setup_log()
 
     # 2. Map Qt message types to Python log levels
     def qt_message_handler(mode, context, message):

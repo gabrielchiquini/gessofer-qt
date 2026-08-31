@@ -30,8 +30,8 @@ class ExpenseRowWidget(QWidget):
         super().__init__(parent)
 
         # Name input
-        self.name_input: QLineEdit = QLineEdit(self)
-        self.name_input.setPlaceholderText("Nome da despesa")
+        self._name_input: QLineEdit = QLineEdit(self)
+        self._name_input.setPlaceholderText("Nome da despesa")
 
         # Value input — currency format
         self.value_input: QLineEdit = QLineEdit(self)
@@ -62,7 +62,7 @@ class ExpenseRowWidget(QWidget):
 
         row_layout: QHBoxLayout = QHBoxLayout()
         row_layout.setContentsMargins(0, 0, 0, 0)
-        row_layout.addWidget(self.name_input, stretch=1)
+        row_layout.addWidget(self._name_input, stretch=1)
         row_layout.addWidget(self.value_input)
         row_layout.addWidget(self.delete_button)
 
@@ -70,13 +70,13 @@ class ExpenseRowWidget(QWidget):
         main_layout.addWidget(self._error)
 
         # Signal connections
-        self.name_input.textChanged.connect(self._on_any_changed)
+        self._name_input.textChanged.connect(self._on_any_changed)
         self.value_input.textChanged.connect(self._on_any_changed)
         self.delete_button.clicked.connect(self._on_delete)
 
         # Pre-fill if expense_data provided
         if expense_data is not None:
-            self.name_input.setText(expense_data.description)
+            self._name_input.setText(expense_data.description)
             self.value_input.setText(cents_to_input(expense_data.value))
 
     def _on_any_changed(self) -> None:
@@ -90,13 +90,13 @@ class ExpenseRowWidget(QWidget):
     def is_empty(self) -> bool:
         """Return True if both name and value inputs are empty/whitespace."""
         return (
-            not self.name_input.text().strip()
+            not self._name_input.text().strip()
             and not self.value_input.text().strip()
         )
 
     def get_expense_data(self) -> ExpenseInput:
         """Return an ExpenseInput from the current widget state."""
-        name: str = self.name_input.text().strip()
+        name: str = self._name_input.text().strip()
         value_text: str = self.value_input.text().strip()
         if not name and not value_text:
             return ExpenseInput(description="", value=0)
@@ -113,7 +113,7 @@ class ExpenseRowWidget(QWidget):
         Both filled → valid.
         Returns (True, []) if valid, (False, [errors]) if invalid.
         """
-        name: str = self.name_input.text().strip()
+        name: str = self._name_input.text().strip()
         value_text: str = self.value_input.text().strip()
         name_filled: bool = bool(name)
         value_filled: bool = bool(value_text)
@@ -126,7 +126,7 @@ class ExpenseRowWidget(QWidget):
         # One filled, other empty → error
         if name_filled != value_filled:
             errors: list[str] = []
-            if not name_filled and (show_errors or self.name_input.isModified()):
+            if not name_filled and (show_errors or self._name_input.isModified()):
                 errors.append("Descrição obrigatória quando o valor está preenchido.")
             if not value_filled and (show_errors or self.value_input.isModified()):
                 errors.append("Valor obrigatório quando a descrição está preenchida.")

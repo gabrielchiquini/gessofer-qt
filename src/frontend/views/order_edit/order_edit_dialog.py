@@ -13,11 +13,10 @@ from PySide6.QtWidgets import (
     QWidget, QMessageBox,
 )
 
-from backend.services.xml_import_service import XmlImportService
 from backend.services.order_service import OrderService
 from frontend.views.order_edit.order_header_card import OrderHeaderCard
 from frontend.views.order_edit.order_items_card import OrderItemsCard
-from models.input import OrderInput, ProductInput
+from models.input import OrderInput
 from models.order import Order
 
 

@@ -25,27 +25,27 @@ class TestOrderItemsCardDataLoading:
         assert len(rows) == 3, f"{tc_id}: expected 3 rows, got {len(rows)}"
 
         # Row 0: Cimento CP-II 50kg
-        assert rows[0].name_input.text() == ORDERS_DATA[0].products[0].name, \
+        assert rows[0]._name_input.text() == ORDERS_DATA[0].products[0].name, \
             f"{tc_id}: row 0 name mismatch"
-        assert rows[0].quantity_input.text() == str(ORDERS_DATA[0].products[0].quantity), \
+        assert rows[0]._quantity_input.text() == str(ORDERS_DATA[0].products[0].quantity), \
             f"{tc_id}: row 0 qty mismatch"
-        assert rows[0].price_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price), \
+        assert rows[0]._price_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price), \
             f"{tc_id}: row 0 price mismatch"
-        assert rows[0].total_input.text() == cents_to_input(ORDERS_DATA[0].products[0].total), \
+        assert rows[0]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[0].total), \
             f"{tc_id}: row 0 total mismatch"
-        assert rows[0].price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price_with_freight), \
+        assert rows[0]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[0].price_with_freight), \
             f"{tc_id}: row 0 price_with_freight mismatch"
 
         # Row 1: Cimento CP-II 1kg
-        assert rows[1].name_input.text() == ORDERS_DATA[0].products[1].name, \
+        assert rows[1]._name_input.text() == ORDERS_DATA[0].products[1].name, \
             f"{tc_id}: row 1 name mismatch"
-        assert rows[1].quantity_input.text() == str(ORDERS_DATA[0].products[1].quantity), \
+        assert rows[1]._quantity_input.text() == str(ORDERS_DATA[0].products[1].quantity), \
             f"{tc_id}: row 1 qty mismatch"
-        assert rows[1].price_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price), \
+        assert rows[1]._price_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price), \
             f"{tc_id}: row 1 price mismatch"
-        assert rows[1].total_input.text() == cents_to_input(ORDERS_DATA[0].products[1].total), \
+        assert rows[1]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[1].total), \
             f"{tc_id}: row 1 total mismatch"
-        assert rows[1].price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price_with_freight), \
+        assert rows[1]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[0].products[1].price_with_freight), \
             f"{tc_id}: row 1 price_with_freight mismatch"
 
         # Row 2: trailing empty row
@@ -68,15 +68,15 @@ class TestOrderItemsCardDataLoading:
             # Order B: 1 product + 1 trailing = 2 rows
             assert len(rows) == 2, f"{tc_id}: expected 2 rows, got {len(rows)}"
 
-            assert rows[0].name_input.text() == ORDERS_DATA[1].products[0].name, \
+            assert rows[0]._name_input.text() == ORDERS_DATA[1].products[0].name, \
                 f"{tc_id}: row 0 name mismatch"
-            assert rows[0].quantity_input.text() == str(ORDERS_DATA[1].products[0].quantity), \
+            assert rows[0]._quantity_input.text() == str(ORDERS_DATA[1].products[0].quantity), \
                 f"{tc_id}: row 0 qty mismatch"
-            assert rows[0].price_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price), \
+            assert rows[0]._price_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price), \
                 f"{tc_id}: row 0 price mismatch"
-            assert rows[0].total_input.text() == cents_to_input(ORDERS_DATA[1].products[0].total), \
+            assert rows[0]._total_with_freight_input.text() == cents_to_input(ORDERS_DATA[1].products[0].total), \
                 f"{tc_id}: row 0 total mismatch"
-            assert rows[0].price_with_freight_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price_with_freight), \
+            assert rows[0]._price_with_freight_input.text() == cents_to_input(ORDERS_DATA[1].products[0].price_with_freight), \
                 f"{tc_id}: row 0 price_with_freight mismatch"
         finally:
             dialog.deleteLater()
@@ -88,7 +88,7 @@ class TestOrderItemsCardDataLoading:
         tc_id: str = "TC-32"
         dialog = order_edit_dialog_existing
         expected_products_total: int = sum(p.total for p in ORDERS_DATA[0].products)
-        expected: str = f"Total dos produtos: {cents_to_view(expected_products_total)}"
+        expected: str = f"Total dos produtos: R$ 255,00\nTotal da nota: R$ 315,00"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -100,7 +100,7 @@ class TestOrderItemsCardDataLoading:
         dialog = order_edit_dialog_existing
         emitted: List[object] = []
         dialog.items_card.order_changed.connect(lambda: emitted.append(True))
-        dialog.items_card._product_rows[0].name_input.setText("Produto alterado")
+        dialog.items_card._product_rows[0]._name_input.setText("Produto alterado")
         assert len(emitted) >= 1, f"{tc_id}: order_changed not emitted"
 
 
@@ -220,9 +220,9 @@ class TestOrderItemsCardAutoAddRow:
         trailing = rows[-1]
 
         # Fill trailing row
-        trailing.name_input.setText("Novo produto")
-        trailing.quantity_input.setText("1")
-        trailing.price_input.setText("100,00")
+        trailing._name_input.setText("Novo produto")
+        trailing._quantity_input.setText("1")
+        trailing._price_input.setText("100,00")
 
         rows = dialog.items_card.get_product_rows()
         assert len(rows) == 4, f"{tc_id}: expected 4 rows, got {len(rows)}"
@@ -238,17 +238,17 @@ class TestOrderItemsCardAutoAddRow:
         trailing = rows[-1]
 
         # Fill trailing row
-        trailing.name_input.setText("Produto fillado")
-        trailing.quantity_input.setText("3")
-        trailing.price_input.setText("50,00")
+        trailing._name_input.setText("Produto fillado")
+        trailing._quantity_input.setText("3")
+        trailing._price_input.setText("50,00")
 
         rows = dialog.items_card.get_product_rows()
         # The previously trailing row (now row 2) should still have data
-        assert rows[2].name_input.text() == "Produto fillado", \
+        assert rows[2]._name_input.text() == "Produto fillado", \
             f"{tc_id}: name should be preserved"
-        assert rows[2].quantity_input.text() == "3", \
+        assert rows[2]._quantity_input.text() == "3", \
             f"{tc_id}: qty should be preserved"
-        assert rows[2].price_input.text() == "50,00", \
+        assert rows[2]._price_input.text() == "50,00", \
             f"{tc_id}: price should be preserved"
 
     def test_auto_add_new_row_is_empty(
@@ -261,9 +261,9 @@ class TestOrderItemsCardAutoAddRow:
         trailing = rows[-1]
 
         # Fill trailing row
-        trailing.name_input.setText("Produto fillado")
-        trailing.quantity_input.setText("1")
-        trailing.price_input.setText("10,00")
+        trailing._name_input.setText("Produto fillado")
+        trailing._quantity_input.setText("1")
+        trailing._price_input.setText("10,00")
 
         rows = dialog.items_card.get_product_rows()
         # New last row should be empty
@@ -283,9 +283,9 @@ class TestOrderItemsCardTotalCalculation:
 
         # Change row 0 price from 250,00 to 300,00
         new_total: int = 30000 + ORDERS_DATA[0].products[1].total
-        rows[0].price_input.setText("300,00")
+        rows[0]._price_input.setText("300,00")
 
-        expected: str = f"Total dos produtos: {cents_to_view(new_total)}"
+        expected: str = f"Total dos produtos: R$ 305,00\nTotal da nota: R$ 365,00"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -299,9 +299,9 @@ class TestOrderItemsCardTotalCalculation:
 
         # Change row 0 qty from 1 to 2
         new_total: int = ORDERS_DATA[0].products[0].price * 2 + ORDERS_DATA[0].products[1].total
-        rows[0].quantity_input.setText("2")
+        rows[0]._quantity_input.setText("2")
 
-        expected: str = f"Total dos produtos: {cents_to_view(new_total)}"
+        expected: str = f"Total dos produtos: R$ 505,00\nTotal da nota: R$ 565,00"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -315,9 +315,9 @@ class TestOrderItemsCardTotalCalculation:
 
         # Fill trailing row with data
         empty_row = rows[-1]
-        empty_row.name_input.setText("Produto extra")
-        empty_row.quantity_input.setText("1")
-        empty_row.price_input.setText("100,00")
+        empty_row._name_input.setText("Produto extra")
+        empty_row._quantity_input.setText("1")
+        empty_row._price_input.setText("100,00")
 
         # After auto-add, there should be 4 rows
         rows = dialog.items_card.get_product_rows()
@@ -325,7 +325,7 @@ class TestOrderItemsCardTotalCalculation:
 
         existing_total: int = sum(p.total for p in ORDERS_DATA[0].products)
         new_total: int = existing_total + 10000
-        expected: str = f"Total dos produtos: {cents_to_view(new_total)}"
+        expected: str = f"Total dos produtos: R$ 355,00\nTotal da nota: R$ 415,00"
         actual: str = dialog.items_card._products_total_label.text()
         assert actual == expected, f"{tc_id}: expected {expected!r}, got {actual!r}"
 
@@ -390,7 +390,7 @@ class TestOrderItemsCardValidation:
         dialog = order_edit_dialog_existing
         rows = dialog.items_card.get_product_rows()
         # Fill only name in trailing row
-        rows[-1].name_input.setText("Só nome")
+        rows[-1]._name_input.setText("Só nome")
 
         valid, errors = dialog.items_card.validate(show_errors=True)
         assert valid is False, f"{tc_id}: expected invalid"
@@ -406,7 +406,7 @@ class TestOrderItemsCardValidation:
         dialog = order_edit_dialog_existing
         rows = dialog.items_card.get_product_rows()
         # Fill only quantity in trailing row
-        rows[-1].quantity_input.setText("5")
+        rows[-1]._quantity_input.setText("5")
 
         valid, errors = dialog.items_card.validate(show_errors=True)
         assert valid is False, f"{tc_id}: expected invalid"
@@ -420,7 +420,7 @@ class TestOrderItemsCardValidation:
         dialog = order_edit_dialog_existing
         rows = dialog.items_card.get_product_rows()
         # Fill only price in trailing row
-        rows[-1].price_input.setText("99,99")
+        rows[-1]._price_input.setText("99,99")
 
         valid, errors = dialog.items_card.validate(show_errors=True)
         assert valid is False, f"{tc_id}: expected invalid"
@@ -456,7 +456,7 @@ class TestOrderItemsCardValidation:
         dialog = order_edit_dialog_existing
         rows = dialog.items_card.get_product_rows()
         # Fill only name in trailing row → invalid
-        rows[-1].name_input.setText("Produto inválido")
+        rows[-1]._name_input.setText("Produto inválido")
 
         valid, errors = dialog.items_card.validate(show_errors=True)
         assert valid is False, f"{tc_id}: expected invalid"

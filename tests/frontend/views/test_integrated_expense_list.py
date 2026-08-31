@@ -92,14 +92,14 @@ class TestExpenseListEdit:
 
         # Step 4: Edit the first expense (row 0)
         rows = dialog.items_card.get_expense_rows()
-        rows[0].name_input.setText("Material de escritório EDITADO")
+        rows[0]._name_input.setText("Material de escritório EDITADO")
         rows[0].value_input.setText("200,00")
 
         # Step 5: Add a new expense
         dialog.items_card.add_row()
         rows = dialog.items_card.get_expense_rows()
         # After add_row, the new row is at index -2 (before the trailing empty row)
-        rows[-2].name_input.setText("Nova despesa")
+        rows[-2]._name_input.setText("Nova despesa")
         rows[-2].value_input.setText("50,00")
 
         dialog.btn_save.click()

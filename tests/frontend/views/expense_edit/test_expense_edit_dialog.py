@@ -25,15 +25,15 @@ class TestExpenseEditDialogInit:
         assert len(rows) == 4
 
         # Row 0 — Material de escritório
-        assert rows[0].name_input.text() == "Material de escritório"
+        assert rows[0]._name_input.text() == "Material de escritório"
         assert rows[0].value_input.text() == "150,00"
 
         # Row 1 — Taxa bancária
-        assert rows[1].name_input.text() == "Taxa bancária"
+        assert rows[1]._name_input.text() == "Taxa bancária"
         assert rows[1].value_input.text() == "75,00"
 
         # Row 2 — Limpeza
-        assert rows[2].name_input.text() == "Limpeza"
+        assert rows[2]._name_input.text() == "Limpeza"
         assert rows[2].value_input.text() == "1500,00"
 
         # Trailing empty row
@@ -50,9 +50,9 @@ class TestExpenseEditDialogInit:
         rows = expense_edit_dialog_august.items_card.get_expense_rows()
         assert len(rows) == 3  # 2 seeded + 1 trailing
 
-        assert rows[0].name_input.text() == "Manutenção elétrica"
+        assert rows[0]._name_input.text() == "Manutenção elétrica"
         assert rows[0].value_input.text() == "450,00"
-        assert rows[1].name_input.text() == "Água e esgoto"
+        assert rows[1]._name_input.text() == "Água e esgoto"
         assert rows[1].value_input.text() == "120,00"
         assert rows[2].is_empty() is True
 
@@ -72,7 +72,7 @@ class TestExpenseEditDialogSave:
     ) -> None:
         """Edit a row, save, verify success message, signal emission, and dialog accept."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[0].name_input.setText("Despesa editada")
+        rows[0]._name_input.setText("Despesa editada")
         rows[0].value_input.setText("200,00")
 
         saved_month: list[str] = []
@@ -96,7 +96,7 @@ class TestExpenseEditDialogSave:
         """Trailing empty row is not included in the expenses list sent to bridge."""
         # Fill trailing row — triggers auto-add of new trailing row
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[3].name_input.setText("Nova despesa")
+        rows[3]._name_input.setText("Nova despesa")
         rows[3].value_input.setText("100,00")
 
         # Now there are 5 rows: 4 filled + 1 new trailing
@@ -125,7 +125,7 @@ class TestExpenseEditDialogValidationErrors:
     ) -> None:
         """Fill only name in trailing row — validation fails, no save, no accept."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[3].name_input.setText("Nome sem valor")
+        rows[3]._name_input.setText("Nome sem valor")
 
         saved: list[str] = []
         expense_edit_dialog.expenses_saved.connect(saved.append)
@@ -176,14 +176,14 @@ class TestExpenseEditDialogAutoRow:
         assert len(rows) == 4  # 3 seeded + 1 trailing
 
         # Fill trailing row
-        rows[3].name_input.setText("Nova despesa")
+        rows[3]._name_input.setText("Nova despesa")
         rows[3].value_input.setText("100,00")
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
         assert len(rows) == 5  # new trailing row added
 
         # Previously filled row still has data
-        assert rows[3].name_input.text() == "Nova despesa"
+        assert rows[3]._name_input.text() == "Nova despesa"
         assert rows[3].value_input.text() == "100,00"
 
         # New trailing row is empty
@@ -248,7 +248,7 @@ class TestExpenseEditDialogTotal:
         """Total includes data from a row added via auto-add."""
         # Fill trailing row to trigger auto-add
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[3].name_input.setText("Teste")
+        rows[3]._name_input.setText("Teste")
         rows[3].value_input.setText("250,00")
 
         rows = expense_edit_dialog.items_card.get_expense_rows()
@@ -288,7 +288,7 @@ class TestExpenseEditDialogValidation:
     ) -> None:
         """Name filled, value empty — invalid, error message shown."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[3].name_input.setText("Só nome")
+        rows[3]._name_input.setText("Só nome")
 
         valid, errors = rows[3].validate(show_errors=True)
         assert valid is False
@@ -330,7 +330,7 @@ class TestExpenseEditDialogValidation:
     ) -> None:
         """Both name and value filled — valid, no error shown."""
         rows = expense_edit_dialog.items_card.get_expense_rows()
-        rows[3].name_input.setText("Despesa válida")
+        rows[3]._name_input.setText("Despesa válida")
         rows[3].value_input.setText("50,00")
 
         valid, errors = rows[3].validate(show_errors=True)

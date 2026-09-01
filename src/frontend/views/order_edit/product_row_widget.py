@@ -61,7 +61,7 @@ class ProductRowWidget(QWidget):
 
         # Price with freight input — read-only, gray, auto-calculated
         self._price_with_freight_input: QLineEdit = QLineEdit(self)
-        self._price_with_freight_input.setPlaceholderText("Preço com frete")
+        self._price_with_freight_input.setPlaceholderText("Preço + frete")
         self._price_with_freight_input.setReadOnly(True)
         self._price_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._price_with_freight_input.setStyleSheet("color: gray;")
@@ -69,7 +69,7 @@ class ProductRowWidget(QWidget):
 
         # Total input — read-only, gray
         self._total_with_freight_input: QLineEdit = QLineEdit(self)
-        self._total_with_freight_input.setPlaceholderText("Preço total est")
+        self._total_with_freight_input.setPlaceholderText("Preço total")
         self._total_with_freight_input.setReadOnly(True)
         self._total_with_freight_input.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self._total_with_freight_input.setStyleSheet("color: gray;")

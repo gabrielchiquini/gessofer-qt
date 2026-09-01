@@ -16,7 +16,7 @@ exec_directory = C:\Users\gabri\workpace\gessofer-rs\gessofer-qt\src
 project_file = pyproject.toml
 
 # application icon
-icon = C:\Users\gabri\workpace\gessofer-rs\gessofer-qt\.venv\Lib\site-packages\PySide6\scripts\deploy_lib\pyside_icon.ico
+icon = src/assets/money-check-dollar-solid.png
 
 [python]
 

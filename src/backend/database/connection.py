@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.pool import StaticPool
 
-DEFAULT_DB_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "gessofer-tauri")
+DEFAULT_DB_DIR = os.path.join(os.environ.get("LOCALAPPDATA", ""), "gessofer-app")
 DEFAULT_DB_FILE = "main.db"
 _logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ def discover_database_path() -> str:
     Discover the database file path using the priority order:
     1. DATABASE_URL environment variable (development/tests)
     2. CWD main.db (local development)
-    3. %LOCALAPPDATA%\\gessofer-tauri\\main.db (production)
+    3. %LOCALAPPDATA%\\gessofer-app\\main.db (production)
 
     Returns the absolute path as a string.
     Raises FileNotFoundError if no database is found and no env var is set.
@@ -45,7 +45,7 @@ def discover_database_path() -> str:
 
     raise FileNotFoundError(
         "Nenhum arquivo de banco encontrado. "
-        "Defina DATABASE_URL ou coloque main.db em %LOCALAPPDATA%\\gessofer-tauri\\"
+        "Defina DATABASE_URL ou coloque main.db em %LOCALAPPDATA%\\gessofer-app\\"
     )
 
 

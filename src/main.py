@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 
 from PySide6 import QtCore
+from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QApplication
 
 from backend.services.backup_service import BackupService
@@ -14,6 +15,7 @@ from frontend.factories.order_edit_list_view_factory import OrderEditListViewFac
 from frontend.factories.product_list_view_factory import ProductListViewFactory
 from backend.utils.log import setup_log
 
+_logger = logging.getLogger(__name__)
 
 def main() -> None:
     # Install file-based logging (silent failure is acceptable)
@@ -33,12 +35,14 @@ def main() -> None:
         elif mode == QtCore.QtMsgType.QtFatalMsg:
             logger.critical(message)
 
+    _logger.info("Starting application...")
     # 3. Register the handler before creating the QApplication
     QtCore.qInstallMessageHandler(qt_message_handler)
     app = QApplication(sys.argv)
     # app.focusChanged.connect(on_focus_changed)
 
     app.setStyle("FluentUI3")
+    app.styleHints().setColorScheme(Qt.ColorScheme.Light)
     app.setApplicationName("Gessofer")
     app.setOrganizationName("Gessofer")
     src_dir = Path(__file__).resolve().parent
